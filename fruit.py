@@ -1,2 +1,3 @@
 def favourite_fruits():
-    return "mango"
+    print("Test thing")
+    return ["banana", "apple"]
