@@ -1,7 +1,5 @@
 from flask import render_template
-
 from app import app
-
 
 @app.route("/")
 @app.route("/index")
@@ -21,12 +19,12 @@ def register():
 
 @app.route("/game")
 def game():
-    return "Game page"
+    return render_template("game.html")
 
 
 @app.route("/leaderboard")
 def leaderboard():
-    return "Leaderboard page"
+    return render_template("leaderboard.html")
 
 
 @app.route("/profile")
