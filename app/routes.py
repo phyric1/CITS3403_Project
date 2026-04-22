@@ -1,5 +1,6 @@
 from flask import render_template
 from app import app
+from procedural_dungeon import generate_dungeon
 
 @app.route("/")
 @app.route("/index")
@@ -19,7 +20,7 @@ def register():
 
 @app.route("/game")
 def game():
-    return render_template("game.html")
+    return render_template("game.html", grid=generate_dungeon())
 
 
 @app.route("/leaderboard")
