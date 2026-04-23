@@ -1,7 +1,7 @@
 from flask import render_template
-
 from app import app
 from app.forms import LoginForm, RegisterForm
+from procedural_dungeon import generate_dungeon
 
 
 @app.route("/")
@@ -24,12 +24,12 @@ def register():
 
 @app.route("/game")
 def game():
-    return "Game page"
+    return render_template("game.html", grid=generate_dungeon())
 
 
 @app.route("/leaderboard")
 def leaderboard():
-    return "Leaderboard page"
+    return render_template("leaderboard.html")
 
 
 @app.route("/profile")
