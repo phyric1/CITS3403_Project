@@ -4,34 +4,38 @@
 
 {% block content %}
 <style>
-/* this style block is temporary */
-#game-container {
-    height: 50vh;
-    background-color: rgb(69, 69, 69);
-}
-
-#game-info{
-    background-color: rgb(71, 71, 71);
-    border: 1px solid #000000;
-}
-
-#card-display {
-    background-color: rgb(52, 52, 52);
-    border: 1px solid black;
-    height: 30vh;
-    padding: 10px;
-}
-
+/* temporary style header */
+    #grid {
+    display: grid;
+    grid-template-columns: repeat(28, 24px);
+    }
+    .grid-tile {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        }
 </style>
 <h3>Dungeon Crawler</h3>
     <div class="container-fluid row">
 
         <div class="col-md-9">
-            <div id="game-container">
+            <div class="bg-secondary vh-40 bg-game" id="game-container">
                 <div id="grid">
+                    {% for row in grid %}
+                        {% for tile in row %}
+                            {% if tile == 0 %}
+                            <div class="grid-tile floor bg-secondary"></div>
+                            {% endif %}
+                            {% if tile == 1 %}
+                             <div class="grid-tile wall bg-dark"></div>
+                            {% endif %}
+                         {% endfor %}
+                    {% endfor %}
                 </div>
             </div>
-            <div class="d-flex" id="card-display">
+            <div class="d-flex bg-dark vh-40" id="card-display">
                 <div>
                 <h2>Deck</h2>
                 <p>Cards Left: 35/40</p>
@@ -39,7 +43,7 @@
             </div>
         </div>
 
-        <div id="game-info" class="col-md-3">   
+        <div id="game-info" class="col-md-3 bg-dark ">   
             <h2>Game Info</h2>
             <p>Health: <span id="health-value">100</span></p>
             <p>Stealth: <span id="stealth-value">100</span></p>
