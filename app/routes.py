@@ -25,7 +25,12 @@ def game():
 
 @app.route("/leaderboard")
 def leaderboard():
-    return render_template("leaderboard.html")
+    players = [
+        {"ranking": 1, "player": "player1", "stat1": 40, "stat2": 20},
+        {"ranking": 2, "player": "player2", "stat1": 40, "stat2": 30},
+        {"ranking": 3, "player": "player3", "stat1": 35, "stat2": 10},
+    ]
+    return render_template("leaderboard.html", players = players)
 
 
 @app.route("/profile")
