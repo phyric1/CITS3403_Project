@@ -86,15 +86,17 @@ def generate_dungeon():
             for j in range(room.x, room.x2+1):
                 grid[i][j] = 0
 
-    start_room = rooms[random.randint(0, len(rooms)-1)]
-    max_distance = 0
+    startRoom = Room
+    endRoom = Room
+    max_distance = -1
     for room in rooms:
-        if start_room != room:
-            if distance(start_room, room) > max_distance:
-                max_distance = distance(start_room, room)
-                end_room = room
-    startX, startY = start_room.center()
-    endX, endY = end_room.center()
+        for r in rooms:
+            if distance(room, r) > max_distance:
+                max_distance = distance(room, r)
+                startRoom = room
+                endRoom = r
+    startX, startY = startRoom.center()
+    endX, endY = endRoom.center()
     grid[startY][startX] = 2
     grid[endY][endX] = 3
     return grid
