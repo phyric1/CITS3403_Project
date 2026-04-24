@@ -23,24 +23,14 @@
             </tr>
             </thead>
             <tbody class="bg-secondary">
+            {% for row in players %}
             <tr>
-                <th scope="row">1</th>
-                <td>player1</td>
-                <td>...</td>
-                <td>...</td>
+                <th scope="row">{{ row.ranking }}</th>
+                <td>{{ row.player }}</td>
+                <td>{{ row.stat1 }}</td>
+                <td>{{ row.stat2 }}</td>
             </tr>
-            <tr>
-                <th scope="row">2</th>
-                <td>player2</td>
-                <td>...</td>
-                <td>...</td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>player3</td>
-              <td>...</td>
-              <td>...</td>
-            </tr>
+            {% endfor %}
             </tbody>
           </table>
         </div>
