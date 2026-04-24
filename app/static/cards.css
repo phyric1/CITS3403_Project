@@ -1,0 +1,114 @@
+.game-card {
+    max-width: 220px;
+    max-height: 330px;
+    margin: auto;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border: 10px solid;
+    border-radius: 5%;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e1e;
+}
+
+/* Max Cards Allowed in Deck */
+.card-max {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    z-index: 10;
+    top: 0%;
+    right: 0%;
+    background-color: rgba(0, 0, 0, 0.75);
+    padding: 1% 4%;
+    border-radius: 5%;
+    border-top: none;
+    border-right: none;
+    font-weight: bold;
+    font-size: 0.85rem;
+    border: 2px solid white;
+    color: white;
+}
+
+/* Rarity Colours */
+.rarity-common { border-color: #6c757d; background-color: #6c757d }
+.rarity-rare { border-color: #0d6efd; background-color: #0d6efd }
+.rarity-epic { border-color: #6f42c1; background-color: #6f42c1 }
+.rarity-legendary { border-color: #ffc107; background-color: #ffc107 }
+.rarity-master { border-color: #d35400; background-color: #d35400 }
+
+/* Top Image */
+.card-image img {
+    object-fit: contain;
+}
+
+.card-image {
+    height: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #2a2a2a;
+    overflow: hidden;
+    border-top-left-radius: 7%;
+    border-top-right-radius: 7%;
+}
+
+/* Divider (gap line) */
+.card-divider {
+    height: 7%;
+    background-color: inherit;
+}
+
+/* Bottom section */
+.card-body {
+    height: 50%;
+    padding: 10%;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    vertical-align: center;
+    color: black;
+    font-size: 70%;
+    background-color: white;
+    border-bottom-left-radius: 7%;
+    border-bottom-right-radius: 7%;
+}
+
+.card-body p {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+
+/* Floating title box */
+.card-title-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #111;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 2px solid white;
+    font-weight: bold;
+    font-size: 75%;
+    white-space: nowrap;
+    color: white;
+}
+
+/* Footer row */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
+    opacity: 0.8;
+    padding: 0;
+}

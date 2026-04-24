@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ username }}'s Inventory</h2>
+        <div>
+            <!-- Change to only appear if user who's inventory is being viewed is the one logged in -->
+            <a class="btn btn-success">
+                Manage Deck
+            </a>
+            <a href=href="{{ url_for('profile') }}" class="btn btn-outline-primary">
+                Back to Profile
+            </a>
+        </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <form method="GET">
+            <select name="sort" class="form-select" onchange="this.form.submit()">
+                <option value="">Sort</option>
+                <option value="name">Name</option>
+                <option value="rarity">Rarity</option>
+                <option value="type">Type</option>
+                <option value="max">Max</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="row">
+        {% for item in items %}
+            {% include "_card.html" %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
