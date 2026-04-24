@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, abort, request
 from app import app
 from procedural_dungeon import generate_dungeon
 
@@ -36,3 +36,31 @@ def leaderboard():
 @app.route("/profile")
 def profile():
     return "Profile page"
+
+
+@app.route("/profile/<username>/inventory")
+def inventory(username):
+    fake_data = { # TODO: Remove when database is implemented
+        "phyric1": [
+            {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
+            {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1},
+            {"name": "Silence Falls", "effect": "Stealth +1", "type": "utility", "rarity": "common", "max": 7, "count": 4},
+            {"name": "Dynamite", "effect": "Deals damage in 5x5 radius, -2 stealth points blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah  blah blah blah blah blah blah blah blah blah", "type": "combat", "rarity": "epic", "max": 3, "count": 2},
+        ]
+    }
+
+    items = fake_data.get(username)
+    if items is None:
+        abort(404)
+
+    sort = request.args.get("sort")
+    if sort == "name":
+        items = sorted(items, key=lambda x: x["name"])
+    elif sort == "rarity":
+        rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 3}
+        items = sorted(items, key=lambda x: rarity_order.get(x["rarity"], 0))
+    elif sort == "type":
+        items = sorted(items, key=lambda x: x["type"])
+    elif sort == "max":
+        items = sorted(items, key=lambda x: x["max"], reverse=True)
+    return render_template("inventory.html", items=items, username=username)
