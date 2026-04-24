@@ -31,6 +31,12 @@
                             {% if tile == 1 %}
                              <div class="grid-tile wall bg-dark"></div>
                             {% endif %}
+                            {% if tile == 2 %}
+                             <div class="grid-tile start bg-success"></div>
+                            {% endif %}
+                            {% if tile == 3 %}
+                             <div class="grid-tile end bg-danger"></div>
+                            {% endif %}
                          {% endfor %}
                     {% endfor %}
                 </div>

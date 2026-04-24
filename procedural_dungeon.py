@@ -52,24 +52,33 @@ def generate_dungeon():
                 if grid[y1][i] != 0:
                     grid[y1][i] = 0
 
+    def distance(room1, room2):
+        x1, y1 = room1.center()
+        x2, y2 = room2.center()
+        return (abs(x1-x2) + abs(y1-y2))
+    
     rooms = []
     #initialize grid
+    success = False
     for i in range(7):
-        width = random.randint(3, 5)
-        height = random.randint(3, 5)
-        x = random.randint(1, GRID_WIDTH - width - 1)
-        y = random.randint(1, GRID_HEIGHT - height - 1)
-        newRoom = Room(width, height, x, y)
+        success = False
+        while success == False:
+            width = random.randint(4, 8)
+            height = random.randint(4, 8)
+            x = random.randint(1, GRID_WIDTH - width - 1)
+            y = random.randint(1, GRID_HEIGHT - height - 1)
+            newRoom = Room(width, height, x, y)
 
-        valid = True
-        for r in rooms:
-            if not overlap(newRoom, r):
-                valid = False
-                break
-        if valid:
-            if len(rooms) > 0:
-                carve_corridor(newRoom, rooms[-1])
-            rooms.append(newRoom)
+            valid = True
+            for r in rooms:
+                if not overlap(newRoom, r):
+                    valid = False
+                    break
+            if valid:
+                if len(rooms) > 0:
+                    carve_corridor(newRoom, rooms[-1])
+                rooms.append(newRoom)
+                success = True
 
     for room in rooms:
         #carve out rooms
@@ -77,11 +86,22 @@ def generate_dungeon():
             for j in range(room.x, room.x2+1):
                 grid[i][j] = 0
 
+    start_room = rooms[random.randint(0, len(rooms)-1)]
+    max_distance = 0
+    for room in rooms:
+        if start_room != room:
+            if distance(start_room, room) > max_distance:
+                max_distance = distance(start_room, room)
+                end_room = room
+    startX, startY = start_room.center()
+    endX, endY = end_room.center()
+    grid[startY][startX] = 2
+    grid[endY][endX] = 3
     return grid
 
-#gridA = generate_dungeon()
-#for i in range(20):
-#    print(gridA[i])
+gridA = generate_dungeon()
+for i in range(20):
+   print(gridA[i])
 
 #for each room pair:
 #    connect them with corridors
