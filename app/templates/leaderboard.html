@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+    
+<body class="bg-light">
+  
+
+
+    <section class="container py-5 min-vh-100">
+
+      
+
+      <div class="p-3 pb-4 bg-dark text-white rounded shadow-lg mb-0" style="min-height: 90vh;">
+        <h1 class="mb-2 border-bottom text-center text-truncate d-block">Leaderboard</h1>
+        <div class="table-responsive border rounded">
+          <table class="table table-striped table-sm table-dark mb-0">
+            <thead class="table-light">
+            <tr>
+                <th class="col" style="width: 10%" scope="col">Ranking</th>
+                <th scope="col">Player</th>
+                <th scope="col">stat1</th>
+                <th scope="col">stat2</th>
+            </tr>
+            </thead>
+            <tbody class="bg-secondary">
+            {% for row in players %}
+            <tr>
+                <th scope="row">{{ row.ranking }}</th>
+                <td>{{ row.player }}</td>
+                <td>{{ row.stat1 }}</td>
+                <td>{{ row.stat2 }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+
+    
+  </body>
+{% endblock %}
