@@ -1,6 +1,4 @@
 .game-card {
-    max-width: 220px;
-    max-height: 330px;
     margin: auto;
     position: relative;
     width: 100%;
@@ -86,6 +84,8 @@
     display: -webkit-box;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
 /* Floating title box */
@@ -111,4 +111,27 @@
     font-size: 0.6rem;
     opacity: 0.8;
     padding: 0;
+}
+
+.inventory-card-wrapper {
+    position: relative;
+}
+
+/* Count badge */
+.card-count {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    z-index: 10;
+    background-color: black;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
 }
