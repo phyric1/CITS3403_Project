@@ -31,7 +31,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}"
-                            href="{{ url_for('profile') }}">Profile</a>
+                            href="{{ url_for('profile',username=username|default('phyric1')) }}">Profile</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}"
