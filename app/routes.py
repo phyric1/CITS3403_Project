@@ -33,9 +33,27 @@ def leaderboard():
     return render_template("leaderboard.html", players = players)
 
 
-@app.route("/profile")
-def profile():
-    return "Profile page"
+@app.route("/profile/<username>")
+def profile(username):
+    fake_profiles={ # TODO: Remove when database is implemented
+        "phyric1":{
+            "username":"phyric1",
+            "gold":120,
+            "fastest_time":3.55,
+            "total_runs":10,
+            "dungeons_cleared":8,
+            "cards_collected":10,
+            "deck_size":4,
+            "trade_completed":3,
+            "favourite_card":"Tailwind"
+        }
+    }
+    player=fake_profiles.get(username)
+
+    if player is None:
+        abort(404)
+    
+    return render_template("profile.html",player=player, username=username)
 
 
 @app.route("/profile/<username>/inventory")
