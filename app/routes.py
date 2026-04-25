@@ -5,7 +5,7 @@ from procedural_dungeon import generate_dungeon
 @app.route("/")
 @app.route("/index")
 def index():
-    return "Hello, World!"
+    return render_template("landing.html")
 
 
 @app.route("/login")

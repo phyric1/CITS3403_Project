@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Dungeon Crawler{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+
+<div class="text-center py-5">
+    <h1 class="display-3 fw-bold mb-4">Dungeon Crawler</h1>
+
+    <p class="lead mb-4">
+        Explore dungeons, collect resources, build your deck, trade cards, and compete on the leaderboard.
+    </p>
+
+    <div class="d-flex flex-column align-items-center gap-3 mb-5">
+        <div class="w-100" style="max-width: 320px;">
+            <a class="btn btn-primary btn-lg w-100" href="{{ url_for('game') }}">
+                Enter Game
+            </a>
+        </div>
+        
+        <div class="w-100" style="max-width: 320px;">
+            <button class="btn btn-outline-dark btn-lg w-100" type="button" data-bs-toggle="modal" data-bs-target="#howToPlayModal">
+                How to Play Game
+            </button>
+        </div>
+
+        <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+            <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('login') }}">
+                Login
+            </a>
+
+            <a class="btn btn-success btn-lg w-50" href="{{ url_for('register') }}">
+                Sign Up
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Explore Dungeons</h5>
+                <p class="card-text">
+                    Enter dungeons, complete runs, and collect rewards from your progress.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Build Your Deck</h5>
+                <p class="card-text">
+                    Collect cards and arrange your deck to improve your dungeon strategy.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Trade with Players</h5>
+                <p class="card-text">
+                    Trade cards with other players, and strengthen your collection.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="howToPlayModal" tabindex="-1" aria-labelledby="howToPlayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="howToPlayModalLabel">How to Play</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    In this game, players explore dungeons, collect resources, and build their own decks.
+                </p>
+
+                <p>
+                    You can challenge dungeons, earn rewards, collect new cards, and use those cards to improve your strategy.
+                </p>
+
+                <p>
+                    As you progress, you can trade cards with others and compete on the leaderboard.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
