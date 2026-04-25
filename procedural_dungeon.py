@@ -1,7 +1,49 @@
 import random
+from flask import request, jsonify
+
+class DungeonGame():
+    #player -> health, attack
+    #dificulty
+    #floors
+    #enemies
+    #grid/board (walls and such)
+    #cards/deck -> active card effects
+    def __init__(self):
+        self.grid, self.player = generate_dungeon()
+        self.turnNum = 0
+
+class Player():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def movePlayer(self, direction, grid):
+        if direction == "left":
+            if grid[self.x-1][self.y] == 0: 
+                grid[self.x][self.y] = 0
+                self.x -= 1
+                grid[self.x][self.y] = 2
+        elif direction == "right":
+            if grid[self.x+1][self.y] == 0: 
+                grid[self.x][self.y] = 0
+                self.x += 1
+                grid[self.x][self.y] = 2
+        elif direction == "up":
+            if grid[self.x][self.y-1] == 0: 
+                grid[self.x][self.y] = 0
+                self.y -= 1
+                grid[self.x][self.y] = 2
+        elif direction == "down":
+            if grid[self.x][self.y+1] == 0: 
+                grid[self.x][self.y] = 0
+                self.y += 1
+                grid[self.x][self.y] = 2
+        return jsonify({"grid": grid, "player": {"x": self.x, "y": self.y}})
+
+
 def generate_dungeon():    
     GRID_HEIGHT = 20
-    GRID_WIDTH = 28
+    GRID_WIDTH = 32
 
     #Room constants
     MIN_ROOMS = 3
@@ -60,11 +102,11 @@ def generate_dungeon():
     rooms = []
     #initialize grid
     success = False
-    for i in range(7):
+    for i in range(8):
         success = False
         while success == False:
-            width = random.randint(4, 8)
-            height = random.randint(4, 8)
+            width = random.randint(3, 5)
+            height = random.randint(3, 5)
             x = random.randint(1, GRID_WIDTH - width - 1)
             y = random.randint(1, GRID_HEIGHT - height - 1)
             newRoom = Room(width, height, x, y)
@@ -97,25 +139,45 @@ def generate_dungeon():
                 endRoom = r
     startX, startY = startRoom.center()
     endX, endY = endRoom.center()
-    grid[startY][startX] = 2
+    player = Player(startX, startY)
+    grid[player.y][player.x] = 2
     grid[endY][endX] = 3
-    return grid
 
-gridA = generate_dungeon()
-for i in range(20):
-   print(gridA[i])
+    #block off end room
+    tempArray = []
+    for i in range(endRoom.x, endRoom.x2+1):
+        if grid[endRoom.y-1][i] == 0:
+            grid[endRoom.y-1][i] = 1
+            tempArray.append((endRoom.y-1, i))
+    if len(tempArray) > 0:
+        y, x = tempArray[random.randint(0, len(tempArray)-1)]
+        grid[y][x] = 3
+    tempArray.clear()
+    for i in range(endRoom.x, endRoom.x2+1):
+        if grid[endRoom.y2+1][i] == 0:
+            grid[endRoom.y2+1][i] = 1
+            tempArray.append((endRoom.y2+1, i))
+    if len(tempArray) > 0:
+        y, x = tempArray[random.randint(0, len(tempArray)-1)]
+        grid[y][x] = 3
+    tempArray.clear()
+    for i in range(endRoom.y, endRoom.y2+1):
+        if grid[i][endRoom.x-1] == 0:
+            grid[i][endRoom.x-1] = 1
+            tempArray.append((i, endRoom.x-1))
+    if len(tempArray) > 0:
+        y, x = tempArray[random.randint(0, len(tempArray)-1)]
+        grid[y][x] = 3
+    tempArray.clear()
+    for i in range(endRoom.y, endRoom.y2+1):
+        if grid[i][endRoom.x2+1] == 0:
+            grid[i][endRoom.x2+1] = 1
+            tempArray.append((i, endRoom.x2+1))
+    if len(tempArray) > 0:
+        y, x = tempArray[random.randint(0, len(tempArray)-1)]
+        grid[y][x] = 3
 
-#for each room pair:
-#    connect them with corridors
+    return grid, player
 
-
-
-
-
-
-
-
-#choose start room
-#choose farthest room as end
-
-#mark start and end in grid
+#for i in range(20):
+   #print(gridA[i])
