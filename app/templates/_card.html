@@ -1,0 +1,25 @@
+<div class="game-card rarity-{{ item.rarity }}">
+
+    <div class="card-max">
+        {{ item.max }}
+    </div>
+
+    <div class="card-image">
+        <img src="{{ url_for('static', filename='img/' ~ item.type ~ '.png') }}" alt="{{ item.type }}">
+    </div>
+
+    <div class="card-title-box">
+        {{ item.name }}
+    </div>
+
+    <div class="card-divider"></div>
+
+    <div class="card-body">
+        <p>{{ item.effect }}</p>
+
+        <div class="card-footer">
+            <span>{{ item.type|capitalize }}</span>
+        </div>
+    </div>
+
+</div>
