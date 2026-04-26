@@ -1,10 +1,8 @@
-from flask import render_template, abort, request
+from flask import render_template, abort, request, jsonify
 from app import app
-from game_logic import DungeonGame
+from game_logic import DungeonGame, Player, Grid
 
-# Store game state globally (in production, use sessions)
-game_state = {"grid": None, "player": None}
-
+dungeon_game = DungeonGame()
 
 @app.route("/")
 @app.route("/index")
@@ -32,9 +30,14 @@ def game():
         ]
     }
     items = fake_data.get("phyric1")
-    global game_state
-    game = DungeonGame()
-    return render_template("game.html", grid=game.getGrid(), items=items)
+
+    return render_template("game.html", grid=dungeon_game.getGrid(), items=items)
+
+@app.route("/move", methods=["POST"])
+def move():
+    direction = request.json.get("direction")
+    return dungeon_game.getPlayer().movePlayer(direction, dungeon_game)
+
 
 @app.route("/leaderboard")
 def leaderboard():

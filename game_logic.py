@@ -11,43 +11,79 @@ class DungeonGame():
     #cards/deck -> active card effects
     def __init__(self):
         self.grid = Grid()
-        self.player = Player(self.grid.startX,self.grid.startY)
+        self.player = Player(self.grid.startX, self.grid.startY)
         self.turnNum = 0
 
+    def getGridObject(self):
+        return self.grid
+    
     def getGrid(self):
         return self.grid.grid
+    
+    def getFakeGrid(self):
+        return self.grid.fake_grid
+    
+    def getPlayer(self):
+        return self.player
 
 class Player():
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-    def movePlayer(self, direction, grid):
+    def movePlayer(self, direction, game):
+        grid = game.getGrid()
         if direction == "left":
-            if grid[self.x-1][self.y] == 0: 
-                grid[self.x][self.y] = 0
+            if grid[self.y][self.x-1] == 0: 
+                grid[self.y][self.x] = 0
                 self.x -= 1
-                grid[self.x][self.y] = 2
+                grid[self.y][self.x] = 2
         elif direction == "right":
-            if grid[self.x+1][self.y] == 0: 
-                grid[self.x][self.y] = 0
+            if grid[self.y][self.x+1] == 0: 
+                grid[self.y][self.x] = 0
                 self.x += 1
-                grid[self.x][self.y] = 2
+                grid[self.y][self.x] = 2
         elif direction == "up":
-            if grid[self.x][self.y-1] == 0: 
-                grid[self.x][self.y] = 0
+            if grid[self.y-1][self.x] == 0: 
+                grid[self.y][self.x] = 0
                 self.y -= 1
-                grid[self.x][self.y] = 2
+                grid[self.y][self.x] = 2
         elif direction == "down":
-            if grid[self.x][self.y+1] == 0: 
-                grid[self.x][self.y] = 0
+            if grid[self.y+1][self.x] == 0: 
+                grid[self.y][self.x] = 0
                 self.y += 1
-                grid[self.x][self.y] = 2
-        return jsonify({"grid": grid, "player": {"x": self.x, "y": self.y}})
+                grid[self.y][self.x] = 2
+
+        game.getGridObject().updateVisibility(self)
+        return_grid = game.getGridObject().gridProxy()
+
+        return jsonify({"grid": return_grid})
 
 class Grid():
+    grid = [[]]
+    FOV = 4
+    HEIGHT = int
+    WIDTH = int
+    
     def __init__(self):
         self.grid, self.startX, self.startY = self.generate_dungeon()
+        self.isVisible = [[False] * 32 for _ in range(20)]
+        self.fake_grid = [[-1] * 32 for _ in range(20)]
+
+    def updateVisibility(self, player: Player):
+        for i in range(player.y-2, player.y+3):
+            for j in range(player.x-2, player.x+3):
+                if 0 <= i < 20 and 0 <= j < 32:
+                    self.isVisible[i][j] = True
+    
+    def gridProxy(self):
+        for i in range(0,20):
+            for j in range(0,32):
+                if self.isVisible[i][j]:
+                    self.fake_grid[i][j] = self.grid[i][j]
+                else:
+                    self.fake_grid[i][j] = -1
+        return self.fake_grid
 
     def generate_dungeon(self):    
         GRID_HEIGHT = 20
@@ -185,6 +221,6 @@ class Grid():
             grid[y][x] = 3
 
         return grid, startX, startY
-
-#for i in range(20):
-   #print(gridA[i])
+    
+def shortestPath():
+    return None
