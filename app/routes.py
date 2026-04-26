@@ -1,7 +1,9 @@
 from flask import render_template, abort, request,url_for,session,redirect
 from app import app,db
-from procedural_dungeon import generate_dungeon
 from app.models import User
+from game_logic import DungeonGame, Player, Grid
+
+dungeon_game = DungeonGame()
 
 @app.route("/")
 @app.route("/index")
@@ -92,17 +94,50 @@ def register():
 
 @app.route("/game")
 def game():
-    return render_template("game.html", grid=generate_dungeon())
+    fake_data = { # TODO: Remove when database is implemented
+        "phyric1": [
+            {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
+            {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1},
+            {"name": "Silence Falls", "effect": "Stealth +1", "type": "utility", "rarity": "common", "max": 7, "count": 4},
+        ]
+    }
+    items = fake_data.get("phyric1")
+
+    return render_template("game.html", grid=dungeon_game.getGrid(), items=items)
+
+@app.route("/move", methods=["POST"])
+def move():
+    direction = request.json.get("direction")
+    return dungeon_game.getPlayer().movePlayer(direction, dungeon_game)
 
 
 @app.route("/leaderboard")
 def leaderboard():
     players = [
-        {"ranking": 1, "player": "player1", "stat1": 40, "stat2": 20},
-        {"ranking": 2, "player": "player2", "stat1": 40, "stat2": 30},
+        {"ranking": 1, "player": "player1", "stat1": 70, "stat2": 20},
+        {"ranking": 2, "player": "player2", "stat1": 31, "stat2": 30},
         {"ranking": 3, "player": "player3", "stat1": 35, "stat2": 10},
+        {"ranking": 4, "player": "player4", "stat1": 35, "stat2": 10},       # ranking will probably be determined by combination of stats in the future
+        {"ranking": 5, "player": "player5", "stat1": 21, "stat2": 40},
+        {"ranking": 6, "player": "player6", "stat1": 65, "stat2": 60},
     ]
-    return render_template("leaderboard.html", players = players)
+
+    sort = request.args.get("sort")
+
+    if sort == "ranking":
+        players = sorted(players, key=lambda x: x["ranking"])
+    elif sort == "player":
+        players = sorted(players, key=lambda x: x["player"].lower())
+    elif sort == "stat1":
+        players = sorted(players, key=lambda x: x["stat1"], reverse=True)
+    elif sort == "stat2":
+        players = sorted(players, key=lambda x: x["stat2"], reverse=True)
+    else:
+        sort = "ranking"
+        players = sorted(players, key=lambda x: x["ranking"])
+
+
+    return render_template("leaderboard.html", players = players, sort=sort)
 
 
 @app.route("/profile/<username>")

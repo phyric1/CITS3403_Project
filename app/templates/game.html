@@ -3,11 +3,12 @@
 {% block title %}Game{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
 <style>
 /* temporary style header */
     #grid {
     display: grid;
-    grid-template-columns: repeat(28, 24px);
+    grid-template-columns: repeat(32, 24px);
     }
     .grid-tile {
         width: 24px;
@@ -17,7 +18,6 @@
         align-items: center;
         }
 </style>
-<h3>Dungeon Crawler</h3>
     <div class="container-fluid row">
 
         <div class="col-md-9">
@@ -25,11 +25,20 @@
                 <div id="grid">
                     {% for row in grid %}
                         {% for tile in row %}
+                            {% if tile == -1 %}
+                            <div class="grid-tile shadow bg-dark"></div>
+                            {% endif %}
                             {% if tile == 0 %}
                             <div class="grid-tile floor bg-secondary"></div>
                             {% endif %}
                             {% if tile == 1 %}
                              <div class="grid-tile wall bg-dark"></div>
+                            {% endif %}
+                            {% if tile == 2 %}
+                             <div class="grid-tile start bg-success"></div>
+                            {% endif %}
+                            {% if tile == 3 %}
+                             <div class="grid-tile end bg-danger"></div>
                             {% endif %}
                          {% endfor %}
                     {% endfor %}
@@ -37,28 +46,35 @@
             </div>
             <div class="d-flex bg-dark vh-40" id="card-display">
                 <div>
-                <h2>Deck</h2>
-                <p>Cards Left: 35/40</p>
+                <h2 class="text-light">Deck</h2>
+                <p class="text-light">Cards Left: 35/40</p>
                 </div>
+                    {% for item in items %}
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="inventory-card-wrapper">
+                    {% include "_card.html" %}
+                </div>
+            </div>
+        {% endfor %}
             </div>
         </div>
 
         <div id="game-info" class="col-md-3 bg-dark ">   
-            <h2>Game Info</h2>
-            <p>Health: <span id="health-value">100</span></p>
-            <p>Stealth: <span id="stealth-value">100</span></p>
-            <p>Treasure: <span id="treasure-value">100</span></p>
+            <h2 class="text-light">Game Info</h2>
+            <p class="text-light">Health: <span id="health-value">100</span></p>
+            <p class="text-light">Stealth: <span id="stealth-value">100</span></p>
+            <p class="text-light">Treasure: <span id="treasure-value">100</span></p>
 
-            <p>Dificulty: <span id="difficulty-value">Normal</span></p>
-            <p>Floor: <span id="floor-value">1/10</span></p>
+            <p class="text-light">Dificulty: <span id="difficulty-value">Normal</span></p>
+            <p class="text-light">Floor: <span id="floor-value">1/10</span></p>
 
-            <p>Turn: <span id="turn-value">20</span></p>
-            <p>Cards Left: <span id="cards-left-value">25</span></p>
+            <p class="text-light">Turn: <span id="turn-value">0</span></p>
+            <p class="text-light">Cards Left: <span id="cards-left-value">25</span></p>
 
-            <p>Active Cards</p>
-            <p>Last Used Card: <span id="last-used-value">None</span></p>
+            <p class="text-light">Active Cards</p>
+            <p class="text-light">Last Used Card: <span id="last-used-value">None</span></p>
 
         </div>
     </div>
-
+<script src="{{ url_for('static', filename='game.js') }}"></script>
 {% endblock %}
