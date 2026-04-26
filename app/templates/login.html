@@ -7,15 +7,26 @@
 <div class="row justify-content-center">
     <div class="col-md-4">
         <h2 class="mb-4 text-center">Login</h2>
+        {% if errors.get("general") %}
+            <div class="alert alert-danger">
+                {{ errors.get("general") }}
+            </div>
+        {% endif %}
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label">Username</label>
                 <input type="text" name="username" class="form-control" required>
+                {% if errors.get("username") %}
+                    <div class="text-danger small">{{ errors.get("username") }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Password</label>
                 <input type="password" name="password" class="form-control" required>
+                {% if errors.get("password") %}
+                    <div class="text-danger small">{{ errors.get("password") }}</div>
+                {% endif %}
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Login</button>

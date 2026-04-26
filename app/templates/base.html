@@ -30,14 +30,30 @@
                         <a class="nav-link {% if request.endpoint == 'leaderboard' %}active{% endif %}"
                             href="{{ url_for('leaderboard') }}">Leaderboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}"
-                            href="{{ url_for('profile',username=username|default('phyric1')) }}">Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}"
-                            href="{{ url_for('login') }}">Log In</a>
-                    </li>
+                    {% if session.get("user_id") %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}"
+                                href="{{ url_for('profile',username=session.get('username')) }}">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <span class="nav-link">
+                                {{session.get("username")}}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'logout' %}active{% endif %}"
+                                href="{{ url_for('logout') }}">Log Out</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}"
+                                href="{{ url_for('register') }}">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}"
+                                href="{{ url_for('login') }}">Log In</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
