@@ -1,6 +1,8 @@
-from flask import render_template, abort, request
+from flask import render_template, abort, request, jsonify
 from app import app
-from procedural_dungeon import generate_dungeon
+from game_logic import DungeonGame, Player, Grid
+
+dungeon_game = DungeonGame()
 
 @app.route("/")
 @app.route("/index")
@@ -20,7 +22,21 @@ def register():
 
 @app.route("/game")
 def game():
-    return render_template("game.html", grid=generate_dungeon())
+    fake_data = { # TODO: Remove when database is implemented
+        "phyric1": [
+            {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
+            {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1},
+            {"name": "Silence Falls", "effect": "Stealth +1", "type": "utility", "rarity": "common", "max": 7, "count": 4},
+        ]
+    }
+    items = fake_data.get("phyric1")
+
+    return render_template("game.html", grid=dungeon_game.getGrid(), items=items)
+
+@app.route("/move", methods=["POST"])
+def move():
+    direction = request.json.get("direction")
+    return dungeon_game.getPlayer().movePlayer(direction, dungeon_game)
 
 
 @app.route("/leaderboard")
