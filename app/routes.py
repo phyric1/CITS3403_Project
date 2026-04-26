@@ -1,5 +1,6 @@
-from flask import render_template, abort, request, jsonify
-from app import app
+from flask import render_template, abort, request,url_for,session,redirect
+from app import app,db
+from app.models import User
 from game_logic import DungeonGame, Player, Grid
 
 dungeon_game = DungeonGame()
@@ -10,14 +11,85 @@ def index():
     return render_template("landing.html")
 
 
-@app.route("/login")
+@app.route("/login",methods=["GET","POST"])
 def login():
-    return render_template("login.html")
+    errors={}
+    if request.method=="POST":
+        username=request.form.get("username","").strip()
+        password=request.form.get("password","")
+
+        if not username:
+            errors["username"]="Username is required."
+        if not password:
+            errors["password"]="Password is required."
+        if not errors:
+            user=db.session.query(User).filter_by(username=username).first()
+            if user is None:
+                errors["general"]="Invalid username or password."
+            elif not user.check_password(password):
+                errors["general"]="Invalid username or password."
+            else:
+                session["user_id"]=user.id
+                session["username"]=user.username
+                return redirect(url_for("index"))
+    
+    return render_template("login.html",title="Login",errors=errors)
 
 
-@app.route("/register")
+@app.route("/logout")
+def logout():
+    session.pop("user_id",None)
+    session.pop("username",None)
+    return redirect(url_for("index"))
+
+@app.route("/register",methods=["GET","POST"])
 def register():
-    return render_template("register.html")
+    errors={}
+    success=session.pop("register_success",False)
+    if request.method=="POST":
+        username=request.form.get("username","").strip()
+        email=request.form.get("email","").strip().lower()
+        password=request.form.get("password","")
+        confirm_password=request.form.get("confirm_password","")
+
+        if not username:
+            errors["username"]="Username is required."
+
+        if not email:
+            errors["email"]="Email is required."
+        elif "@" not in email or "." not in email:
+            errors["email"]="Please enter a valid email address."
+
+        if not password:
+            errors["password"]="Password is required."
+        elif len(password)<8:
+            errors["password"]="Password must be at least 8 characters"
+
+        if not confirm_password:
+            errors["confirm_password"]="Please confirm your password."
+        elif password != confirm_password:
+            errors["confirm_password"]="Password do not match."
+
+        #Check whether the username and email already exist.
+        if not errors:
+            existing_username=db.session.query(User).filter_by(username=username).first()
+            existing_emial=db.session.query(User).filter_by(email=email).first()
+
+            if existing_username:
+                errors["username"]="This username is already taken."
+
+            if existing_emial:
+                errors["email"]="This email is already registered."
+        
+        if not errors:
+            user=User(username=username,email=email)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            session["register_success"]=True
+            return redirect(url_for("register"))
+
+    return render_template("register.html",title="Register",errors=errors,success=success)
 
 
 @app.route("/game")
@@ -70,23 +142,22 @@ def leaderboard():
 
 @app.route("/profile/<username>")
 def profile(username):
-    fake_profiles={ # TODO: Remove when database is implemented
-        "phyric1":{
-            "username":"phyric1",
-            "gold":120,
-            "fastest_time":3.55,
-            "total_runs":10,
-            "dungeons_cleared":8,
-            "cards_collected":10,
-            "deck_size":4,
-            "trade_completed":3,
-            "favourite_card":"Tailwind"
-        }
-    }
-    player=fake_profiles.get(username)
+    user = db.session.query(User).filter_by(username=username).first()
 
-    if player is None:
+    if user is None:
         abort(404)
+    
+    player={
+            "username": user.username,
+            "gold": 120,
+            "fastest_time": 3.55,
+            "total_runs": 10,
+            "dungeons_cleared": 8,
+            "cards_collected": 10,
+            "deck_size": 4,
+            "trade_completed": 3,
+            "favourite_card": "Tailwind"
+        }
     
     return render_template("profile.html",player=player, username=username)
 

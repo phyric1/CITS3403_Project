@@ -6,6 +6,18 @@
 
 {% block content %}
 
+<div class="d-flex justify-content-end mb-3">
+    {% if session.get("user_id") %}
+    <span class="badge bg-success fs-6">
+        Logged in as {{ session.get("username") }}
+    </span>
+    {% else %}
+        <span class="badge bg-secondary fs-6">
+            Not logged in
+        </span>
+    {% endif %}
+</div>
+
 <div class="text-center py-5">
     <h1 class="display-3 fw-bold mb-4">Dungeon Crawler</h1>
 
@@ -25,16 +37,27 @@
                 How to Play Game
             </button>
         </div>
+        {% if session.get("user_id") %}
+            <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('profile', username=session.get('username')) }}">
+                    Profile
+                </a>
 
-        <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-            <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('login') }}">
-                Login
-            </a>
+                <a class="btn btn-success btn-lg w-50" href="{{ url_for('logout') }}">
+                    Log Out
+                </a>
+            </div>
+        {% else %}
+            <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('login') }}">
+                    Login
+                </a>
 
-            <a class="btn btn-success btn-lg w-50" href="{{ url_for('register') }}">
-                Sign Up
-            </a>
-        </div>
+                <a class="btn btn-success btn-lg w-50" href="{{ url_for('register') }}">
+                    Sign Up
+                </a>
+            </div>
+        {% endif %}
     </div>
 </div>
 
