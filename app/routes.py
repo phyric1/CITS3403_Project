@@ -1,6 +1,7 @@
 from flask import render_template, abort, request,url_for,session,redirect
 from app import app,db
-from app.models import User
+from app.models import User, Card, UserCard, Deck, DeckCard
+from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 
 dungeon_game = DungeonGame()
@@ -32,7 +33,7 @@ def login():
                 session["user_id"]=user.id
                 session["username"]=user.username
                 return redirect(url_for("index"))
-    
+
     return render_template("login.html",title="Login",errors=errors)
 
 
@@ -68,7 +69,7 @@ def register():
         if not confirm_password:
             errors["confirm_password"]="Please confirm your password."
         elif password != confirm_password:
-            errors["confirm_password"]="Password do not match."
+            errors["confirm_password"]="Passwords do not match."
 
         #Check whether the username and email already exist.
         if not errors:
@@ -80,7 +81,7 @@ def register():
 
             if existing_emial:
                 errors["email"]="This email is already registered."
-        
+
         if not errors:
             user=User(username=username,email=email)
             user.set_password(password)
@@ -146,7 +147,7 @@ def profile(username):
 
     if user is None:
         abort(404)
-    
+
     player={
             "username": user.username,
             "gold": 120,
@@ -158,7 +159,7 @@ def profile(username):
             "trade_completed": 3,
             "favourite_card": "Tailwind"
         }
-    
+
     return render_template("profile.html",player=player, username=username)
 
 
