@@ -103,13 +103,12 @@ def game():
     }
     items = fake_data.get("phyric1")
 
-    return render_template("game.html", grid=dungeon_game.getGrid(), items=items)
+    return render_template("game.html", grid=dungeon_game.getFakeGrid(), items=items)
 
 @app.route("/move", methods=["POST"])
 def move():
     direction = request.json.get("direction")
-    return dungeon_game.getPlayer().movePlayer(direction, dungeon_game)
-
+    return dungeon_game.advance_game(direction)
 
 @app.route("/leaderboard")
 def leaderboard():

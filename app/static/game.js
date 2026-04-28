@@ -36,7 +36,7 @@ document.addEventListener('keydown', (e) => {
             console.log('Success:', data);
             // Update the grid display with new player position
             updateGridDisplay(data.grid);
-            updateGameState();
+            updateGameState(data.turn, data.keys);
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -59,15 +59,23 @@ document.addEventListener('keydown', (e) => {
                     tile.classList.add('start', 'bg-success');
                 } else if (newGrid[i][j] === 3) {
                     tile.classList.add('end', 'bg-danger');
+                } else if (newGrid[i][j] === 4) {
+                    tile.classList.add('enemy', 'bg-info');
                 } else if (newGrid[i][j] === -1) {
-                    tile.classList.add('shadow', 'bg-dark');
+                    tile.classList.add('bg-dark');
+                }
+                else if (newGrid[i][j] === 5) {
+                    tile.classList.add('key', 'bg-white');
                 }
                 gridContainer.appendChild(tile);
             }
         }
     }
 
-    function updateGameState() {
-          const turnCount = document.getElementById('turn-value');
-        turnCount.textContent = parseInt(turnCount.textContent) + 1;
+    function updateGameState(turn, keys) {
+        const turnCount = document.getElementById('turn-value');
+        turnCount.textContent = turn;
+
+        const keyCount = document.getElementById('keys-value');
+        keyCount.textContent = keys;
     }

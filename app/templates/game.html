@@ -26,7 +26,7 @@
                     {% for row in grid %}
                         {% for tile in row %}
                             {% if tile == -1 %}
-                            <div class="grid-tile shadow bg-dark"></div>
+                            <div class="grid-tile bg-dark"></div>
                             {% endif %}
                             {% if tile == 0 %}
                             <div class="grid-tile floor bg-secondary"></div>
@@ -39,6 +39,12 @@
                             {% endif %}
                             {% if tile == 3 %}
                              <div class="grid-tile end bg-danger"></div>
+                            {% endif %}
+                            {% if tile == 4 %}
+                             <div class="grid-tile enemy bg-info"></div>
+                            {% endif %}
+                            {% if tile == 5 %}
+                             <div class="grid-tile key bg-white"></div>
                             {% endif %}
                          {% endfor %}
                     {% endfor %}
@@ -61,16 +67,15 @@
 
         <div id="game-info" class="col-md-3 bg-dark ">   
             <h2 class="text-light">Game Info</h2>
-            <p class="text-light">Health: <span id="health-value">100</span></p>
-            <p class="text-light">Stealth: <span id="stealth-value">100</span></p>
-            <p class="text-light">Treasure: <span id="treasure-value">100</span></p>
-
+            <h3 class="text-light">Turn: <span id="turn-value">0</span></h3>
+            <p class="text-light">Health: <span id="health-value">3</span></p>
+            <p class="text-light">Stealth: <span id="stealth-value">7</span></p>
+            <p class="text-light">Treasure: <span id="treasure-value">5</span></p>
+            <p class="text-light">Keys: <span id="keys-value">0</span></p>
+            
             <p class="text-light">Dificulty: <span id="difficulty-value">Normal</span></p>
-            <p class="text-light">Floor: <span id="floor-value">1/10</span></p>
-
-            <p class="text-light">Turn: <span id="turn-value">0</span></p>
-            <p class="text-light">Cards Left: <span id="cards-left-value">25</span></p>
-
+            <p class="text-light">Floor: <span id="floor-value">1/5</span></p>
+            
             <p class="text-light">Active Cards</p>
             <p class="text-light">Last Used Card: <span id="last-used-value">None</span></p>
 

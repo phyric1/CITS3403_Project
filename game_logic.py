@@ -1,6 +1,32 @@
 import random
 from flask import request, jsonify
+from entities import Enemy
 
+#first prioirty - make game object the central hub of logic 
+#second priority - separate dungeon creation from entity spawning
+    #add rooms attributes to grid class
+#third priority - patrol multiple enemies
+
+#1 enemy placed in each empty room
+#coin placed in a random empty room
+
+#enemies follow shortest path to player
+
+#player can pickup key
+#player can move through door only with key
+
+class Room():
+    def __init__(self, width, height, x, y,):
+            self.x = x
+            self.y = y
+            self.x2 = x + width -1
+            self.y2 = y + height -1
+
+    def center(self):
+            centerX = (self.x + (self.x2)) // 2
+            centerY = (self.y + (self.y2)) // 2
+            return centerX, centerY
+            
 class DungeonGame():
     '''class representing a game instance and all its properties'''
     #player -> health, attack
@@ -9,74 +35,107 @@ class DungeonGame():
     #enemies
     #grid/board (walls and such)
     #cards/deck -> active card effects
-    def __init__(self):
-        self.grid = Grid()
-        self.player = Player(self.grid.startX, self.grid.startY)
-        self.turnNum = 0
 
-    def getGridObject(self):
+    def __init__(self):
+        #used to start game
+        self.grid = Grid()
+        x, y = self.grid.startRoom.center()
+        self.player = Player(x, y)
+        self.turnNum = 0
+        self.enemies = [Enemy(self.grid.enemyX, self.grid.enemyY)]
+        self.isVisible = False
+        
+    def advance_game(self, direction):
+        grid = self.getGrid()
+        self.player.movePlayer(direction, grid)  #move player
+        self.enemies[0].patrol(grid)   #move enemies
+        self.getGridObject().updateVisibility(self.player)
+        return_grid = self.getGridObject().gridProxy()
+        self.turnNum += 1 #increment turn count
+        return jsonify({"grid": return_grid, "turn": self.turnNum, "keys": self.player.keys})
+        #apply any damage interactions
+        #apply any map interactions
+        #apply any card effects
+        #draw new cards
+
+    def generate_floor(self): #generates a new dungeon floor
+        Grid()
+
+    def getGridObject(self): #return grid object
         return self.grid
     
-    def getGrid(self):
+    def getGrid(self):  #return grid as 2d array
         return self.grid.grid
     
-    def getFakeGrid(self):
+    def getFakeGrid(self): #return grid with limited FOV
         return self.grid.fake_grid
     
-    def getPlayer(self):
+    def getPlayer(self): #return player object
         return self.player
 
 class Player():
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.keys = 0
 
-    def movePlayer(self, direction, game):
-        grid = game.getGrid()
+    def movePlayer(self, direction, grid):
+        #directions
+        dir = 0
         if direction == "left":
-            if grid[self.y][self.x-1] == 0: 
-                grid[self.y][self.x] = 0
-                self.x -= 1
-                grid[self.y][self.x] = 2
+            dir = 0
         elif direction == "right":
-            if grid[self.y][self.x+1] == 0: 
-                grid[self.y][self.x] = 0
-                self.x += 1
-                grid[self.y][self.x] = 2
+            dir = 1
         elif direction == "up":
-            if grid[self.y-1][self.x] == 0: 
-                grid[self.y][self.x] = 0
-                self.y -= 1
-                grid[self.y][self.x] = 2
+            dir = 2
         elif direction == "down":
-            if grid[self.y+1][self.x] == 0: 
-                grid[self.y][self.x] = 0
-                self.y += 1
-                grid[self.y][self.x] = 2
+            dir = 3
 
-        game.getGridObject().updateVisibility(self)
-        return_grid = game.getGridObject().gridProxy()
-
-        return jsonify({"grid": return_grid})
-
+        dx = [-1, 1, 0, 0]
+        dy = [0, 0, -1, 1]
+        
+        if grid[self.y + dy[dir]][self.x + dx[dir]] == 0: 
+            grid[self.y][self.x] = 0
+            self.x += dx[dir]
+            self.y += dy[dir]
+            grid[self.y][self.x] = 2
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
+            #pickup keys
+            grid[self.y][self.x] = 0
+            self.x += dx[dir]
+            self.y += dy[dir]
+            grid[self.y][self.x] = 2
+            self.keys += 1
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 3 and self.keys > 0:
+            #unlock doors
+            grid[self.y][self.x] = 0
+            self.x += dx[dir]
+            self.y += dy[dir]
+            grid[self.y][self.x] = 2 
+            self.keys -= 1
+        
 class Grid():
+    '''Class that handles all logic to do with the game grid'''
     grid = [[]]
     FOV = 4
     HEIGHT = int
     WIDTH = int
-    
+    startRoom = Room
+    endRoom = Room
+
     def __init__(self):
-        self.grid, self.startX, self.startY = self.generate_dungeon()
+        self.grid, self.enemyX, self.enemyY  = self.generate_dungeon()
         self.isVisible = [[False] * 32 for _ in range(20)]
         self.fake_grid = [[-1] * 32 for _ in range(20)]
+        self.rooms_list = []
 
-    def updateVisibility(self, player: Player):
-        for i in range(player.y-2, player.y+3):
-            for j in range(player.x-2, player.x+3):
+    def updateVisibility(self, player: Player): #updates visible tiles
+        for i in range(player.y-4, player.y+5):
+            for j in range(player.x-4, player.x+5):
                 if 0 <= i < 20 and 0 <= j < 32:
                     self.isVisible[i][j] = True
     
-    def gridProxy(self):
+    def gridProxy(self): #returns proxy grid with limited FOV
         for i in range(0,20):
             for j in range(0,32):
                 if self.isVisible[i][j]:
@@ -98,18 +157,6 @@ class Grid():
         MIN_HEIGHT = 7
 
         grid = [[1] * GRID_WIDTH for _ in range(GRID_HEIGHT)]
-
-        class Room():
-            def __init__(self, width, height, x, y,):
-                self.x = x
-                self.y = y
-                self.x2 = x + width -1
-                self.y2 = y + height -1
-
-            def center(self):
-                centerX = (self.x + (self.x2)) // 2
-                centerY = (self.y + (self.y2)) // 2
-                return centerX, centerY
 
         def overlap(room1, room2):
             if room2.x2 < room1.x or room2.x > room1.x2:
@@ -149,8 +196,8 @@ class Grid():
         for i in range(8):
             success = False
             while success == False:
-                width = random.randint(3, 5)
-                height = random.randint(3, 5)
+                width = random.randint(4, 8)
+                height = random.randint(4, 8)
                 x = random.randint(1, GRID_WIDTH - width - 1)
                 y = random.randint(1, GRID_HEIGHT - height - 1)
                 newRoom = Room(width, height, x, y)
@@ -186,6 +233,19 @@ class Grid():
         grid[startY][startX] = 2
         grid[endY][endX] = 3
 
+        rooms.remove(startRoom)
+        self.startRoom = startRoom
+        rooms.remove(endRoom)
+        self.endRoom = endRoom
+
+        keyRoom = rooms[random.randint(0, len(rooms)-1)]
+        KeyX, KeyY = keyRoom.center()
+        grid[KeyY][KeyX] = 5
+        rooms.remove(keyRoom)
+        enemySpawn = rooms[random.randint(0, len(rooms)-1)]
+        enemyX, enemyY = enemySpawn.center()
+        grid[enemyY][enemyX] = 4
+
         #block off end room
         tempArray = []
         for i in range(endRoom.x, endRoom.x2+1):
@@ -219,8 +279,5 @@ class Grid():
         if len(tempArray) > 0:
             y, x = tempArray[random.randint(0, len(tempArray)-1)]
             grid[y][x] = 3
-
-        return grid, startX, startY
-    
-def shortestPath():
-    return None
+        self.rooms = rooms
+        return grid, enemyX, enemyY
