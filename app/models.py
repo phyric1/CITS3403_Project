@@ -51,8 +51,9 @@ class UserCard(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     card_id = db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
     uses_remaining = db.Column(db.Integer, nullable=False) # -1 for infinite uses
-    tradable = db.Column(db.Boolean, default=False)
-    locked = db.Column(db.Boolean, default=False)
+    tradable = db.Column(db.Boolean, nullable=False, default=False)
+    protected = db.Column(db.Boolean, nullable=False, default=False)
+    locked = db.Column(db.Boolean, nullable=False, default=False)
 
     user = db.relationship('User', back_populates='cards')
     card = db.relationship('Card')
@@ -98,7 +99,7 @@ class Trade(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     status = db.Column(db.Enum(TradeStatus, validate_strings=True), default=TradeStatus.pending, nullable=False)
-    creation_date = db.Column(db.DateTime, default=db.func.now())
+    creation_date = db.Column(db.DateTime, default=db.func.now(), nullable=False,)
 
     trade_cards = db.relationship('TradeCard', backref='trade', cascade='all, delete-orphan')
     sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sender_trades')

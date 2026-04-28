@@ -1,11 +1,36 @@
+import click
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from app.config import Config
 
-app = Flask(__name__)
-app.config.from_object(Config)
-db=SQLAlchemy(app)
-migrate=Migrate(app,db)
+db = SQLAlchemy()
+migrate = Migrate()
 
-from app import routes,models
+
+def create_app():
+    app = Flask(__name__)
+
+    app.config.from_object(Config)
+
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    from app import models
+
+    from app.routes import bp
+    app.register_blueprint(bp)
+    register_cli(app)
+
+    return app
+
+
+from app.seed import seed_cards
+
+
+def register_cli(app):
+    @app.cli.command("seed-cards")
+    def seed_cards_command():
+        """Seed the database with cards from JSON."""
+        seed_cards()
+        click.echo("Cards seeded!")
