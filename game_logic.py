@@ -40,21 +40,25 @@ class DungeonGame():
         x, y = self.grid.startRoom.center()
         self.player = Player(x, y)
         self.turnNum = 0
-        self.enemies = [Enemy(self.grid.enemyX, self.grid.enemyY)]
+        self.enemies = self.grid.spawnEnemies()
         self.isVisible = False
         
     def advance_game(self, direction):
+        '''advances the game by one turn'''
         grid = self.getGrid()
         self.player.movePlayer(direction, grid)  #move player
-        self.enemies[0].patrol(grid)   #move enemies
-        self.getGridObject().updateVisibility(self.player)
-        return_grid = self.getGridObject().gridProxy()
-        self.turnNum += 1 #increment turn count
-        return jsonify({"grid": return_grid, "turn": self.turnNum, "keys": self.player.keys})
+        for enemy in self.enemies: #move enemies
+            enemy.patrol(grid)
+
         #apply any damage interactions
         #apply any map interactions
         #apply any card effects
         #draw new cards
+
+        self.getGridObject().updateVisibility(self.player)
+        return_grid = self.getGridObject().gridProxy()
+        self.turnNum += 1 #increment turn count unless card effect overrides it
+        return jsonify({"grid": return_grid, "turn": self.turnNum, "keys": self.player.keys})
 
     def generate_floor(self): #generates a new dungeon floor
         Grid()
@@ -120,12 +124,23 @@ class Grid():
     WIDTH = int
     startRoom = Room
     endRoom = Room
-
     def __init__(self):
-        self.grid, self.enemyX, self.enemyY  = self.generate_dungeon()
+        self.grid, self.roomsList = self.generate_dungeon()
         self.isVisible = [[False] * 32 for _ in range(20)]
         self.fake_grid = [[-1] * 32 for _ in range(20)]
-        self.rooms_list = []
+
+    def spawnEnemies(self):
+        enemyList = []
+        enemyCount = 3
+        for i in range(enemyCount):
+            enemySpawn = self.roomsList[random.randint(0, len(self.roomsList)-1)]
+            enemyX, enemyY = enemySpawn.center()
+            self.roomsList.remove(enemySpawn)
+
+            self.grid[enemyY][enemyX] = 4
+            enemyList.append(Enemy(enemyX, enemyY))
+        return enemyList
+
 
     def updateVisibility(self, player: Player): #updates visible tiles
         for i in range(player.y-4, player.y+5):
@@ -241,9 +256,6 @@ class Grid():
         KeyX, KeyY = keyRoom.center()
         grid[KeyY][KeyX] = 5
         rooms.remove(keyRoom)
-        enemySpawn = rooms[random.randint(0, len(rooms)-1)]
-        enemyX, enemyY = enemySpawn.center()
-        grid[enemyY][enemyX] = 4
 
         #block off end room
         tempArray = []
@@ -278,5 +290,4 @@ class Grid():
         if len(tempArray) > 0:
             y, x = tempArray[random.randint(0, len(tempArray)-1)]
             grid[y][x] = 3
-        self.rooms = rooms
-        return grid, enemyX, enemyY
+        return grid, rooms

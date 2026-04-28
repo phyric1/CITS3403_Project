@@ -32,22 +32,28 @@ class Enemy():
                 else:
                     clear_path = True
                     self.direction = dir
+                    #consider moving away from other enemies when patroling
         #move in direction
         grid[self.y][self.x] = 0  # clear old position
         self.x += dx[dir]
         self.y += dy[dir]
         grid[self.y][self.x] = 4  # set new position
         return grid
-
         
     #aggro
-
     def shortest_path(self):
         pass    
     #sight
+
     def sight(self, grid):
         pass
     #damage
+
+class Hound(Enemy):
+    pass
+
+class Trolls(Enemy):
+    pass
 
 class Keys():
     def __init__(self):
