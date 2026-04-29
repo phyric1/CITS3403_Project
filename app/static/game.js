@@ -23,6 +23,13 @@ document.addEventListener('keydown', (e) => {
         }
     })
 
+const cards = document.querySelectorAll('.inventory-card-wrapper');
+cards[0].addEventListener("click", function() {
+    move('None');
+})
+cards[1].addEventListener("click", function() {
+    move('None');
+})
     function move(direction) {
         fetch('/move', {
             method: 'POST',
