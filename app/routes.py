@@ -33,7 +33,7 @@ def login():
             else:
                 session["user_id"]=user.id
                 session["username"]=user.username
-                return redirect(url_for("index"))
+                return redirect(url_for(".index"))
 
     return render_template("login.html",title="Login",errors=errors)
 
@@ -42,7 +42,7 @@ def login():
 def logout():
     session.pop("user_id",None)
     session.pop("username",None)
-    return redirect(url_for("index"))
+    return redirect(url_for(".index"))
 
 @bp.route("/register",methods=["GET","POST"])
 def register():
@@ -89,7 +89,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             session["register_success"]=True
-            return redirect(url_for("register"))
+            return redirect(url_for(".register"))
 
     return render_template("register.html",title="Register",errors=errors,success=success)
 
