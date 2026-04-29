@@ -27,11 +27,11 @@
 
     <div class="d-flex flex-column align-items-center gap-3 mb-5">
         <div class="w-100" style="max-width: 320px;">
-            <a class="btn btn-primary btn-lg w-100" href="{{ url_for('game') }}">
+            <a class="btn btn-primary btn-lg w-100" href="{{ url_for('.game') }}">
                 Enter Game
             </a>
         </div>
-        
+
         <div class="w-100" style="max-width: 320px;">
             <button class="btn btn-outline-dark btn-lg w-100" type="button" data-bs-toggle="modal" data-bs-target="#howToPlayModal">
                 How to Play Game
@@ -39,21 +39,21 @@
         </div>
         {% if session.get("user_id") %}
             <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('profile', username=session.get('username')) }}">
+                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('.profile', username=session.get('username')) }}">
                     Profile
                 </a>
 
-                <a class="btn btn-success btn-lg w-50" href="{{ url_for('logout') }}">
+                <a class="btn btn-success btn-lg w-50" href="{{ url_for('.logout') }}">
                     Log Out
                 </a>
             </div>
         {% else %}
             <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('login') }}">
+                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('.login') }}">
                     Login
                 </a>
 
-                <a class="btn btn-success btn-lg w-50" href="{{ url_for('register') }}">
+                <a class="btn btn-success btn-lg w-50" href="{{ url_for('.register') }}">
                     Sign Up
                 </a>
             </div>
