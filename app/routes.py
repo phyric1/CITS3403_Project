@@ -1,17 +1,19 @@
-from flask import render_template, abort, request,url_for,session,redirect
-from app import app,db
-from app.models import User
+from flask import render_template, abort, request, url_for, session, redirect, Blueprint, current_app as app
+from app import db
+from app.models import User, Card, UserCard, Deck, DeckCard
+from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 
+bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
 
-@app.route("/")
-@app.route("/index")
+@bp.route("/")
+@bp.route("/index")
 def index():
     return render_template("landing.html")
 
 
-@app.route("/login",methods=["GET","POST"])
+@bp.route("/login",methods=["GET","POST"])
 def login():
     errors={}
     if request.method=="POST":
@@ -32,17 +34,17 @@ def login():
                 session["user_id"]=user.id
                 session["username"]=user.username
                 return redirect(url_for("index"))
-    
+
     return render_template("login.html",title="Login",errors=errors)
 
 
-@app.route("/logout")
+@bp.route("/logout")
 def logout():
     session.pop("user_id",None)
     session.pop("username",None)
     return redirect(url_for("index"))
 
-@app.route("/register",methods=["GET","POST"])
+@bp.route("/register",methods=["GET","POST"])
 def register():
     errors={}
     success=session.pop("register_success",False)
@@ -68,7 +70,7 @@ def register():
         if not confirm_password:
             errors["confirm_password"]="Please confirm your password."
         elif password != confirm_password:
-            errors["confirm_password"]="Password do not match."
+            errors["confirm_password"]="Passwords do not match."
 
         #Check whether the username and email already exist.
         if not errors:
@@ -80,7 +82,7 @@ def register():
 
             if existing_emial:
                 errors["email"]="This email is already registered."
-        
+
         if not errors:
             user=User(username=username,email=email)
             user.set_password(password)
@@ -92,7 +94,7 @@ def register():
     return render_template("register.html",title="Register",errors=errors,success=success)
 
 
-@app.route("/game")
+@bp.route("/game")
 def game():
     fake_data = { # TODO: Remove when database is implemented
         "phyric1": [
@@ -105,12 +107,12 @@ def game():
 
     return render_template("game.html", grid=dungeon_game.getFakeGrid(), items=items)
 
-@app.route("/move", methods=["POST"])
+@bp.route("/move", methods=["POST"])
 def move():
     direction = request.json.get("direction")
     return dungeon_game.advance_game(direction)
 
-@app.route("/leaderboard")
+@bp.route("/leaderboard")
 def leaderboard():
     players = [
         {"ranking": 1, "player": "player1", "stat1": 70, "stat2": 20},
@@ -139,13 +141,13 @@ def leaderboard():
     return render_template("leaderboard.html", players = players, sort=sort)
 
 
-@app.route("/profile/<username>")
+@bp.route("/profile/<username>")
 def profile(username):
     user = db.session.query(User).filter_by(username=username).first()
 
     if user is None:
         abort(404)
-    
+
     player={
             "username": user.username,
             "gold": 120,
@@ -157,11 +159,11 @@ def profile(username):
             "trade_completed": 3,
             "favourite_card": "Tailwind"
         }
-    
+
     return render_template("profile.html",player=player, username=username)
 
 
-@app.route("/profile/<username>/inventory")
+@bp.route("/profile/<username>/inventory")
 def inventory(username):
     fake_data = { # TODO: Remove when database is implemented
         "phyric1": [

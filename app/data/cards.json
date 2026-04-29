@@ -1,0 +1,254 @@
+[
+  {
+    "name": "Tailwind",
+    "effect": "Move 2 spaces without triggering enemy behavior",
+    "rarity": "common",
+    "type": "movement",
+    "uses": -1,
+    "max_in_deck": 7
+  },
+  {
+    "name": "Sprint",
+    "effect": "Dash forward until you hit a wall, -1 stealth",
+    "rarity": "uncommon",
+    "type": "movement",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Acrobatics",
+    "effect": "Move anywhere in a 5x5 radius, -1 stealth",
+    "rarity": "rare",
+    "type": "movement",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Teleport",
+    "effect": "Teleport to a random location on the current map, -1 stealth",
+    "rarity": "rare",
+    "type": "movement",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Timestop",
+    "effect": "Stop time until you pick another card or interact with the dungeon",
+    "rarity": "legendary",
+    "type": "movement",
+    "uses": -1,
+    "max_in_deck": 1
+  },
+  {
+    "name": "Master of Movement",
+    "effect": "+2 stealth for every movement card played",
+    "rarity": "master",
+    "type": "movement",
+    "uses": -1,
+    "max_in_deck": 1
+  },
+
+  {
+    "name": "Rest",
+    "effect": "Heals 1 heart / adds 1 heart",
+    "rarity": "uncommon",
+    "type": "survival",
+    "uses": -1,
+    "max_in_deck": 5
+  },
+  {
+    "name": "Heal",
+    "effect": "Heals 2 hearts / adds 2 hearts",
+    "rarity": "rare",
+    "type": "survival",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Guard",
+    "effect": "+2% chance to not take any damage",
+    "rarity": "common",
+    "type": "survival",
+    "uses": -1,
+    "max_in_deck": 5
+  },
+  {
+    "name": "Parry",
+    "effect": "+10% chance to not take any damage",
+    "rarity": "rare",
+    "type": "survival",
+    "uses": -1,
+    "max_in_deck": 2
+  },
+  {
+    "name": "Master of Survival",
+    "effect": "Survival cards have 50% chance to be recycled and 50% chance to heal 1 heart",
+    "rarity": "master",
+    "type": "survival",
+    "uses": -1,
+    "max_in_deck": 1
+  },
+
+  {
+    "name": "Dagger",
+    "effect": "Damage any adjacent squares",
+    "rarity": "common",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 7
+  },
+  {
+    "name": "Strength",
+    "effect": "+1 attack damage",
+    "rarity": "common",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Dexterity",
+    "effect": "+1 attack range",
+    "rarity": "uncommon",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Bear Trap",
+    "effect": "Place trap anywhere in 3x3 radius, stuns enemies",
+    "rarity": "uncommon",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Dynamite",
+    "effect": "Deals damage in a 5x5 radius, -2 stealth",
+    "rarity": "rare",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Slingshot",
+    "effect": "Deal damage to one enemy in a 3x7 path in front of the player",
+    "rarity": "common",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Strip Mine",
+    "effect": "For 5 turns, running into walls destroys them and damages enemies, 50% chance for -1 stealth per dig",
+    "rarity": "rare",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Dash Attack",
+    "effect": "Dash forward until you hit a wall, damaging enemies",
+    "rarity": "uncommon",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Meteor",
+    "effect": "Deal large damage to any enemy on the map, -1 stealth",
+    "rarity": "rare",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 2
+  },
+  {
+    "name": "Gust",
+    "effect": "Push enemies back in a 3x3 area until they hit a wall",
+    "rarity": "rare",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Fighting Spirit",
+    "effect": "+50% chance to pull attack cards for the next 5 turns",
+    "rarity": "legendary",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Master of Combat",
+    "effect": "+70% chance to pull a combat card per turn, +2 treasure per enemy killed",
+    "rarity": "master",
+    "type": "combat",
+    "uses": -1,
+    "max_in_deck": 1
+  },
+
+  {
+    "name": "Eye for Treasure",
+    "effect": "Dungeon generates +1 more treasure",
+    "rarity": "common",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 5
+  },
+  {
+    "name": "Silence Falls",
+    "effect": "+1 stealth",
+    "rarity": "common",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 7
+  },
+  {
+    "name": "Shadow Sneak",
+    "effect": "+2 stealth",
+    "rarity": "uncommon",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Recycle",
+    "effect": "Recycle the last card used back into the deck",
+    "rarity": "rare",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 3
+  },
+  {
+    "name": "Light the Way",
+    "effect": "Reveal the full map if dark",
+    "rarity": "rare",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 2
+  },
+  {
+    "name": "Key to Victory",
+    "effect": "Gain a free key at the start of the game",
+    "rarity": "uncommon",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 2
+  },
+  {
+    "name": "Master of Cards",
+    "effect": "Every card played has a 15% chance to be recycled",
+    "rarity": "master",
+    "type": "utility",
+    "uses": -1,
+    "max_in_deck": 1
+  },
+
+  {
+    "name": "Struggle",
+    "effect": "Does nothing. Added to deck as a debuff over time",
+    "rarity": "common",
+    "type": "debuff",
+    "uses": -1,
+    "max_in_deck": 999
+  }
+]
