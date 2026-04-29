@@ -136,3 +136,7 @@
     font-size: 0.8rem;
     font-weight: bold;
 }
+
+.game-card:hover {
+    filter: brightness(70%);
+}

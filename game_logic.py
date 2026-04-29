@@ -83,7 +83,9 @@ class Player():
 
     def movePlayer(self, direction, grid):
         #directions
-        dir = 0
+        dir = None
+        if direction == "None":
+            return
         if direction == "left":
             dir = 0
         elif direction == "right":
@@ -102,6 +104,7 @@ class Player():
             self.y += dy[dir]
             grid[self.y][self.x] = 2
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
+            #move this to collision functin eventually
             #pickup keys
             grid[self.y][self.x] = 0
             self.x += dx[dir]
@@ -291,3 +294,10 @@ class Grid():
             y, x = tempArray[random.randint(0, len(tempArray)-1)]
             grid[y][x] = 3
         return grid, rooms
+    
+#cards implementation
+#card reader
+    #card processor
+#card shuffler
+    #card pool
+    #discard pool
