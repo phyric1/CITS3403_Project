@@ -73,6 +73,7 @@ class Deck(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
 
     user = db.relationship('User', back_populates='decks')
+    deck_cards = db.relationship('DeckCard', back_populates='deck', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"<Deck {self.name} (user={self.user_id})>"
@@ -114,6 +115,7 @@ class TradeCard(db.Model):
     user_card_id = db.Column(db.Integer, db.ForeignKey('user_card.id', ondelete='CASCADE'), nullable=False)
 
     user_card = db.relationship('UserCard', lazy='joined')
+    trade = db.relationship('Trade', back_populates='trade_cards')
 
     __table_args__ = (
         db.UniqueConstraint('trade_id', 'user_card_id', name='unique_trade_card'),
