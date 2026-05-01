@@ -165,27 +165,38 @@ def profile(username):
 
 @bp.route("/profile/<username>/inventory")
 def inventory(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    is_owner = (session.get('user_id'))
+
+    mode = request.args.get("mode", "view")
+    if is_owner:
+        mode = "view"
+
     fake_data = { # TODO: Remove when database is implemented
-        "phyric1": [
+        "cards": [
             {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
             {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1},
             {"name": "Silence Falls", "effect": "Stealth +1", "type": "utility", "rarity": "common", "max": 7, "count": 4},
             {"name": "Dynamite", "effect": "Deals damage in 5x5 radius, -2 stealth points blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah  blah blah blah blah blah blah blah blah blah", "type": "combat", "rarity": "epic", "max": 3, "count": 2},
+        ],
+        "deck_cards": [
+            {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
         ]
     }
 
-    items = fake_data.get(username)
-    if items is None:
+    cards = fake_data.get("cards")
+    deck_cards = fake_data.get("deck_cards")
+    if cards is None:
         abort(404)
 
     sort = request.args.get("sort")
     if sort == "name":
-        items = sorted(items, key=lambda x: x["name"])
+        cards = sorted(cards, key=lambda x: x["name"])
     elif sort == "rarity":
         rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 3}
-        items = sorted(items, key=lambda x: rarity_order.get(x["rarity"], 0))
+        cards = sorted(cards, key=lambda x: rarity_order.get(x["rarity"], 0))
     elif sort == "type":
-        items = sorted(items, key=lambda x: x["type"])
+        cards = sorted(cards, key=lambda x: x["type"])
     elif sort == "max":
-        items = sorted(items, key=lambda x: x["max"], reverse=True)
-    return render_template("inventory.html", items=items, username=username)
+        cards = sorted(cards, key=lambda x: x["max"], reverse=True)
+    return render_template("inventory.html", cards=cards, deck_cards=deck_cards, username=username, is_owner=is_owner, mode=mode)

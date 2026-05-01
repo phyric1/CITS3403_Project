@@ -1,26 +1,41 @@
 {% extends "base.html" %}
 
+{% block title %}{{ username }}'s Inventory{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
+
+    <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>{{ username }}'s Inventory</h2>
+        <h2>
+            {% if is_owner %}Your Inventory{% else %}{{ username }}'s Inventory{% endif %}
+        </h2>
+
         <div>
-            <!-- TODO: Change to only appear if user who's inventory is being viewed is the one logged in -->
-            <a class="btn btn-success">
-                Manage Deck
-            </a>
-            <a href="{{ url_for('.profile',username=username) }}" class="btn btn-outline-primary">
+            {% if is_owner %}
+                {% if mode == "view" %}
+                    <a href="?mode=deck" class="btn btn-success">Manage Deck</a>
+                    <a href="?mode=repair" class="btn btn-warning">Repair Mode</a>
+                {% else %}
+                    <a href="?mode=view" class="btn btn-secondary">Back to View</a>
+                {% endif %}
+            {% endif %}
+
+            <a href="{{ url_for('.profile', username=username) }}" class="btn btn-outline-primary">
                 Back to Profile
             </a>
         </div>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
+
+    <!-- SORT -->
+    <div class="mb-3">
         <form method="GET">
-            <select name="sort" class="form-select" onchange="this.form.submit()">
+            <input type="hidden" name="mode" value="{{ mode }}">
+            <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
                 <option value="">Sort</option>
                 <option value="name">Name</option>
                 <option value="rarity">Rarity</option>
@@ -30,19 +45,59 @@
         </form>
     </div>
 
-    <div class="row g-3">
-        {% for item in items %}
+    <!-- DECK SECTION -->
+    <h4>Deck</h4>
+    <div class="row g-3 mb-4" id="deck">
+        {% for item in deck_cards %}
         <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                <div class="inventory-card-wrapper">
-                    {% include "_card.html" %}
-                    {% if item.count and item.count > 1 %}
-                    <div class="card-count">
-                        x{{ item.count }}
-                    </div>
-                    {% endif %}
-                </div>
+            <div class="inventory-card-wrapper"
+                 data-card-id="{{ item.id }}"
+                 {% if is_owner and mode == "deck" %}draggable="true"{% endif %}>
+
+                {% include "_card.html" %}
+
+                {% if is_owner and mode == "deck" %}
+                    <button class="btn btn-sm btn-danger w-100 mt-1 remove-from-deck">
+                        Remove
+                    </button>
+                {% endif %}
             </div>
+        </div>
         {% endfor %}
     </div>
+
+    <!-- INVENTORY SECTION -->
+    <h4>{% if is_owner %}Inventory{% else %}Tradable Inventory{% endif %}</h4>
+    <div class="row g-3" id="inventory">
+        {% for item in cards %}
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+            <div class="inventory-card-wrapper"
+                 data-card-id="{{ item.id }}"
+                 {% if is_owner and mode == "deck" %}draggable="true"{% endif %}>
+
+                {% include "_card.html" %}
+
+                {% if item.count and item.count > 1 %}
+                <div class="card-count">x{{ item.count }}</div>
+                {% endif %}
+
+                <!-- MODE-SPECIFIC ACTIONS -->
+                {% if is_owner %}
+                    {% if mode == "repair" %}
+                        <button class="btn btn-sm btn-warning w-100 mt-1 repair-btn">
+                            Repair
+                        </button>
+                    {% elif mode == "deck" %}
+                        <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
+                            Add to Deck
+                        </button>
+                    {% endif %}
+                {% endif %}
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
 {% endblock %}
