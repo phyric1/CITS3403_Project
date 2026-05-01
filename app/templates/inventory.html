@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ username }}'s Inventory{% endblock %}
+{% block title %}{% if is_owner %}Your Inventory{% else %}{{ username }}'s Inventory{% endif %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
@@ -9,7 +9,7 @@
 {% block content %}
 <div class="container mt-4">
 
-    <!-- HEADER -->
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>
             {% if is_owner %}Your Inventory{% else %}{{ username }}'s Inventory{% endif %}
@@ -19,7 +19,7 @@
             {% if is_owner %}
                 {% if mode == "view" %}
                     <a href="?mode=deck" class="btn btn-success">Manage Deck</a>
-                    <a href="?mode=repair" class="btn btn-warning">Repair Mode</a>
+                    <a href="?mode=repair" class="btn btn-warning">Repair Cards</a>
                 {% else %}
                     <a href="?mode=view" class="btn btn-secondary">Back to View</a>
                 {% endif %}
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <!-- SORT -->
+    <!-- Sort -->
     <div class="mb-3">
         <form method="GET">
             <input type="hidden" name="mode" value="{{ mode }}">
@@ -41,11 +41,12 @@
                 <option value="rarity">Rarity</option>
                 <option value="type">Type</option>
                 <option value="max">Max</option>
+                <option value="uses">Uses</option>
             </select>
         </form>
     </div>
 
-    <!-- DECK SECTION -->
+    <!-- Deck Section -->
     <h4>Deck</h4>
     <div class="row g-3 mb-4" id="deck">
         {% for item in deck_cards %}
@@ -66,7 +67,7 @@
         {% endfor %}
     </div>
 
-    <!-- INVENTORY SECTION -->
+    <!-- Inventory Section -->
     <h4>{% if is_owner %}Inventory{% else %}Tradable Inventory{% endif %}</h4>
     <div class="row g-3" id="inventory">
         {% for item in cards %}
@@ -97,6 +98,23 @@
             </div>
         </div>
         {% endfor %}
+    </div>
+
+    <!-- Page Buttons -->
+    <div class="d-flex justify-content-center mt-4">
+        {% if pagination.has_prev %}
+            <a href="?page={{ pagination.prev_num }}&sort={{ sort }}&mode={{ mode }}"
+               class="btn btn-outline-primary me-2">Previous</a>
+        {% endif %}
+
+        <span class="align-self-center">
+            Page {{ pagination.page }} of {{ pagination.pages }}
+        </span>
+
+        {% if pagination.has_next %}
+            <a href="?page={{ pagination.next_num }}&sort={{ sort }}&mode={{ mode }}"
+               class="btn btn-outline-primary ms-2">Next</a>
+        {% endif %}
     </div>
 
 </div>

@@ -25,7 +25,7 @@ def create_app():
     return app
 
 
-from app.seed import seed_cards
+from app.utils import seed_cards
 
 
 def register_cli(app):
