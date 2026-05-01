@@ -195,34 +195,11 @@ def inventory(username):
 
 @bp.route("/trading")
 def trading():
-    incoming_trades = [
-    {
-        "id": 1,
-        "from_user": "player2",
-        "created_at": "2026-05-01",
-        "cards_requested": 2,
-        "cards_offered": 1
-    },
-    {
-        "id": 2,
-        "from_user": "player3",
-        "created_at": "2026-05-01",
-        "cards_requested": 1,
-        "cards_offered": 3
-    }
-    ]
-
-    outgoing_trades = [
-    {
-        "id": 1,
-        "to_user": "player2",
-        "created_at": "2026-05-01",
-        "cards_requested": 2,
-        "cards_offered": 1
-    }
-    ]
-
-
+    if "user_id" not in session:
+        return redirect(url_for(".login"))
+    
+    incoming_trades = [{"id": 1, "from_user": "player2", "created_at": "2026-05-01", "cards_requested": 2, "cards_offered": 1}]
+    outgoing_trades = [{"id": 2, "to_user": "player2", "created_at": "2026-05-01", "cards_requested": 1, "cards_offered": 1}]
     return render_template("trading.html", incoming_trades=incoming_trades, outgoing_trades=outgoing_trades)
 
 
@@ -231,3 +208,28 @@ def new_trade():
 
     
     return render_template("new_trade.html")
+
+
+
+@bp.route("/trading/<int:trade_id>")
+def view_trade(trade_id):
+    if "user_id" not in session:
+        return redirect(url_for(".login"))
+
+    hardcoded_trades = {
+        1: {"id": 1, "from_user": "player2", "to_user": "player1", "created_at": "2026-05-01", "status": "Pending",
+            "offered_cards": [{"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 1}],
+            "requested_cards": [{"name": "Dynamite", "effect": "Deals damage in a 5x5 radius, -2 stealth", "type": "combat", "rarity": "rare", "max": 3, "count": 1},
+                                {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1}]},
+
+        2: {"id": 2, "from_user": "player1", "to_user": "player2", "created_at": "2026-05-01", "status": "Pending",
+            "offered_cards": [{"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1}],
+            "requested_cards": [{"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 1}]}
+    }
+
+    trade = hardcoded_trades.get(trade_id)
+
+    if trade is None:
+        abort(404)
+
+    return render_template("view_trade.html", trade=trade)
