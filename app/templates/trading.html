@@ -2,17 +2,6 @@
 
 {% block content %}
 
-<style>
-    .trade-panel {
-        height: 800px;
-    }
-
-    .trade-scroll-area {
-        max-height: 720px;
-        overflow-y: auto;
-    }
-</style>
-
 <h1 class="text-center mb-4">Trading</h1>
 
 <div class="d-flex justify-content-end mb-4">
@@ -21,12 +10,12 @@
 
 <div class="row g-5">
     <div class="col-md-6">
-        <div class="card bg-dark text-white trade-panel">
+        <div class="card bg-dark text-white" style="height: 800px;">
             <div class="card-header bg-secondary text-center">
                 <h2 class="mb-0">Incoming Trades</h2>
             </div>
             <div class="card-body py-2 px-3">
-                <div class="trade-scroll-area">
+                <div style="max-height: 720px; overflow-y: auto;">
                     {% if incoming_trades %}
                         {% for trade in incoming_trades %}
                             <div class="border rounded p-3 mb-3 bg-light text-dark">
@@ -34,7 +23,7 @@
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
                                 <p class="mb-1">They want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">They offer: {{ trade.cards_offered }} cards</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary">View Trade</a>
+                                <a href="{{ url_for('.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -46,12 +35,12 @@
     </div>
 
     <div class="col-md-6">
-        <div class="card bg-dark text-white trade-panel">
+        <div class="card bg-dark text-white" style="height: 800px;">
             <div class="card-header bg-secondary text-center">
                 <h2 class="mb-0">Outgoing Trades</h2>
             </div>
             <div class="card-body py-2 px-3">
-                <div class="trade-scroll-area">
+                <div style="max-height: 720px; overflow-y: auto;">
                     {% if outgoing_trades %}
                         {% for trade in outgoing_trades %}
                             <div class="border rounded p-3 mb-3 bg-light text-dark">
@@ -59,7 +48,7 @@
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
                                 <p class="mb-1">You want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">You offer: {{ trade.cards_offered }} cards</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary">View Trade</a>
+                                <a href="{{ url_for('.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
                         {% endfor %}
                     {% else %}
