@@ -189,3 +189,45 @@ def inventory(username):
     elif sort == "max":
         items = sorted(items, key=lambda x: x["max"], reverse=True)
     return render_template("inventory.html", items=items, username=username)
+
+
+
+
+@bp.route("/trading")
+def trading():
+    incoming_trades = [
+    {
+        "id": 1,
+        "from_user": "player2",
+        "created_at": "2026-05-01",
+        "cards_requested": 2,
+        "cards_offered": 1
+    },
+    {
+        "id": 2,
+        "from_user": "player3",
+        "created_at": "2026-05-01",
+        "cards_requested": 1,
+        "cards_offered": 3
+    }
+    ]
+
+    outgoing_trades = [
+    {
+        "id": 1,
+        "to_user": "player2",
+        "created_at": "2026-05-01",
+        "cards_requested": 2,
+        "cards_offered": 1
+    }
+    ]
+
+
+    return render_template("trading.html", incoming_trades=incoming_trades, outgoing_trades=outgoing_trades)
+
+
+@bp.route("/trading/new")
+def new_trade():
+
+    
+    return render_template("new_trade.html")

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .trade-panel {
+        height: 800px;
+    }
+
+    .trade-scroll-area {
+        max-height: 720px;
+        overflow-y: auto;
+    }
+</style>
+
+<h1 class="text-center mb-4">Trading</h1>
+
+<div class="d-flex justify-content-end mb-4">
+    <a href="{{ url_for('.new_trade') }}" class="btn btn-primary">Create New Trade</a>
+</div>
+
+<div class="row g-5">
+    <div class="col-md-6">
+        <div class="card bg-dark text-white trade-panel">
+            <div class="card-header bg-secondary text-center">
+                <h2 class="mb-0">Incoming Trades</h2>
+            </div>
+            <div class="card-body py-2 px-3">
+                <div class="trade-scroll-area">
+                    {% if incoming_trades %}
+                        {% for trade in incoming_trades %}
+                            <div class="border rounded p-3 mb-3 bg-light text-dark">
+                                <h5 class="mb-2">From: {{ trade.from_user }}</h5>
+                                <p class="mb-1">Created: {{ trade.created_at }}</p>
+                                <p class="mb-1">They want: {{ trade.cards_requested }} cards</p>
+                                <p class="mb-2">They offer: {{ trade.cards_offered }} cards</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary">View Trade</a>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No incoming trades yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card bg-dark text-white trade-panel">
+            <div class="card-header bg-secondary text-center">
+                <h2 class="mb-0">Outgoing Trades</h2>
+            </div>
+            <div class="card-body py-2 px-3">
+                <div class="trade-scroll-area">
+                    {% if outgoing_trades %}
+                        {% for trade in outgoing_trades %}
+                            <div class="border rounded p-3 mb-3 bg-light text-dark">
+                                <h5 class="mb-2">To: {{ trade.to_user }}</h5>
+                                <p class="mb-1">Created: {{ trade.created_at }}</p>
+                                <p class="mb-1">You want: {{ trade.cards_requested }} cards</p>
+                                <p class="mb-2">You offer: {{ trade.cards_offered }} cards</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary">View Trade</a>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No outgoing trades yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
