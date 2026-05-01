@@ -195,8 +195,7 @@ def inventory(username):
 
 @bp.route("/trading")
 def trading():
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
+    
     
     incoming_trades = [{"id": 1, "from_user": "player2", "created_at": "2026-05-01", "cards_requested": 2, "cards_offered": 1}]
     outgoing_trades = [{"id": 2, "to_user": "player2", "created_at": "2026-05-01", "cards_requested": 1, "cards_offered": 1}]
@@ -213,8 +212,7 @@ def new_trade():
 
 @bp.route("/trading/<int:trade_id>")
 def view_trade(trade_id):
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
+    
 
     hardcoded_trades = {
         1: {"id": 1, "from_user": "player2", "to_user": "player1", "created_at": "2026-05-01", "status": "Pending",
