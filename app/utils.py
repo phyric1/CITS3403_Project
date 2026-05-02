@@ -21,6 +21,7 @@ def seed_cards():
             existing.type = CardType(item["type"])
             existing.uses = item["uses"]
             existing.max_in_deck = item["max_in_deck"]
+            continue
 
         card = Card(
             name=item["name"],
