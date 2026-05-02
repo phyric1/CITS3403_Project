@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Daily Shop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">Daily Shop</h1>
+    </div>
+
+    {% if user.gold is defined %}
+        <div class="badge bg-warning text-dark fs-6">Gold:{{user.gold}}</div>
+    {% endif %}
+</div>
+
+{# Display purchase prompt message #}
+{% if message %}
+    <div class="alert alert-info">
+        {{message}}
+    </div>
+{% endif %}
+
+{# Show the everyday four cards #}
+<div class="row g-4">
+    {% for shop_item in shop_items %}
+        <div class="col-md-3">
+            <div class="d-flex flex-column align-items-center h-100">
+                <div class="inventory-card-wrapper mb-3" style="width: 220px;">
+                    {% set item=shop_item %}
+                    {% include "_card.html" %}
+                </div>
+                <p class="fw-bold text-center mb-2">Price:{{shop_item.price}}gold</p>
+                {% if shop_item.is_purchased %}
+                    <button type="button" class="btn btn-secondary w-100" disabled>
+                        Sold Out
+                    </button>
+                {% else %}
+                    <form method="post" action="{{url_for('.buy_card', card_id=shop_item.card.id)}}" class="w-100">
+                        <button type="submit" class="btn btn-success w-100" title="Price:{{shop_item.price}}gold">
+                            Buy
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
