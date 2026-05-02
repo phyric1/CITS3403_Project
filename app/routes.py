@@ -5,6 +5,9 @@ from app.models import User, Card, UserCard, Deck, DeckCard
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 from app.utils import add_user_cards
+import random
+from datetime import date
+from types import SimpleNamespace
 
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
@@ -302,3 +305,73 @@ def view_trade(trade_id):
 
     return render_template("view_trade.html", trade=trade)
 
+
+def get_daily_shop_cards(user_id):
+    all_cards = db.session.query(Card).all()
+    today = date.today().isoformat()
+    #Different daily shops for each user
+    random.seed(f"{today}-{user_id}")
+
+    if len(all_cards) <= 4:
+        return all_cards
+
+    return random.sample(all_cards, 4)
+
+def get_card_price(card):
+    rarity=card.rarity
+    price_rarity={
+        "common": 20,
+        "uncommon": 35,
+        "rare": 60,
+        "legendary": 120,
+        "master": 200
+    }
+    return price_rarity.get(rarity,30)
+
+@bp.route("/shop")
+def shop():
+    user=db.session.query(User).get(session.get("user_id"))
+    daily_cards=get_daily_shop_cards(user.id)
+    today=date.today().isoformat()
+    purchase_key=f"daily_shop_purchases_{user.id}_{today}"
+    purchase_card_id=session.get(purchase_key,[])
+
+    shop_items=[]
+    for card in daily_cards:
+        shop_items.append(SimpleNamespace(card=card,uses_remaining=card.uses,is_purchased=card.id in purchase_card_id,price=get_card_price(card)))
+    message=request.args.get("message")
+
+    return render_template("shop.html",user=user,shop_items=shop_items,today=today,message=message)
+
+@bp.route("/shop/buy/<int:card_id>", methods=["POST"])
+def buy_card(card_id):
+    user=db.session.query(User).get(session.get("user_id"))
+    card=db.session.query(Card).get(card_id)
+
+    if card is None:
+        abort(404)
+
+    daily_cards=get_daily_shop_cards(user.id)
+    daily_cards_ids=[daily_card.id for daily_card in daily_cards]
+    if card.id not in daily_cards_ids:
+        return redirect(url_for(".shop",message="This card is not available in Daily Shop"))
+    
+    today=date.today().isoformat()
+    purchase_key=f"daily_shop_purchases_{user.id}_{today}"
+    purchase_card_id=session.get(purchase_key,[])
+    if card.id in purchase_card_id:
+        return redirect(url_for(".shop",message="You have buy this card today."))
+    
+    price=get_card_price(card)
+    if user.gold<price:
+        return redirect(url_for(".shop", message="You don't have enough money"))
+    user.gold-=price
+
+    user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
+    db.session.add(user_card)
+    db.session.commit()
+    purchase_card_id.append(card.id)
+    session[purchase_key]= purchase_card_id
+    session.modified=True
+
+    return redirect(url_for(".shop",message="Card purchased successfully."))
