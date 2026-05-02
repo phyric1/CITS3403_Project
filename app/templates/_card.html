@@ -1,24 +1,34 @@
-<div class="game-card rarity-{{ item.rarity }}">
+<div class="game-card rarity-{{ item.card.rarity.value }}">
 
-    <div class="card-max">
-        {{ item.max }}
+    <div class="card-uses">
+        {% if item.uses_remaining == -1 %}
+            ∞
+        {% else %}
+            {{ item.uses_remaining }}/{{ item.card.uses}}
+        {% endif %}
     </div>
 
     <div class="card-image">
-        <img src="{{ url_for('static', filename='img/' ~ item.type ~ '.png') }}" alt="{{ item.type }}">
+        <img src="{{ url_for('static', filename='img/' ~ item.card.type.value ~ '.png') }}" alt="{{ item.card.type.value }}">
     </div>
 
     <div class="card-title-box">
-        {{ item.name }}
+        {{ item.card.name }}
     </div>
 
     <div class="card-divider"></div>
 
     <div class="card-body">
-        <p>{{ item.effect }}</p>
+        <p>{{ item.card.effect }}</p>
 
         <div class="card-footer">
-            <span>{{ item.type|capitalize }}</span>
+            <span>{{ item.card.type.value|capitalize }} - Max
+                {% if item.card.uses == -1 %}
+                    ∞
+                {% else %}
+                    {{ item.card.max }}
+                {% endif %}
+            </span>
         </div>
     </div>
 
