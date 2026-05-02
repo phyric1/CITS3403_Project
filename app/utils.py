@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from app import db
-from app.models import Card
+from app.models import Card, UserCard
 from app.enums import CardRarity, CardType
 
 
@@ -33,3 +33,29 @@ def seed_cards():
 
         db.session.add(card)
     db.session.commit()
+
+
+def add_user_cards(user_id: int, cards: list[tuple[str, int]]):
+    """
+    Add cards to a user.
+
+    Args:
+        user_id: id of user
+        cards: list of (card_name, quantity) tuples
+    """
+    card_names = [name for name, _ in cards]
+    db_cards = (db.session.query(Card).filter(Card.name.in_(card_names)).all())
+    card_map = {card.name: card for card in db_cards}
+
+    for card_name, quantity in cards:
+        card = card_map.get(card_name)
+        if not card:
+            raise ValueError(f"Card '{card_name}' does not exist")
+
+        for _ in range(quantity):
+            user_card = UserCard(
+                user_id=user_id,
+                card_id=card.id,
+                uses_remaining=card.uses
+            )
+            db.session.add(user_card)

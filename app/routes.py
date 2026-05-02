@@ -1,8 +1,10 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint, current_app as app
 from app import db
+from sqlalchemy import case
 from app.models import User, Card, UserCard, Deck, DeckCard
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
+from app.utils import add_user_cards
 
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
@@ -87,6 +89,14 @@ def register():
             user=User(username=username,email=email)
             user.set_password(password)
             db.session.add(user)
+            db.session.flush()
+            add_user_cards(user.id, [
+                ("Silence Falls", 3),
+                ("Tailwind", 3),
+                ("Dagger", 3),
+                ("Dexterity", 1),
+                ("Rest", 2),
+            ])
             db.session.commit()
             session["register_success"]=True
             return redirect(url_for(".register"))
@@ -96,11 +106,41 @@ def register():
 
 @bp.route("/game")
 def game():
-    fake_data = { # TODO: Remove when database is implemented
+    fake_data = { # TODO: Change to real query
         "phyric1": [
-            {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
-            {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1},
-            {"name": "Silence Falls", "effect": "Stealth +1", "type": "utility", "rarity": "common", "max": 7, "count": 4},
+            {
+                "card": {
+                    "name": "Tailwind",
+                    "effect": "Move 2 Spaces without triggering enemy behavior",
+                    "type": type("Enum", (), {"value": "movement"})(),
+                    "rarity": type("Enum", (), {"value": "common"})(),
+                    "max": 7,
+                    "uses": 7,
+                },
+                "uses_remaining": 5,
+            },
+            {
+                "card": {
+                    "name": "Heal",
+                    "effect": "Heals 2 Hearts / Adds 2 Hearts",
+                    "type": type("Enum", (), {"value": "survival"})(),
+                    "rarity": type("Enum", (), {"value": "rare"})(),
+                    "max": 5,
+                    "uses": 5,
+                },
+                "uses_remaining": 2,
+            },
+            {
+                "card": {
+                    "name": "Silence Falls",
+                    "effect": "Stealth +1",
+                    "type": type("Enum", (), {"value": "utility"})(),
+                    "rarity": type("Enum", (), {"value": "common"})(),
+                    "max": 7,
+                    "uses": 7,
+                },
+                "uses_remaining": -1,
+            },
         ]
     }
     items = fake_data.get("phyric1")
@@ -165,30 +205,60 @@ def profile(username):
 
 @bp.route("/profile/<username>/inventory")
 def inventory(username):
-    fake_data = { # TODO: Remove when database is implemented
-        "phyric1": [
-            {"name": "Tailwind", "effect": "Move 2 Spaces without triggering enemy behavior", "type": "movement", "rarity": "common", "max": 7, "count": 3},
-            {"name": "Heal", "effect": "Heals 2 Hearts / Adds 2 Hearts", "type": "survival", "rarity": "rare", "max": 5, "count": 1},
-            {"name": "Silence Falls", "effect": "Stealth +1", "type": "utility", "rarity": "common", "max": 7, "count": 4},
-            {"name": "Dynamite", "effect": "Deals damage in 5x5 radius, -2 stealth points blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah  blah blah blah blah blah blah blah blah blah", "type": "combat", "rarity": "epic", "max": 3, "count": 2},
-        ]
-    }
+    user = User.query.filter_by(username=username).first_or_404()
+    is_owner = (session.get('user_id')) == user.id
 
-    items = fake_data.get(username)
-    if items is None:
-        abort(404)
+    mode = request.args.get("mode", "view")
+    if not is_owner:
+        mode = "view"
 
+    # Card Queries
+    if mode == "deck":
+        cards_in_deck_query = (db.session.query(DeckCard.user_card_id)
+            .join(Deck, Deck.id == DeckCard.deck_id).filter(Deck.user_id == user.id))
+        card_query = (db.session.query(UserCard).join(Card)
+            .filter(UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)))
+    elif is_owner:
+        card_query = (db.session.query(UserCard).join(Card).filter(UserCard.user_id == user.id))
+    else:
+        card_query = (db.session.query(UserCard).join(Card)
+            .filter(UserCard.user_id == user.id, UserCard.tradable))
+
+    deck_query = (
+        db.session.query(UserCard).join(Card)
+        .join(DeckCard, DeckCard.user_card_id == UserCard.id)
+        .join(Deck, Deck.id == DeckCard.deck_id)
+        .filter(Deck.user_id == user.id, UserCard.user_id == user.id))
+
+    # Sorting
     sort = request.args.get("sort")
+
     if sort == "name":
-        items = sorted(items, key=lambda x: x["name"])
+        card_query = card_query.order_by(Card.name)
+        deck_query = deck_query.order_by(Card.name)
     elif sort == "rarity":
-        rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 3}
-        items = sorted(items, key=lambda x: rarity_order.get(x["rarity"], 0))
+        rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 4}
+        card_query = card_query.order_by(case(rarity_order, value=Card.rarity))
+        deck_query = deck_query.order_by(case(rarity_order, value=Card.rarity))
     elif sort == "type":
-        items = sorted(items, key=lambda x: x["type"])
+        card_query = card_query.order_by(Card.type)
+        deck_query = deck_query.order_by(Card.type)
     elif sort == "max":
-        items = sorted(items, key=lambda x: x["max"], reverse=True)
-    return render_template("inventory.html", items=items, username=username)
+        deck_query = deck_query.order_by(Card.max_in_deck.desc())
+    elif sort == "uses":
+        card_query = card_query.order_by(
+            case((UserCard.uses_remaining == -1, 1), else_=0),
+            UserCard.uses_remaining.desc())
+
+    # Pagination
+    page = request.args.get("page", 1, type=int)
+    pagination = card_query.paginate(page=page, per_page=100, error_out=False)
+
+    user_cards = pagination.items
+    deck_cards = deck_query.all()
+
+    return render_template("inventory.html", cards=user_cards, deck_cards=deck_cards, username=username, is_owner=is_owner, mode=mode, pagination=pagination)
+
 
 
 
@@ -231,3 +301,4 @@ def view_trade(trade_id):
         abort(404)
 
     return render_template("view_trade.html", trade=trade)
+
