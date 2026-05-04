@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Daily Shop{% endblock %}
 
-{% block extra_css %}
+{% block extra_links %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
 {% endblock %}
 
@@ -39,7 +39,7 @@
                         Sold Out
                     </button>
                 {% else %}
-                    <form method="post" action="{{url_for('.buy_card', card_id=shop_item.card.id)}}" class="w-100">
+                    <form method="post" action="{{url_for('main.buy_card', card_id=shop_item.card.id)}}" class="w-100">
                         <button type="submit" class="btn btn-success w-100" title="Price:{{shop_item.price}}gold">
                             Buy
                         </button>

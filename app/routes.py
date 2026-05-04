@@ -293,17 +293,17 @@ def buy_card(card_id):
     daily_cards=get_daily_shop_cards(user.id)
     daily_cards_ids=[daily_card.id for daily_card in daily_cards]
     if card.id not in daily_cards_ids:
-        return redirect(url_for(".shop",message="This card is not available in Daily Shop"))
-    
+        return redirect(url_for("main.shop",message="This card is not available in Daily Shop"))
+
     today=date.today().isoformat()
     purchase_key=f"daily_shop_purchases_{user.id}_{today}"
     purchase_card_id=session.get(purchase_key,[])
     if card.id in purchase_card_id:
-        return redirect(url_for(".shop",message="You have buy this card today."))
-    
+        return redirect(url_for("main.shop",message="You have buy this card today."))
+
     price=get_card_price(card)
     if user.gold<price:
-        return redirect(url_for(".shop", message="You don't have enough money"))
+        return redirect(url_for("main.shop", message="You don't have enough money"))
     user.gold-=price
 
     user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
@@ -313,4 +313,4 @@ def buy_card(card_id):
     session[purchase_key]= purchase_card_id
     session.modified=True
 
-    return redirect(url_for(".shop",message="Card purchased successfully."))
+    return redirect(url_for("main.shop",message="Card purchased successfully."))
