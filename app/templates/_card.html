@@ -23,10 +23,10 @@
 
         <div class="card-footer">
             <span>{{ item.card.type.value|capitalize }} - Max
-                {% if item.card.uses == -1 %}
+                {% if item.card.max_in_deck == -1 %}
                     ∞
                 {% else %}
-                    {{ item.card.max }}
+                    {{ item.card.max_in_deck }}
                 {% endif %}
             </span>
         </div>

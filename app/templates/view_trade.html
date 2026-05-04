@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block extra_css %}
+{% block extra_links %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
 {% endblock %}
 
@@ -9,7 +9,7 @@
 <h1 class="text-center mb-4">Trade Details</h1>
 
 <div class="d-flex justify-content-start mb-4">
-    <a href="{{ url_for('.trading') }}" class="btn btn-primary">Return To Trades</a>
+    <a href="{{ url_for('main.trading') }}" class="btn btn-primary">Return To Trades</a>
 </div>
 
 <div class="card mb-4">
