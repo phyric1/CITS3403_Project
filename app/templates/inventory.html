@@ -2,8 +2,11 @@
 
 {% block title %}{% if is_owner %}Your Inventory{% else %}{{ username }}'s Inventory{% endif %}{% endblock %}
 
-{% block extra_css %}
+{% block extra_links %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% if mode == "deck" %}
+    <script src="{{ url_for('static', filename='inventory.js') }}"></script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -25,7 +28,7 @@
                 {% endif %}
             {% endif %}
 
-            <a href="{{ url_for('.profile', username=username) }}" class="btn btn-outline-primary">
+            <a href="{{ url_for('main.profile', username=username) }}" class="btn btn-outline-primary">
                 Back to Profile
             </a>
         </div>
@@ -47,22 +50,17 @@
     </div>
 
     <!-- Deck Section -->
-    <h4>Deck</h4>
+    <h4>Deck (<span id="deck-count">{{ deck_size }}</span>/{{ max_deck_size }})</h4>
     <div class="row g-3 mb-4" id="deck">
         {% for item in deck_cards %}
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <div class="inventory-card-wrapper"
-                 data-card-id="{{ item.id }}"
-                 {% if is_owner and mode == "deck" %}draggable="true"{% endif %}>
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2 inventory-card-wrapper" data-card-id="{{ item.id }}">
+            {% include "_card.html" %}
 
-                {% include "_card.html" %}
-
-                {% if is_owner and mode == "deck" %}
-                    <button class="btn btn-sm btn-danger w-100 mt-1 remove-from-deck">
-                        Remove
-                    </button>
-                {% endif %}
-            </div>
+            {% if is_owner and mode == "deck" %}
+                <button class="btn btn-sm btn-danger w-100 mt-1 remove-from-deck">
+                    Remove
+                </button>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -71,31 +69,25 @@
     <h4>{% if is_owner %}Inventory{% else %}Tradable Inventory{% endif %}</h4>
     <div class="row g-3" id="inventory">
         {% for item in cards %}
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <div class="inventory-card-wrapper"
-                 data-card-id="{{ item.id }}"
-                 {% if is_owner and mode == "deck" %}draggable="true"{% endif %}>
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2 inventory-card-wrapper" data-card-id="{{ item.id }}">
+            {% include "_card.html" %}
 
-                {% include "_card.html" %}
+            {% if item.count and item.count > 1 %}
+            <div class="card-count">x{{ item.count }}</div>
+            {% endif %}
 
-                {% if item.count and item.count > 1 %}
-                <div class="card-count">x{{ item.count }}</div>
+            <!-- MODE-SPECIFIC ACTIONS -->
+            {% if is_owner %}
+                {% if mode == "repair" %}
+                    <button class="btn btn-sm btn-warning w-100 mt-1 repair-btn">
+                        Repair
+                    </button>
+                {% elif mode == "deck" %}
+                    <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
+                        Add to Deck
+                    </button>
                 {% endif %}
-
-                <!-- MODE-SPECIFIC ACTIONS -->
-                {% if is_owner %}
-                    {% if mode == "repair" %}
-                        <button class="btn btn-sm btn-warning w-100 mt-1 repair-btn">
-                            Repair
-                        </button>
-                    {% elif mode == "deck" %}
-                        <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
-                            Add to Deck
-                        </button>
-                    {% endif %}
-                {% endif %}
-
-            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

@@ -19,7 +19,9 @@ def create_app():
     from app import models
 
     from app.routes import bp
+    from app.inventory import bp as inventory_bp
     app.register_blueprint(bp)
+    app.register_blueprint(inventory_bp)
     register_cli(app)
 
     return app

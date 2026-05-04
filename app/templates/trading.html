@@ -5,7 +5,7 @@
 <h1 class="text-center mb-4">Trading</h1>
 
 <div class="d-flex justify-content-end mb-4">
-    <a href="{{ url_for('.new_trade') }}" class="btn btn-primary">Create New Trade</a>
+    <a href="{{ url_for('main.new_trade') }}" class="btn btn-primary">Create New Trade</a>
 </div>
 
 <div class="row g-5">
@@ -23,7 +23,7 @@
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
                                 <p class="mb-1">They want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">They offer: {{ trade.cards_offered }} cards</p>
-                                <a href="{{ url_for('.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
+                                <a href="{{ url_for('main.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -48,7 +48,7 @@
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
                                 <p class="mb-1">You want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">You offer: {{ trade.cards_offered }} cards</p>
-                                <a href="{{ url_for('.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
+                                <a href="{{ url_for('main.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
                         {% endfor %}
                     {% else %}
