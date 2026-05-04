@@ -23,13 +23,13 @@
               <thead class="table-light">
               <tr>
                   <th class="col text-center" style="width: 5%" scope="col">
-                    <a class = "text-dark text-decoration-none text-center {% if sort == 'ranking' %}text-decoration-underline{% endif %}" href="{{ url_for('.leaderboard', sort='ranking') }}"> Ranking </a>
+                    <a class = "text-dark text-decoration-none text-center {% if sort == 'ranking' %}text-decoration-underline{% endif %}" href="{{ url_for('main.leaderboard', sort='ranking') }}"> Ranking </a>
                   </th>
                   <th class = "text-center" scope="col">
-                    <a class = "text-dark text-decoration-none text-center {% if sort == 'player' %}text-decoration-underline{% endif %}" href="{{ url_for('.leaderboard', sort='player') }}"> Player </a>
+                    <a class = "text-dark text-decoration-none text-center {% if sort == 'player' %}text-decoration-underline{% endif %}" href="{{ url_for('main.leaderboard', sort='player') }}"> Player </a>
                   </th>
                   <th class = "text-center" scope="col">
-                    <a class = "text-dark text-decoration-none {% if sort == 'stat1' %}text-decoration-underline{% endif %}" href="{{ url_for('.leaderboard', sort='stat1') }}"> stat1 </a>
+                    <a class = "text-dark text-decoration-none {% if sort == 'stat1' %}text-decoration-underline{% endif %}" href="{{ url_for('main.leaderboard', sort='stat1') }}"> stat1 </a>
                   </th>
                   <th class = "text-center" scope="col">
                     <a class = "text-dark text-decoration-none {% if sort == 'stat2' %}text-decoration-underline{% endif %}" href="{{ url_for('.leaderboard', sort='stat2') }}"> stat2 </a>

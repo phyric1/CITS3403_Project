@@ -1,6 +1,5 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint, current_app as app
 from app import db
-from sqlalchemy import case
 from app.models import User, Card, UserCard, Deck, DeckCard
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
@@ -38,7 +37,7 @@ def login():
             else:
                 session["user_id"]=user.id
                 session["username"]=user.username
-                return redirect(url_for(".index"))
+                return redirect(url_for("main.index"))
 
     return render_template("login.html",title="Login",errors=errors)
 
@@ -47,7 +46,7 @@ def login():
 def logout():
     session.pop("user_id",None)
     session.pop("username",None)
-    return redirect(url_for(".index"))
+    return redirect(url_for("main.index"))
 
 @bp.route("/register",methods=["GET","POST"])
 def register():
@@ -102,7 +101,7 @@ def register():
             ])
             db.session.commit()
             session["register_success"]=True
-            return redirect(url_for(".register"))
+            return redirect(url_for("main.register"))
 
     return render_template("register.html",title="Register",errors=errors,success=success)
 
@@ -206,70 +205,10 @@ def profile(username):
     return render_template("profile.html",player=player, username=username)
 
 
-@bp.route("/profile/<username>/inventory")
-def inventory(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    is_owner = (session.get('user_id')) == user.id
-
-    mode = request.args.get("mode", "view")
-    if not is_owner:
-        mode = "view"
-
-    # Card Queries
-    if mode == "deck":
-        cards_in_deck_query = (db.session.query(DeckCard.user_card_id)
-            .join(Deck, Deck.id == DeckCard.deck_id).filter(Deck.user_id == user.id))
-        card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)))
-    elif is_owner:
-        card_query = (db.session.query(UserCard).join(Card).filter(UserCard.user_id == user.id))
-    else:
-        card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, UserCard.tradable))
-
-    deck_query = (
-        db.session.query(UserCard).join(Card)
-        .join(DeckCard, DeckCard.user_card_id == UserCard.id)
-        .join(Deck, Deck.id == DeckCard.deck_id)
-        .filter(Deck.user_id == user.id, UserCard.user_id == user.id))
-
-    # Sorting
-    sort = request.args.get("sort")
-
-    if sort == "name":
-        card_query = card_query.order_by(Card.name)
-        deck_query = deck_query.order_by(Card.name)
-    elif sort == "rarity":
-        rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 4}
-        card_query = card_query.order_by(case(rarity_order, value=Card.rarity))
-        deck_query = deck_query.order_by(case(rarity_order, value=Card.rarity))
-    elif sort == "type":
-        card_query = card_query.order_by(Card.type)
-        deck_query = deck_query.order_by(Card.type)
-    elif sort == "max":
-        deck_query = deck_query.order_by(Card.max_in_deck.desc())
-    elif sort == "uses":
-        card_query = card_query.order_by(
-            case((UserCard.uses_remaining == -1, 1), else_=0),
-            UserCard.uses_remaining.desc())
-
-    # Pagination
-    page = request.args.get("page", 1, type=int)
-    pagination = card_query.paginate(page=page, per_page=100, error_out=False)
-
-    user_cards = pagination.items
-    deck_cards = deck_query.all()
-
-    return render_template("inventory.html", cards=user_cards, deck_cards=deck_cards, username=username, is_owner=is_owner, mode=mode, pagination=pagination)
-
-
-
-
-
 @bp.route("/trading")
 def trading():
-    
-    
+
+
     incoming_trades = [{"id": 1, "from_user": "player2", "created_at": "2026-05-01", "cards_requested": 2, "cards_offered": 1}]
     outgoing_trades = [{"id": 2, "to_user": "player2", "created_at": "2026-05-01", "cards_requested": 1, "cards_offered": 1}]
     return render_template("trading.html", incoming_trades=incoming_trades, outgoing_trades=outgoing_trades)
@@ -278,14 +217,14 @@ def trading():
 @bp.route("/trading/new")
 def new_trade():
 
-    
+
     return render_template("new_trade.html")
 
 
 
 @bp.route("/trading/<int:trade_id>")
 def view_trade(trade_id):
-    
+
 
     hardcoded_trades = {
         1: {"id": 1, "from_user": "player2", "to_user": "player1", "created_at": "2026-05-01", "status": "Pending",
@@ -354,17 +293,17 @@ def buy_card(card_id):
     daily_cards=get_daily_shop_cards(user.id)
     daily_cards_ids=[daily_card.id for daily_card in daily_cards]
     if card.id not in daily_cards_ids:
-        return redirect(url_for(".shop",message="This card is not available in Daily Shop"))
-    
+        return redirect(url_for("main.shop",message="This card is not available in Daily Shop"))
+
     today=date.today().isoformat()
     purchase_key=f"daily_shop_purchases_{user.id}_{today}"
     purchase_card_id=session.get(purchase_key,[])
     if card.id in purchase_card_id:
-        return redirect(url_for(".shop",message="You have buy this card today."))
-    
+        return redirect(url_for("main.shop",message="You have buy this card today."))
+
     price=get_card_price(card)
     if user.gold<price:
-        return redirect(url_for(".shop", message="You don't have enough money"))
+        return redirect(url_for("main.shop", message="You don't have enough money"))
     user.gold-=price
 
     user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
@@ -374,4 +313,4 @@ def buy_card(card_id):
     session[purchase_key]= purchase_card_id
     session.modified=True
 
-    return redirect(url_for(".shop",message="Card purchased successfully."))
+    return redirect(url_for("main.shop",message="Card purchased successfully."))
