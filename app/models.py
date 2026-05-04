@@ -12,6 +12,7 @@ class User(db.Model):
     username=db.Column(db.String(64),index=True,unique=True,nullable=False)
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)
     password_hash=db.Column(db.String(256),nullable=False)
+    gold=db.Column(db.Integer,default=20,nullable=False)
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')

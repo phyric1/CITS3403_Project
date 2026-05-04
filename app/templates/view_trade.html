@@ -32,7 +32,8 @@
     </div>
     <div class="card-body">
         <div class="d-flex flex-wrap justify-content-center gap-4">
-            {% for item in trade.offered_cards %}
+            {% for card in trade.offered_cards %}
+                {% set item = {'card': card} %}
                 <div class="inventory-card-wrapper" style="width: 220px;">
                     {% include "_card.html" %}
                 </div>
@@ -47,7 +48,8 @@
     </div>
     <div class="card-body">
         <div class="d-flex flex-wrap justify-content-center gap-4">
-            {% for item in trade.requested_cards %}
+            {% for card in trade.requested_cards %}
+                {% set item = {'card': card} %}
                 <div class="inventory-card-wrapper" style="width: 220px;">
                     {% include "_card.html" %}
                 </div>
