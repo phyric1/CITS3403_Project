@@ -1,20 +1,193 @@
 {% extends "base.html" %}
 
-
-
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
 
 {% block content %}
 
+<h2 class="text-center mb-2">New Trade</h2>
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{{ url_for('.trading') }}" class="btn btn-primary">Return To Trading</a>
 
+    <form method="GET" action="{{ url_for('.new_trade') }}" class="d-flex gap-2">
+        <input
+            type="text"
+            name="target_username"
+            class="form-control"
+            placeholder="Enter target user"
+            style="width: 180px;"
+            value="{{ target_username }}">
+        <button type="submit" class="btn btn-success">Search User</button>
+    </form>
+</div>
 
+{% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% endif %}
 
+<div class="card mb-2" style="border: 3px solid #000000;">
+    <div class="card-body">
+        {% if target_user %}
+            <p class="mb-3 text-center"><strong>{{ target_user.username }}'s Tradable Cards:</strong></p>
 
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for item in target_cards %}
+                    <div class="inventory-card-wrapper" style="width: 160px;">
+                        {% include "_card.html" %}
 
+                        {% if item.id in requested_card_ids %}
+                            <form method="POST" action="{{ url_for('.update_trade_selection') }}">
+                                <input type="hidden" name="action" value="remove_requested">
+                                <input type="hidden" name="user_card_id" value="{{ item.id }}">
+                                <input type="hidden" name="target_username" value="{{ target_user.username }}">
+                                <input type="hidden" name="target_page" value="{{ target_pagination.page }}">
+                                <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
+                                <button type="submit" class="btn btn-sm btn-danger w-100 mt-2">Remove</button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('.update_trade_selection') }}">
+                                <input type="hidden" name="action" value="add_requested">
+                                <input type="hidden" name="user_card_id" value="{{ item.id }}">
+                                <input type="hidden" name="target_username" value="{{ target_user.username }}">
+                                <input type="hidden" name="target_page" value="{{ target_pagination.page }}">
+                                <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
+                                <button type="submit" class="btn btn-sm btn-success w-100 mt-2">Add</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
 
+            <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+                {% if target_pagination.has_prev %}
+                    <a href="{{ url_for('.new_trade', target_username=target_user.username, target_page=target_pagination.prev_num, my_page=my_pagination.page) }}" class="btn btn-sm btn-outline-primary">
+                        Previous
+                    </a>
+                {% endif %}
 
+                <span>Page {{ target_pagination.page }} of {{ target_pagination.pages }}</span>
 
+                {% if target_pagination.has_next %}
+                    <a href="{{ url_for('.new_trade', target_username=target_user.username, target_page=target_pagination.next_num, my_page=my_pagination.page) }}" class="btn btn-sm btn-outline-primary">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0">Search for a target user to view tradable cards.</p>
+        {% endif %}
+    </div>
+</div>
 
+<div class="card mb-4" style="border: 3px solid #1104d4;">
+    <div class="card-body">
+        <p class="mb-3 text-center"><strong>Your Tradable Cards:</strong></p>
+
+        <div class="d-flex flex-wrap justify-content-center gap-4">
+            {% for item in my_cards %}
+                <div class="inventory-card-wrapper" style="width: 160px;">
+                    {% include "_card.html" %}
+
+                    {% if item.id in offered_card_ids %}
+                        <form method="POST" action="{{ url_for('.update_trade_selection') }}">
+                            <input type="hidden" name="action" value="remove_offered">
+                            <input type="hidden" name="user_card_id" value="{{ item.id }}">
+                            <input type="hidden" name="target_username" value="{{ target_user.username if target_user else '' }}">
+                            <input type="hidden" name="target_page" value="{{ target_pagination.page if target_pagination else 1 }}">
+                            <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
+                            <button type="submit" class="btn btn-sm btn-danger w-100 mt-2">Remove</button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('.update_trade_selection') }}">
+                            <input type="hidden" name="action" value="add_offered">
+                            <input type="hidden" name="user_card_id" value="{{ item.id }}">
+                            <input type="hidden" name="target_username" value="{{ target_user.username if target_user else '' }}">
+                            <input type="hidden" name="target_page" value="{{ target_pagination.page if target_pagination else 1 }}">
+                            <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
+                            <button type="submit" class="btn btn-sm btn-success w-100 mt-2">Add</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+            {% if my_pagination.has_prev %}
+                <a href="{{ url_for('.new_trade', target_username=target_user.username if target_user else '', target_page=target_pagination.page if target_pagination else 1, my_page=my_pagination.prev_num) }}" class="btn btn-sm btn-outline-primary">
+                    Previous
+                </a>
+            {% endif %}
+
+            <span>Page {{ my_pagination.page }} of {{ my_pagination.pages }}</span>
+
+            {% if my_pagination.has_next %}
+                <a href="{{ url_for('.new_trade', target_username=target_user.username if target_user else '', target_page=target_pagination.page if target_pagination else 1, my_page=my_pagination.next_num) }}" class="btn btn-sm btn-outline-primary">
+                    Next
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-center text-white">
+        <h2 class="mb-0">Cards Requested</h2>
+    </div>
+    <div class="card-body">
+        {% if requested_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for item in requested_cards %}
+                    <div class="inventory-card-wrapper" style="width: 160px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0">No cards requested yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-center text-white">
+        <h2 class="mb-0">Cards Offered</h2>
+    </div>
+    <div class="card-body">
+        {% if offered_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for item in offered_cards %}
+                    <div class="inventory-card-wrapper" style="width: 160px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0">No cards offered yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        Trade Summary
+    </div>
+    <div class="card-body text-center">
+        <p class="mb-1"><strong>Target User:</strong> {{ target_user.username if target_user else "None selected" }}</p>
+        <p class="mb-1"><strong>Cards Requested:</strong> {{ requested_cards|length }}</p>
+        <p class="mb-0"><strong>Cards Offered:</strong> {{ offered_cards|length }}</p>
+    </div>
+</div>
+
+<div class="d-flex justify-content-center gap-3 mt-4">
+    <form method="POST" action="{{ url_for('.submit_trade') }}">
+        <input type="hidden" name="target_username" value="{{ target_user.username if target_user else '' }}">
+        <button type="submit" class="btn btn-success">Submit Trade</button>
+    </form>
+</div>
 
 
 {% endblock %}
