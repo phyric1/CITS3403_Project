@@ -17,16 +17,14 @@ def inventory(username):
         mode = "view"
 
     # Card Queries
-    if mode == "deck":
-        cards_in_deck_query = (db.session.query(DeckCard.user_card_id)
-            .join(Deck, Deck.id == DeckCard.deck_id).filter(Deck.user_id == user.id))
+    cards_in_deck_query = (db.session.query(DeckCard.user_card_id)
+        .join(Deck, Deck.id == DeckCard.deck_id).filter(Deck.user_id == user.id))
+    if is_owner:
         card_query = (db.session.query(UserCard).join(Card)
             .filter(UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)))
-    elif is_owner:
-        card_query = (db.session.query(UserCard).join(Card).filter(UserCard.user_id == user.id))
     else:
         card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, UserCard.tradable))
+            .filter(UserCard.user_id == user.id, UserCard.tradable, ~UserCard.id.in_(cards_in_deck_query)))
 
     deck_query = (
         db.session.query(UserCard).join(Card)
@@ -56,7 +54,7 @@ def inventory(username):
 
     # Pagination
     page = request.args.get("page", 1, type=int)
-    pagination = card_query.paginate(page=page, per_page=100, error_out=False)
+    pagination = card_query.paginate(page=page, per_page=99, error_out=False)
 
     user_cards = pagination.items
     deck_cards = deck_query.all()
@@ -80,7 +78,10 @@ def add_to_deck():
 
     data = request.get_json()
 
-    user_card_id = data.get("user_card_id")
+    try:
+        user_card_id = int(data.get("user_card_id"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid user_card_id"}), 400
     if not user_card_id:
         return jsonify({"error": "Missing user_card_id"}), 400
 
@@ -105,6 +106,7 @@ def add_to_deck():
         return jsonify({"error": "Max copies of card in deck reached"}), 400
 
     db.session.add(DeckCard(deck_id=deck.id, user_card_id=user_card.id))
+    user_card.tradable = False
     db.session.commit()
     return {"success": True}
 
@@ -117,7 +119,10 @@ def remove_from_deck():
 
     data = request.get_json()
 
-    user_card_id = data.get("user_card_id")
+    try:
+        user_card_id = int(data.get("user_card_id"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid user_card_id"}), 400
     if not user_card_id:
         return jsonify({"error": "Missing user_card_id"}), 400
 
@@ -131,6 +136,39 @@ def remove_from_deck():
         return jsonify({"error": "Card not in deck"}), 404
 
     db.session.delete(deck_card)
+    db.session.commit()
+
+    return {"success": True}
+
+
+@bp.route("/api/user_card/tradable", methods=["POST"])
+def tradable():
+    user_id, err = get_current_user_id()
+    if err:
+        return err
+
+    data = request.get_json()
+
+    value = data.get("value")
+    if not isinstance(value, bool):
+        return jsonify({"error": "Invalid tradable value"}), 400
+
+    try:
+        user_card_id = int(data.get("user_card_id"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid user_card_id"}), 400
+    if not user_card_id:
+        return jsonify({"error": "Missing user_card_id"}), 400
+
+    user_card, err = get_user_card(user_id, user_card_id)
+    if err:
+        return err
+
+    deck_entry = DeckCard.query.filter_by(user_card_id=user_card.id).first()
+    if deck_entry:
+        return jsonify({"error": "Card is in a deck and cannot have its tradability adjusted"}), 400
+
+    user_card.tradable = value
     db.session.commit()
 
     return {"success": True}

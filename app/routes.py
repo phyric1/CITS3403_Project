@@ -257,7 +257,7 @@ def get_daily_shop_cards(user_id):
     return random.sample(all_cards, 4)
 
 def get_card_price(card):
-    rarity=card.rarity
+    rarity=card.rarity.value
     price_rarity={
         "common": 20,
         "uncommon": 35,
