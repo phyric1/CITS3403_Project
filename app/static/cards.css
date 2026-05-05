@@ -139,3 +139,10 @@
 .game-card:hover {
     filter: brightness(70%);
 }
+
+/* Grid for displaying cards in inventory */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}

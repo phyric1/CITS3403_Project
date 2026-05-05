@@ -1,12 +1,13 @@
 <div class="game-card rarity-{{ item.card.rarity.value }}">
-
-    <div class="card-uses">
-        {% if item.uses_remaining == -1 %}
-            ∞
-        {% else %}
-            {{ item.uses_remaining }}/{{ item.card.uses}}
-        {% endif %}
-    </div>
+    {% if item.uses_remaining%}
+        <div class="card-uses">
+            {% if item.uses_remaining == -1 %}
+                ∞
+            {% else %}
+                {{ item.uses_remaining }}/{{ item.card.uses}}
+            {% endif %}
+        </div>
+    {% endif %}
 
     <div class="card-image">
         <img src="{{ url_for('static', filename='img/' ~ item.card.type.value ~ '.png') }}" alt="{{ item.card.type.value }}">
