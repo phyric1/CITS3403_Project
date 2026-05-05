@@ -1,15 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".add-to-deck").forEach(button => {
-    button.onclick = addToDeck;
-  });
-  document.querySelectorAll(".remove-from-deck").forEach(button => {
-    button.onclick = removeFromDeck;
-  });
+  const container = document.querySelector("#inventory-container");
+  container.addEventListener("click", handleClick);
 })
 
 
-async function addToDeck(e) {
-  const button = e.target;
+async function handleClick(e) {
+  const button = e.target.closest("button");
+
+  if (!button) return;
+
+  if (button.classList.contains("add-to-deck")) {
+    return addToDeck(button);
+  }
+
+  if (button.classList.contains("remove-from-deck")) {
+    return removeFromDeck(button);
+  }
+
+  if (button.classList.contains("tradable-toggle")) {
+    return toggleTradable(button);
+  }
+}
+
+
+async function addToDeck(button) {
   button.disabled = true;
   const card = button.closest(".inventory-card-wrapper")
 
@@ -35,8 +49,7 @@ async function addToDeck(e) {
 }
 
 
-async function removeFromDeck(e) {
-  const button = e.target
+async function removeFromDeck(button) {
   button.disabled = true;
   const card = button.closest(".inventory-card-wrapper")
 
@@ -84,4 +97,50 @@ function updateDeckCount(change) {
   const deck_card_count = document.getElementById("deck-count");
   let current = parseInt(deck_card_count.textContent);
   deck_card_count.textContent = current + change;
+}
+
+
+async function toggleTradable(button) {
+  const card = button.closest(".inventory-card-wrapper");
+  const current = button.dataset.tradable === "true";
+  const newValue = !current;
+  await setTradable(button, card.dataset.cardId, newValue);
+}
+
+
+async function setTradable(button, cardId, value) {
+  button.disabled = true;
+
+  try {
+    const res = await fetch("/api/user_card/tradable", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user_card_id: cardId,
+        value: value
+      })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Something went wrong");
+      button.disabled = false;
+      return;
+    }
+    button.dataset.tradable = value.toString();
+    if (value) {
+      button.textContent = "Tradable";
+      button.classList.remove("btn-warning");
+      button.classList.add("btn-success");
+    } else {
+      button.textContent = "Not Tradable";
+      button.classList.remove("btn-success");
+      button.classList.add("btn-warning");
+    }
+  } catch (err) {
+    alert("Network error");
+  }
+  button.disabled = false;
 }
