@@ -246,7 +246,7 @@ def view_trade(trade_id):
 
 
 def get_daily_shop_cards(user_id):
-    all_cards = db.session.query(Card).all()
+    all_cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
     today = date.today().isoformat()
     #Different daily shops for each user
     random.seed(f"{today}-{user_id}")
