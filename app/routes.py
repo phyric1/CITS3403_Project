@@ -246,7 +246,7 @@ def view_trade(trade_id):
 
 
 def get_daily_shop_cards(user_id):
-    all_cards = db.session.query(Card).all()
+    all_cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
     today = date.today().isoformat()
     #Different daily shops for each user
     random.seed(f"{today}-{user_id}")
@@ -314,3 +314,10 @@ def buy_card(card_id):
     session.modified=True
 
     return redirect(url_for("main.shop",message="Card purchased successfully."))
+
+
+@bp.route("/cards")
+def show_cards():
+    cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
+
+    return render_template("cards.html", cards=cards)

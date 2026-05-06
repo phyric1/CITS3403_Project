@@ -57,7 +57,7 @@
     <h4>Deck (<span id="deck-count">{{ deck_size }}</span>/{{ max_deck_size }})</h4>
     <div class="card-grid" id="deck">
         {% for item in deck_cards %}
-        <div class="inventory-card-wrapper" data-card-id="{{ item.id }}">
+        <div class="card-wrapper" data-card-id="{{ item.id }}">
             {% include "_card.html" %}
 
             {% if is_owner and mode == "deck" %}
@@ -73,7 +73,7 @@
     <h4>{% if is_owner %}Inventory{% else %}Tradable Inventory{% endif %}</h4>
     <div class="card-grid" id="inventory">
         {% for item in cards %}
-        <div class="inventory-card-wrapper" data-card-id="{{ item.id }}">
+        <div class="card-wrapper" data-card-id="{{ item.id }}">
             {% include "_card.html" %}
 
             {% if item.count and item.count > 1 %}
