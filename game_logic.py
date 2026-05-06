@@ -62,12 +62,11 @@ class DungeonGame():
             else:
                 return_grid = self.getGridObject().gridProxy()
             self.turnNum += 1
-            return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
+            return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
 
         for enemy in self.enemies: #move enemies
             enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
-
-        #apply any damage interactions
+            enemy.attack(self.player)
         #apply any map interactions
         #apply any card effects
         #draw new cards
@@ -79,7 +78,7 @@ class DungeonGame():
         else:
             return_grid = self.getGridObject().gridProxy()
         self.turnNum += 1 #increment turn count unless card effect overrides it
-        return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
+        return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
 
     def getGridObject(self): #return grid object
         return self.grid

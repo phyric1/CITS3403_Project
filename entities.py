@@ -138,10 +138,16 @@ class Enemy():
         else:
             return False
     
-    def attack(self):
-        #collision check
-        #pass damage
-        pass
+    def attack(self, player):
+         #directions
+        dx = [-1, 1, 0, 0]
+        dy = [0, 0, -1, 1]
+
+        for i in range(4):
+            if self.x + dx[i] == player.x and self.y + dy[i] == player.y:
+                player.takeDamage(1)
+        if self.x == player.x and self.y == player.y:
+            player.takeDamage(1)
 
 class Goblin(Enemy):
     def __init__(self, x, y):
