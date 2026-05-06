@@ -1,5 +1,6 @@
 import random
 
+#line of sight function
 class Items():
     def __init__(self):
         pass
@@ -27,7 +28,7 @@ class Enemy():
         if grid[self.y + dy[dir]][self.x + dx[dir]] != 0: 
             #randomly pick new direction to patrol
             clear_path = False
-            while not clear_path:
+            while not clear_path and len(other_dir) > 0:
                 dir = other_dir[random.randint(0, len(other_dir)-1)]
                 if grid[self.y + dy[dir]][self.x + dx[dir]] != 0: 
                     other_dir.remove(dir)
@@ -61,22 +62,104 @@ class Enemy():
         self.y += dy[best_dir]
         grid[self.y][self.x] = 4 
         return grid
+    
+    #add los check
+    def detect(self, grid, filter):
+        vision_width = 5
+        vision_depth = 5
+        halfW = vision_width // 2
 
-    def sight(self, grid):
-        self.direction
+        if self.direction == 1: #right
+            if grid[self.y][self.x+1] != 1:
+                for y in range(self.y - halfW, self.y + halfW + 1):
+                    for x in range(self.x + 1, self.x + vision_depth):
+                        if self.bounds_check(filter, x, y):
+                            if grid[y][x] == 1:
+                                break
+                            else:
+                                filter[y][x] = 1
+        elif self.direction == 0: #left
+            if grid[self.y][self.x-1] != 1:
+                for y in range(self.y - halfW, self.y + halfW + 1):
+                    zx = self.x - 1
+                    for x in range(vision_depth):
+                        if self.bounds_check(filter, zx, y):
+                            if grid[y][zx] == 1:
+                                break
+                            else:
+                                filter[y][zx] = 1
+                                zx -= 1
+        elif self.direction == 2: #up
+            if grid[self.y - 1][self.x] != 1:
+                for x in range(self.x - halfW, self.x + halfW + 1):
+                    zy = self.y - 1
+                    for y in range(vision_depth):
+                        if self.bounds_check(filter, x, zy):
+                            if grid[zy][x] == 1:
+                                break
+                            else:
+                                filter[zy][x] = 1
+                                zy -= 1
+        elif self.direction == 3: #down
+            if grid[self.y + 1][self.x] != 1:
+                for x in range(self.x - halfW, self.x + halfW + 1):
+                    for y in range(self.y + 1, self.y + vision_depth):
+                        if self.bounds_check(filter, x, y):
+                            if grid[y][x] == 1:
+                                break
+                            else:
+                                filter[y][x] = 1
+        return filter
+
+    
+    def bounds_check(self, filter, x, y):
+        if 0 <= y < len(filter) and 0 <= x < len(filter[0]):
+            return True
+        else:
+            return False
     
     def attack(self):
+        #collision check
+        #pass damage
         pass
+
+class Goblin(Enemy):
+    def __init__(self, x, y):
+        super().__init__(x, y)
 
 class Hound(Enemy):
-    pass
+    detectRange = int
+    maxRange = int
+    expand = True
+    def __init__(self, x, y):
+        pass
 
-class Trolls(Enemy):
-    pass
+    def sleep(self, grid):
+        if self.detectRange > self.maxRange:
+            self.expand = False
+        elif self.detectRange == 0:
+            self.expand = True
 
-class Keys():
+        if self.expand:
+            self.detectRange += 1
+        else:
+            self.detectRange -= 1
+
+        #check radius
+        for i in range(self.y - self.detectRange, self.y + self.detectRange + 1):
+            for j in range(self.x - self.detectRange, self.x + self.detectRange + 1):
+                    if grid[i][j] == 2:
+                        print("caught")
+
+class Keys(Items):
     def __init__(self):
         pass
+    #collision function
+    #delete function
+
+class Gold(Items):
+    def __init__(self, x, y):
+        super(x, y)
     #collision function
     #delete function
 
