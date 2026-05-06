@@ -14,7 +14,14 @@ class Enemy():
         self.state = "idle" 
         self.health = 1
 
-    def patrol(self, grid):
+    def moveEnemy(self, grid, dist_map, filter):
+        if self.state == "idle":
+            self.patrol(grid, filter)
+        elif self.state == "chase":
+            self.chase(grid, dist_map)
+
+
+    def patrol(self, grid, filter):
         dir = self.direction #current direction
         other_dir = [0, 1, 2, 3] 
         if dir in other_dir:
@@ -41,6 +48,7 @@ class Enemy():
         self.x += dx[dir]
         self.y += dy[dir]
         grid[self.y][self.x] = 4  # set new position
+        self.detect(grid, filter)
         return grid
          
     #aggressive
@@ -76,6 +84,9 @@ class Enemy():
                         if self.bounds_check(filter, x, y):
                             if grid[y][x] == 1:
                                 break
+                            elif grid[y][x] == 2:
+                                self.state = "chase"
+                                return filter
                             else:
                                 filter[y][x] = 1
         elif self.direction == 0: #left
@@ -86,6 +97,9 @@ class Enemy():
                         if self.bounds_check(filter, zx, y):
                             if grid[y][zx] == 1:
                                 break
+                            elif grid[y][zx] == 2:
+                                self.state = "chase"
+                                return filter
                             else:
                                 filter[y][zx] = 1
                                 zx -= 1
@@ -97,6 +111,9 @@ class Enemy():
                         if self.bounds_check(filter, x, zy):
                             if grid[zy][x] == 1:
                                 break
+                            elif grid[zy][x] == 2:
+                                self.state = "chase"
+                                return filter
                             else:
                                 filter[zy][x] = 1
                                 zy -= 1
@@ -107,6 +124,9 @@ class Enemy():
                         if self.bounds_check(filter, x, y):
                             if grid[y][x] == 1:
                                 break
+                            elif grid[y][x] == 2:
+                                self.state = "chase"
+                                return filter
                             else:
                                 filter[y][x] = 1
         return filter

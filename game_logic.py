@@ -65,16 +65,7 @@ class DungeonGame():
             return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
 
         for enemy in self.enemies: #move enemies
-            enemy.patrol(grid)
-            self.filter = enemy.detect(self.grid.grid, self.filter)
-            #if enemy.sight(self.player):
-                #enemy.state = "chase"
-            #if enemy.state == "chase":
-                #dist_map = self.grid.distance_map(self.player)
-                #enemy.chase(grid, dist_map)
-            #elif enemy.state == "idle":
-                #enemy.patrol(grid)
-                #self.filter = enemy.get_filter(self.filter)
+            enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
 
         #apply any damage interactions
         #apply any map interactions
