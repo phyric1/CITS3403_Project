@@ -1,12 +1,11 @@
 import random
 from flask import request, jsonify
-from entities import Enemy, Gold
+from entities import Enemy, Gold, Goblin
 from collections import deque
+import app.utils
+from app import db
 
-
-#coin placed in a random empty room
 #coordinate boundary check function
-#damage and stationary idle
 
 class Room():
     def __init__(self, width, height, x, y,):
@@ -189,7 +188,7 @@ class Grid():
             self.roomsList.remove(enemySpawn)
 
             self.grid[enemyY][enemyX] = 4
-            enemyList.append(Enemy(enemyX, enemyY))
+            enemyList.append(Goblin(enemyX, enemyY))
         return enemyList
 
     def spawnGold(self):
