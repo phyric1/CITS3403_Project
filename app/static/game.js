@@ -23,7 +23,7 @@ document.addEventListener('keydown', (e) => {
         }
     })
 
-const cards = document.querySelectorAll('.inventory-card-wrapper');
+const cards = document.querySelectorAll('.card-wrapper');
 cards[0].addEventListener("click", function() {
     move('None');
 })
@@ -53,7 +53,7 @@ cards[1].addEventListener("click", function() {
     function updateGridDisplay(newGrid) {
         const gridContainer = document.getElementById('grid');
         gridContainer.innerHTML = '';
-        
+
         for (let i = 0; i < newGrid.length; i++) {
             for (let j = 0; j < newGrid[i].length; j++) {
                 const tile = document.createElement('div');

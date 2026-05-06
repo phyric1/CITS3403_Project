@@ -25,7 +25,7 @@ async function handleClick(e) {
 
 async function addToDeck(button) {
   button.disabled = true;
-  const card = button.closest(".inventory-card-wrapper")
+  const card = button.closest(".card-wrapper")
 
   const res = await fetch("/api/deck/add", {
     method: "POST",
@@ -51,7 +51,7 @@ async function addToDeck(button) {
 
 async function removeFromDeck(button) {
   button.disabled = true;
-  const card = button.closest(".inventory-card-wrapper")
+  const card = button.closest(".card-wrapper")
 
   const res = await fetch("/api/deck/remove", {
     method: "POST",
@@ -101,7 +101,7 @@ function updateDeckCount(change) {
 
 
 async function toggleTradable(button) {
-  const card = button.closest(".inventory-card-wrapper");
+  const card = button.closest(".card-wrapper");
   const current = button.dataset.tradable === "true";
   const newValue = !current;
   await setTradable(button, card.dataset.cardId, newValue);
