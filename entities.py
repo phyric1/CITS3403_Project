@@ -1,5 +1,6 @@
 import random
 
+#line of sight function
 class Items():
     def __init__(self):
         pass
@@ -10,8 +11,17 @@ class Enemy():
         self.y = y
         #left = 0, right = 1, up = 2, down = 3
         self.direction = 0
+        self.state = "idle" 
+        self.health = 1
 
-    def patrol(self, grid):
+    def moveEnemy(self, grid, dist_map, filter):
+        if self.state == "idle":
+            self.patrol(grid, filter)
+        elif self.state == "chase":
+            self.chase(grid, dist_map)
+
+
+    def patrol(self, grid, filter):
         dir = self.direction #current direction
         other_dir = [0, 1, 2, 3] 
         if dir in other_dir:
@@ -25,7 +35,7 @@ class Enemy():
         if grid[self.y + dy[dir]][self.x + dx[dir]] != 0: 
             #randomly pick new direction to patrol
             clear_path = False
-            while not clear_path:
+            while not clear_path and len(other_dir) > 0:
                 dir = other_dir[random.randint(0, len(other_dir)-1)]
                 if grid[self.y + dy[dir]][self.x + dx[dir]] != 0: 
                     other_dir.remove(dir)
@@ -38,80 +48,148 @@ class Enemy():
         self.x += dx[dir]
         self.y += dy[dir]
         grid[self.y][self.x] = 4  # set new position
+        self.detect(grid, filter)
         return grid
-        
-    #aggro
-    def shortest_path(self):
-        pass    
-    #sight
+         
+    #aggressive
+    def chase(self, grid, dist_map):
+        best_dir = -1
+        best_dist = 999
+        #directions
+        dx = [-1, 1, 0, 0]
+        dy = [0, 0, -1, 1]
 
-    def sight(self, grid):
-        pass
-    #damage
+        for i in range(4):
+            d = dist_map[self.y + dy[i]][self.x + dx[i]]
+            if d < best_dist and d != -1: 
+                best_dist = dist_map[self.y + dy[i]][self.x + dx[i]]
+                best_dir = i
+
+        grid[self.y][self.x] = 0  # clear old position
+        self.x += dx[best_dir]
+        self.y += dy[best_dir]
+        grid[self.y][self.x] = 4 
+        return grid
+    
+    #add los check
+    def detect(self, grid, filter):
+        vision_width = 5
+        vision_depth = 5
+        halfW = vision_width // 2
+
+        if self.direction == 1: #right
+            if grid[self.y][self.x+1] != 1:
+                for y in range(self.y - halfW, self.y + halfW + 1):
+                    for x in range(self.x + 1, self.x + vision_depth):
+                        if self.bounds_check(filter, x, y):
+                            if grid[y][x] == 1:
+                                break
+                            elif grid[y][x] == 2:
+                                self.state = "chase"
+                                return filter
+                            else:
+                                filter[y][x] = 1
+        elif self.direction == 0: #left
+            if grid[self.y][self.x-1] != 1:
+                for y in range(self.y - halfW, self.y + halfW + 1):
+                    zx = self.x - 1
+                    for x in range(vision_depth):
+                        if self.bounds_check(filter, zx, y):
+                            if grid[y][zx] == 1:
+                                break
+                            elif grid[y][zx] == 2:
+                                self.state = "chase"
+                                return filter
+                            else:
+                                filter[y][zx] = 1
+                                zx -= 1
+        elif self.direction == 2: #up
+            if grid[self.y - 1][self.x] != 1:
+                for x in range(self.x - halfW, self.x + halfW + 1):
+                    zy = self.y - 1
+                    for y in range(vision_depth):
+                        if self.bounds_check(filter, x, zy):
+                            if grid[zy][x] == 1:
+                                break
+                            elif grid[zy][x] == 2:
+                                self.state = "chase"
+                                return filter
+                            else:
+                                filter[zy][x] = 1
+                                zy -= 1
+        elif self.direction == 3: #down
+            if grid[self.y + 1][self.x] != 1:
+                for x in range(self.x - halfW, self.x + halfW + 1):
+                    for y in range(self.y + 1, self.y + vision_depth):
+                        if self.bounds_check(filter, x, y):
+                            if grid[y][x] == 1:
+                                break
+                            elif grid[y][x] == 2:
+                                self.state = "chase"
+                                return filter
+                            else:
+                                filter[y][x] = 1
+        return filter
+
+    
+    def bounds_check(self, filter, x, y):
+        if 0 <= y < len(filter) and 0 <= x < len(filter[0]):
+            return True
+        else:
+            return False
+    
+    def attack(self, player):
+         #directions
+        dx = [-1, 1, 0, 0]
+        dy = [0, 0, -1, 1]
+
+        for i in range(4):
+            if self.x + dx[i] == player.x and self.y + dy[i] == player.y:
+                player.takeDamage(1)
+        if self.x == player.x and self.y == player.y:
+            player.takeDamage(1)
+
+class Goblin(Enemy):
+    def __init__(self, x, y):
+        super().__init__(x, y)
 
 class Hound(Enemy):
-    pass
-
-class Trolls(Enemy):
-    pass
-
-class Keys():
-    def __init__(self):
+    detectRange = int
+    maxRange = int
+    expand = True
+    def __init__(self, x, y):
         pass
 
+    def sleep(self, grid):
+        if self.detectRange > self.maxRange:
+            self.expand = False
+        elif self.detectRange == 0:
+            self.expand = True
+
+        if self.expand:
+            self.detectRange += 1
+        else:
+            self.detectRange -= 1
+
+        #check radius
+        for i in range(self.y - self.detectRange, self.y + self.detectRange + 1):
+            for j in range(self.x - self.detectRange, self.x + self.detectRange + 1):
+                    if grid[i][j] == 2:
+                        print("caught")
+
+class Keys(Items):
+    def __init__(self):
+        pass
+    #collision function
+    #delete function
+
+class Gold(Items):
+    def __init__(self, x, y):
+        super(x, y)
     #collision function
     #delete function
 
 class Doors():
     def __init__(self):
+
         pass
-
-def shortestPath():
-    return None
-# A point in a Maze (Needed for QNode)
-class Point:
-    def __init__(self, x_, y_):
-        self.x = x_
-        self.y = y_
-
-# A QNode (Needed for BFS)
-class QNode:
-    def __init__(self, p_, d_):
-        self.p = p_
-        self.d = d_
-
-
-def is_valid(x, y, r, c):
-    return 0 <= x < r and 0 <= y < c
-
-
-def bfs(mat, src, dest):
-    r, c = len(mat), len(mat[0])
-    
-    # If Source and Destination are valid
-    if not mat[src.x][src.y] or not mat[dest.x][dest.y]: return -1
-
-    # Do BFS using Queue and Visited
-    vis = [[False] * c for _ in range(r)]
-    from collections import deque
-    q = deque([QNode(src, 0)])
-    vis[src.x][src.y] = True
-    while q:
-        
-        # Pop an item from queue
-        node = q.popleft()
-        p = node.p
-        d = node.d
-
-        # If we reached the destination
-        if p.x == dest.x and p.y == dest.y: return d
-        
-        # Try all four adjacent
-        dx = [-1, 0, 0, 1]
-        dy = [0, -1, 1, 0]
-        for i in range(4):
-            nx, ny = p.x + dx[i], p.y + dy[i]
-            if is_valid(nx, ny, r, c) and mat[nx][ny] and not vis[nx][ny]:
-                vis[nx][ny] = True
-                q.append(QNode(Point(nx, ny), d + 1))
-    return -1
