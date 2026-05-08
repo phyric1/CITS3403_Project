@@ -16,7 +16,7 @@
     <div class="card-header bg-secondary text-white">
         Trade Summary
     </div>
-    <div class="card-body text-center">
+    <div class="card-view-body text-center">
         <p class="mb-0">
             <strong>From:</strong> {{ trade.from_user }}
             <strong>To:</strong> {{ trade.to_user }}
@@ -30,7 +30,7 @@
     <div class="card-header bg-secondary text-center">
         <h2 class="mb-0">Cards Offered</h2>
     </div>
-    <div class="card-body">
+    <div class="card-view-body">
         <div class="d-flex flex-wrap justify-content-center gap-4">
             {% for card in trade.offered_cards %}
                 {% set item = {'card': card} %}
@@ -46,7 +46,7 @@
     <div class="card-header bg-secondary text-center">
         <h2 class="mb-0">Cards Requested</h2>
     </div>
-    <div class="card-body">
+    <div class="card-view-body">
         <div class="d-flex flex-wrap justify-content-center gap-4">
             {% for card in trade.requested_cards %}
                 {% set item = {'card': card} %}

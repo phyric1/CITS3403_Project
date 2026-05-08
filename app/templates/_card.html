@@ -1,4 +1,10 @@
 <div class="game-card rarity-{{ item.card.rarity.value }}">
+    {% if mode in ["view", "deck"] and item.quantity %}
+        <div class="card-quantity">
+            x{{ item.quantity }}
+        </div>
+    {% endif %}
+
     {% if item.uses_remaining%}
         <div class="card-uses">
             {% if item.uses_remaining == -1 %}

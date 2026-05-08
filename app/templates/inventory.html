@@ -72,17 +72,30 @@
     <!-- Inventory Section -->
     <h4>{% if is_owner %}Inventory{% else %}Tradable Inventory{% endif %}</h4>
     <div class="card-grid" id="inventory">
-        {% for item in cards %}
-        <div class="card-wrapper" data-card-id="{{ item.id }}">
-            {% include "_card.html" %}
+        {% if mode in ["view", "deck"] %}
+            {% for user_card_ids, card_id, uses_remaining, quantity, card in cards %}
+                <div class="card-wrapper" data-card-ids="{{ user_card_ids }}">
+                {% set item = namespace(
+                    card=card,
+                    uses_remaining=uses_remaining,
+                    quantity=quantity if quantity > 1 else None
+                ) %}
+                {% include "_card.html" %}
 
-            {% if item.count and item.count > 1 %}
-            <div class="card-count">x{{ item.count }}</div>
-            {% endif %}
+                {% if mode == "deck" %}
+                    <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
+                        Add to Deck
+                    </button>
+                {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            {% for item in cards %}
+            <div class="card-wrapper" data-card-id="{{ item.id }}">
+                {% include "_card.html" %}
 
-            <!-- MODE-SPECIFIC ACTIONS -->
-            {% if is_owner %}
-                {% if mode == "tradable" %}
+                <!-- MODE-SPECIFIC ACTIONS -->
+                {% if is_owner and mode == "tradable" %}
                     {% if item.tradable %}
                         <button class="btn btn-sm btn-success w-100 mt-1 tradable-toggle" data-tradable="true">
                             Tradable
@@ -92,14 +105,10 @@
                             Not Tradable
                         </button>
                     {% endif %}
-                {% elif mode == "deck" %}
-                    <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
-                        Add to Deck
-                    </button>
                 {% endif %}
-            {% endif %}
-        </div>
-        {% endfor %}
+            </div>
+            {% endfor %}
+        {% endif %}
     </div>
 
     <!-- Page Buttons -->
