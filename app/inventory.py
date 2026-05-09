@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, session, jsonify
 from app import db
 from app.models import User, Card, UserCard, Deck, DeckCard, MAX_DECK_SIZE
 from app.utils import get_current_user_id, get_user_card, get_user_deck
-from sqlalchemy import case
+from sqlalchemy import case, func
 
 bp = Blueprint("inventory", __name__)
 
@@ -19,12 +19,20 @@ def inventory(username):
     # Card Queries
     cards_in_deck_query = (db.session.query(DeckCard.user_card_id)
         .join(Deck, Deck.id == DeckCard.deck_id).filter(Deck.user_id == user.id))
-    if is_owner:
-        card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)))
+
+    conditions = [UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)]
+    if not is_owner:
+        conditions.append(UserCard.tradable)
+
+    if mode in ["view", "deck"]:
+        card_query = (
+            db.session
+            .query(func.group_concat(UserCard.id, ",").label("user_card_ids"), UserCard.card_id, UserCard.uses_remaining, func.count(UserCard.id).label("quantity"), Card)
+            .join(Card).filter(*conditions)
+            .group_by(UserCard.card_id, UserCard.uses_remaining, Card.id))
     else:
         card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, UserCard.tradable, ~UserCard.id.in_(cards_in_deck_query)))
+        .filter(*conditions))
 
     deck_query = (
         db.session.query(UserCard).join(Card)
