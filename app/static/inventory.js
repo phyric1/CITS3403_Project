@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.querySelector("#inventory-container");
   container.addEventListener("click", handleClick);
+
+  updateDeckLimits();
 })
 
 
@@ -49,7 +51,7 @@ async function addToDeck(button) {
   updateDeckCount(1);
 
   const deck_card = card.cloneNode(true);
-  deck_card.dataset.cardId = user_card_id;
+  deck_card.dataset.userCardId = user_card_id;
   const quantity_label = deck_card.querySelector(".card-quantity");
   if (quantity_label) quantity_label.remove();
 
@@ -66,6 +68,7 @@ async function addToDeck(button) {
   }
 
   button.disabled = false;
+  updateDeckLimits();
 }
 
 
@@ -78,7 +81,7 @@ async function removeFromDeck(button) {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({user_card_id: card.dataset.cardId})
+    body: JSON.stringify({user_card_id: card.dataset.userCardId})
   })
 
   const data = await res.json();
@@ -113,7 +116,6 @@ async function removeFromDeck(button) {
   } else {
     const inventory_card = card.cloneNode(true);
     inventory_card.dataset.cardIds = card.dataset.cardId;
-    inventory_card.removeAttribute("data-card-id");
     inventory_card.querySelector(".remove-from-deck")?.remove();
 
     addAddButton(inventory_card);
@@ -122,6 +124,7 @@ async function removeFromDeck(button) {
 
   card.remove();
   button.disabled = false;
+  updateDeckLimits();
 }
 
 
@@ -168,6 +171,40 @@ function setQuantity(card, quantity) {
     card.querySelector(".game-card").prepend(quantity_div);
   }
   quantity_div.textContent = `x${quantity}`;
+}
+
+
+function updateDeckLimits() {
+  const deck = document.getElementById("deck");
+  const counts = {};
+
+  deck.querySelectorAll(".card-wrapper").forEach(card => {
+    const cardId = card.dataset.cardId;
+    counts[cardId] = (counts[cardId] || 0) + 1;
+  });
+
+  document.querySelectorAll("#inventory .card-wrapper").forEach(card => {
+    const button = card.querySelector(".add-to-deck");
+    if (!button) return;
+
+    const card_id = card.dataset.cardId;
+    const max = parseInt(card.dataset.maxInDeck);
+
+    const current = counts[card_id] || 0;
+    if (max == -1 || current < max) {
+      button.disabled = false;
+      button.classList.remove("btn-secondary");
+      button.classList.add("btn-success");
+      button.textContent = "Add to Deck";
+    } else {
+      button.disabled = true;
+      button.classList.remove("btn-success");
+      button.classList.add("btn-secondary");
+      button.textContent = "Max Reached";
+    }
+
+
+  });
 }
 
 

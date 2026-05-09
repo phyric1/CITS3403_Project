@@ -42,7 +42,7 @@ def add_user_cards(user_id: int, cards: list[tuple[str, int]]):
     Add cards to a user.
 
     Args:
-        user_id: id of user
+        user_id (int): id of user
         cards: list of (card_name, quantity) tuples
     """
     card_names = [name for name, _ in cards]
@@ -53,6 +53,8 @@ def add_user_cards(user_id: int, cards: list[tuple[str, int]]):
         card = card_map.get(card_name)
         if not card:
             raise ValueError(f"Card '{card_name}' does not exist")
+        if card.type == CardType.debuff:
+            raise ValueError("Cannot add debuff cards to user")
 
         for _ in range(quantity):
             user_card = UserCard(
@@ -61,6 +63,21 @@ def add_user_cards(user_id: int, cards: list[tuple[str, int]]):
                 uses_remaining=card.uses
             )
             db.session.add(user_card)
+
+
+def give_all_cards(user_id: int, quantity: int = 20):
+    """
+    Give a user `quantity` copies of every card.
+
+    Args:
+        user_id (int): id of user
+        quantity (int): number of user_cards that is added for each card
+    """
+    cards = [
+        (card.name, quantity)
+        for card in Card.query.filter(Card.type!=CardType.debuff).all()
+    ]
+    add_user_cards(user_id, cards)
 
 
 def get_current_user_id() -> tuple[int | None, tuple | None]:

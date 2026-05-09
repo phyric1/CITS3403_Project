@@ -57,7 +57,7 @@
     <h4>Deck (<span id="deck-count">{{ deck_size }}</span>/{{ max_deck_size }})</h4>
     <div class="card-grid" id="deck">
         {% for item in deck_cards %}
-        <div class="card-wrapper" data-card-id="{{ item.id }}">
+        <div class="card-wrapper" data-card-id="{{ item.card.id }}" data-user-card-id="{{ item.id }}" data-max-in-deck="{{ item.card.max_in_deck }}">
             {% include "_card.html" %}
 
             {% if is_owner and mode == "deck" %}
@@ -74,7 +74,7 @@
     <div class="card-grid" id="inventory">
         {% if mode in ["view", "deck"] %}
             {% for user_card_ids, card_id, uses_remaining, quantity, card in cards %}
-                <div class="card-wrapper" data-card-ids="{{ user_card_ids }}">
+                <div class="card-wrapper" data-card-ids="{{ user_card_ids }}" data-card-id="{{ card.id }}" data-max-in-deck="{{ card.max_in_deck }}">
                 {% set item = namespace(
                     card=card,
                     uses_remaining=uses_remaining,
