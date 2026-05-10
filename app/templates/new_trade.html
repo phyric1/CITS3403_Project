@@ -2,6 +2,7 @@
 
 {% block extra_links %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+<script src="{{ url_for('static', filename='new_trade.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -43,23 +44,21 @@
                             {% include "_card.html" %}
 
                             {% if item.id in requested_card_ids %}
-                                <form method="POST" action="{{ url_for('.update_trade_selection') }}">
-                                    <input type="hidden" name="action" value="remove_requested">
-                                    <input type="hidden" name="user_card_id" value="{{ item.id }}">
-                                    <input type="hidden" name="target_username" value="{{ target_user.username }}">
-                                    <input type="hidden" name="target_page" value="{{ target_pagination.page }}">
-                                    <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
-                                    <button type="submit" class="btn btn-sm btn-danger w-100 mt-2">Remove</button>
-                                </form>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-danger w-100 mt-2 trade-toggle-btn"
+                                    data-action="remove_requested"
+                                    data-user-card-id="{{ item.id }}">
+                                    Remove
+                                </button>
                             {% else %}
-                                <form method="POST" action="{{ url_for('.update_trade_selection') }}">
-                                    <input type="hidden" name="action" value="add_requested">
-                                    <input type="hidden" name="user_card_id" value="{{ item.id }}">
-                                    <input type="hidden" name="target_username" value="{{ target_user.username }}">
-                                    <input type="hidden" name="target_page" value="{{ target_pagination.page }}">
-                                    <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
-                                    <button type="submit" class="btn btn-sm btn-success w-100 mt-2">Add</button>
-                                </form>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-success w-100 mt-2 trade-toggle-btn"
+                                    data-action="add_requested"
+                                    data-user-card-id="{{ item.id }}">
+                                    Add
+                                </button>
                             {% endif %}
                         </div>
                     {% endfor %}
@@ -100,23 +99,21 @@
                         {% include "_card.html" %}
 
                         {% if item.id in offered_card_ids %}
-                            <form method="POST" action="{{ url_for('.update_trade_selection') }}">
-                                <input type="hidden" name="action" value="remove_offered">
-                                <input type="hidden" name="user_card_id" value="{{ item.id }}">
-                                <input type="hidden" name="target_username" value="{{ target_user.username if target_user else '' }}">
-                                <input type="hidden" name="target_page" value="{{ target_pagination.page if target_pagination else 1 }}">
-                                <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
-                                <button type="submit" class="btn btn-sm btn-danger w-100 mt-2">Remove</button>
-                            </form>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-danger w-100 mt-2 trade-toggle-btn"
+                                data-action="remove_offered"
+                                data-user-card-id="{{ item.id }}">
+                                Remove
+                            </button>
                         {% else %}
-                            <form method="POST" action="{{ url_for('.update_trade_selection') }}">
-                                <input type="hidden" name="action" value="add_offered">
-                                <input type="hidden" name="user_card_id" value="{{ item.id }}">
-                                <input type="hidden" name="target_username" value="{{ target_user.username if target_user else '' }}">
-                                <input type="hidden" name="target_page" value="{{ target_pagination.page if target_pagination else 1 }}">
-                                <input type="hidden" name="my_page" value="{{ my_pagination.page }}">
-                                <button type="submit" class="btn btn-sm btn-success w-100 mt-2">Add</button>
-                            </form>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-success w-100 mt-2 trade-toggle-btn"
+                                data-action="add_offered"
+                                data-user-card-id="{{ item.id }}">
+                                Add
+                            </button>
                         {% endif %}
                     </div>
                 {% endfor %}
@@ -145,7 +142,7 @@
     <div class="card-header bg-secondary text-center text-white mb-3">
         <h2 class="mb-0">Cards Requested</h2>
     </div>
-    <div class="card-view-body">
+    <div class="card-view-body" id="requested-cards-section">
         {% if requested_cards %}
             <div class="d-flex flex-wrap justify-content-center gap-4">
                 {% for item in requested_cards %}
@@ -164,7 +161,7 @@
     <div class="card-header bg-secondary text-center text-white mb-3">
         <h2 class="mb-0">Cards Offered</h2>
     </div>
-    <div class="card-view-body">
+    <div class="card-view-body" id="offered-cards-section">
         {% if offered_cards %}
             <div class="d-flex flex-wrap justify-content-center gap-4">
                 {% for item in offered_cards %}
@@ -185,8 +182,8 @@
     </div>
     <div class="card-view-body text-center">
         <p class="mb-1"><strong>Target User:</strong> {{ target_user.username if target_user else "None selected" }}</p>
-        <p class="mb-1"><strong>Cards Requested:</strong> {{ requested_cards|length }}</p>
-        <p class="mb-0"><strong>Cards Offered:</strong> {{ offered_cards|length }}</p>
+        <p class="mb-1"><strong>Cards Requested:</strong> <span id="requested-count">{{ requested_cards|length }}</span></p>
+        <p class="mb-0"><strong>Cards Offered:</strong> <span id="offered-count">{{ offered_cards|length }}</span></p>
     </div>
 </div>
 

@@ -112,6 +112,54 @@ def new_trade():
 
 
 
+@bp.route("/trading/new/update-ajax", methods=["POST"])
+def update_trade_selection_ajax():
+    if "user_id" not in session:
+        return {"success": False, "error": "Not logged in"}, 401
+
+    data = request.get_json() or {}
+    action = data.get("action")
+    user_card_id = data.get("user_card_id")
+
+    if not user_card_id:
+        return {"success": False, "error": "Missing user_card_id"}, 400
+
+    requested_card_ids = session.get("requested_card_ids", [])
+    offered_card_ids = session.get("offered_card_ids", [])
+
+    if action == "add_requested":
+        if user_card_id not in requested_card_ids:
+            requested_card_ids.append(user_card_id)
+    elif action == "remove_requested":
+        if user_card_id in requested_card_ids:
+            requested_card_ids.remove(user_card_id)
+    elif action == "add_offered":
+        if user_card_id not in offered_card_ids:
+            offered_card_ids.append(user_card_id)
+    elif action == "remove_offered":
+        if user_card_id in offered_card_ids:
+            offered_card_ids.remove(user_card_id)
+    else:
+        return {"success": False, "error": "Invalid action"}, 400
+
+    session["requested_card_ids"] = requested_card_ids
+    session["offered_card_ids"] = offered_card_ids
+
+    requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids)).all() if requested_card_ids else []
+    offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids)).all() if offered_card_ids else []
+
+    requested_html = render_template("_trade_requested_cards.html", requested_cards=requested_cards)
+    offered_html = render_template("_trade_offered_cards.html", offered_cards=offered_cards)
+
+    return {
+        "success": True,
+        "requested_count": len(requested_card_ids),
+        "offered_count": len(offered_card_ids),
+        "requested_html": requested_html,
+        "offered_html": offered_html,
+    }
+
+
 
 @bp.route("/trading/new/update", methods=["POST"])
 def update_trade_selection():
@@ -148,6 +196,8 @@ def update_trade_selection():
     my_page = request.form.get("my_page", 1, type=int)
 
     return redirect(url_for(".new_trade", target_username=target_username, target_page=target_page, my_page=my_page))
+
+
 
 @bp.route("/trading/new/submit", methods=["POST"])
 def submit_trade():
@@ -224,6 +274,8 @@ def view_trade(trade_id):
     is_receiver = current_user_id == trade_row.receiver_id
 
     return render_template("view_trade.html", trade=trade, is_sender=is_sender, is_receiver=is_receiver)
+
+
 
 @bp.route("/trading/<int:trade_id>/action", methods=["POST"])
 def trade_action(trade_id):
