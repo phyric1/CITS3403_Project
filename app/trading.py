@@ -46,7 +46,7 @@ def trading():
             "status": trade.status.value
         })
 
-    return render_template("trading.html", incoming_trades=incoming_trades, outgoing_trades=outgoing_trades)
+    return render_template("trading/trading.html", incoming_trades=incoming_trades, outgoing_trades=outgoing_trades)
 
 
 
@@ -107,7 +107,7 @@ def new_trade():
     requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids)).all() if requested_card_ids else []
     offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids)).all() if offered_card_ids else []
 
-    return render_template("new_trade.html", current_user=current_user, target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
+    return render_template("trading/new_trade.html", current_user=current_user, target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
         my_cards=my_cards, target_pagination=target_pagination, my_pagination=my_pagination, requested_card_ids=requested_card_ids, offered_card_ids=offered_card_ids, error=error)
 
 
@@ -148,8 +148,8 @@ def update_trade_selection_ajax():
     requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids)).all() if requested_card_ids else []
     offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids)).all() if offered_card_ids else []
 
-    requested_html = render_template("_trade_requested_cards.html", requested_cards=requested_cards)
-    offered_html = render_template("_trade_offered_cards.html", offered_cards=offered_cards)
+    requested_html = render_template("trading/_trade_requested_cards.html", requested_cards=requested_cards)
+    offered_html = render_template("trading/_trade_offered_cards.html", offered_cards=offered_cards)
 
     return {
         "success": True,
@@ -236,7 +236,7 @@ def view_trade(trade_id):
     is_sender = current_user_id == trade_row.sender_id
     is_receiver = current_user_id == trade_row.receiver_id
 
-    return render_template("view_trade.html", trade=trade, is_sender=is_sender, is_receiver=is_receiver)
+    return render_template("trading/view_trade.html", trade=trade, is_sender=is_sender, is_receiver=is_receiver)
 
 
 
