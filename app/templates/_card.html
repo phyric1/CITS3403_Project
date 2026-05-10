@@ -1,34 +1,43 @@
 <div class="game-card rarity-{{ item.card.rarity.value }}">
+    {% if mode in ["view", "deck"] and item.quantity %}
+        <div class="card-quantity">
+            x{{ item.quantity }}
+        </div>
+    {% endif %}
 
-    <div class="card-uses">
-        {% if item.uses_remaining == -1 %}
-            ∞
-        {% else %}
-            {{ item.uses_remaining }}/{{ item.card.uses}}
-        {% endif %}
-    </div>
+    {% if item.uses_remaining%}
+        <div class="card-uses">
+            {% if item.uses_remaining == -1 %}
+                ∞
+            {% else %}
+                {{ item.uses_remaining }}/{{ item.card.uses}}
+            {% endif %}
+        </div>
+    {% endif %}
 
-    <div class="card-image">
+    <div class="card-image type-{{ item.card.type.value }}">
         <img src="{{ url_for('static', filename='img/' ~ item.card.type.value ~ '.png') }}" alt="{{ item.card.type.value }}">
     </div>
 
-    <div class="card-title-box">
-        {{ item.card.name }}
+    <div class="card-title-box" title="{{ item.card.name }}">
+        <p>{{ item.card.name }}</p>
     </div>
 
     <div class="card-divider"></div>
 
-    <div class="card-body">
-        <p>{{ item.card.effect }}</p>
+    <div class="card-body" title="{{ item.card.effect }}">
+        <div class="effect-wrapper">
+            <p id="effect">{{ item.card.effect }}</p>
+        </div>
 
         <div class="card-footer">
-            <span>{{ item.card.type.value|capitalize }} - Max
-                {% if item.card.uses == -1 %}
+            <p id="footer">{{ item.card.type.value|capitalize }} - Max
+                {% if item.card.max_in_deck == -1 %}
                     ∞
                 {% else %}
-                    {{ item.card.max }}
+                    {{ item.card.max_in_deck }}
                 {% endif %}
-            </span>
+            </p>
         </div>
     </div>
 

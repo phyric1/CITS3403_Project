@@ -1,7 +1,11 @@
-#Use the built-in hash function in Flask to protect passwords
+from sqlalchemy import event
+# Use the built-in hash function in Flask to protect passwords
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.enums import TradeStatus, CardRarity, CardType
+
+MAX_DECK_SIZE = 40
+
 
 class User(db.Model):
     id=db.Column(db.Integer,primary_key=True)
@@ -9,6 +13,9 @@ class User(db.Model):
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)
     password_hash=db.Column(db.String(256),nullable=False)
     gold=db.Column(db.Integer,default=20,nullable=False)
+    easy_tokens=db.Column(db.Integer,default=0);
+    medium_tokens=db.Column(db.Integer,default=0);
+    hard_tokens=db.Column(db.Integer,default=0);
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')
@@ -109,6 +116,7 @@ class Trade(db.Model):
     sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sender_trades')
     receiver = db.relationship('User', foreign_keys=[receiver_id], back_populates='receiver_trades')
 
+
 class TradeCard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -121,3 +129,8 @@ class TradeCard(db.Model):
     __table_args__ = (
         db.UniqueConstraint('trade_id', 'user_card_id', name='unique_trade_card'),
     )
+
+
+@event.listens_for(User, "after_insert")
+def create_deck(mapper, connection, target):
+    connection.execute(Deck.__table__.insert().values(user_id=target.id, name=f"{target.username}'s Deck"))

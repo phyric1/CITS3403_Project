@@ -2,12 +2,15 @@
 
 {% block title %}{% if is_owner %}Your Inventory{% else %}{{ username }}'s Inventory{% endif %}{% endblock %}
 
-{% block extra_css %}
+{% block extra_links %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% if is_owner %}
+    <script src="{{ url_for('static', filename='inventory.js') }}"></script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4" id="inventory-container">
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -19,13 +22,17 @@
             {% if is_owner %}
                 {% if mode == "view" %}
                     <a href="?mode=deck" class="btn btn-success">Manage Deck</a>
-                    <a href="?mode=repair" class="btn btn-warning">Repair Cards</a>
+                    <a href="?mode=tradable" class="btn btn-warning">Edit Tradable</a>
+                {% elif mode == "deck" %}
+                    <a href="?mode=view" class="btn btn-secondary">Back to View</a>
+                    <a href="?mode=tradable" class="btn btn-warning">Edit Tradable</a>
                 {% else %}
+                    <a href="?mode=deck" class="btn btn-success">Manage Deck</a>
                     <a href="?mode=view" class="btn btn-secondary">Back to View</a>
                 {% endif %}
             {% endif %}
 
-            <a href="{{ url_for('.profile', username=username) }}" class="btn btn-outline-primary">
+            <a href="{{ url_for('main.profile', username=username) }}" class="btn btn-outline-primary">
                 Back to Profile
             </a>
         </div>
@@ -47,57 +54,61 @@
     </div>
 
     <!-- Deck Section -->
-    <h4>Deck</h4>
-    <div class="row g-3 mb-4" id="deck">
+    <h4>Deck (<span id="deck-count">{{ deck_size }}</span>/{{ max_deck_size }})</h4>
+    <div class="card-grid" id="deck">
         {% for item in deck_cards %}
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <div class="inventory-card-wrapper"
-                 data-card-id="{{ item.id }}"
-                 {% if is_owner and mode == "deck" %}draggable="true"{% endif %}>
+        <div class="card-wrapper" data-card-id="{{ item.card.id }}" data-user-card-id="{{ item.id }}" data-max-in-deck="{{ item.card.max_in_deck }}">
+            {% include "_card.html" %}
 
-                {% include "_card.html" %}
-
-                {% if is_owner and mode == "deck" %}
-                    <button class="btn btn-sm btn-danger w-100 mt-1 remove-from-deck">
-                        Remove
-                    </button>
-                {% endif %}
-            </div>
+            {% if is_owner and mode == "deck" %}
+                <button class="btn btn-sm btn-danger w-100 mt-1 remove-from-deck">
+                    Remove
+                </button>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
 
     <!-- Inventory Section -->
     <h4>{% if is_owner %}Inventory{% else %}Tradable Inventory{% endif %}</h4>
-    <div class="row g-3" id="inventory">
-        {% for item in cards %}
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <div class="inventory-card-wrapper"
-                 data-card-id="{{ item.id }}"
-                 {% if is_owner and mode == "deck" %}draggable="true"{% endif %}>
-
+    <div class="card-grid" id="inventory">
+        {% if mode in ["view", "deck"] %}
+            {% for user_card_ids, card_id, uses_remaining, quantity, card in cards %}
+                <div class="card-wrapper" data-card-ids="{{ user_card_ids }}" data-card-id="{{ card.id }}" data-max-in-deck="{{ card.max_in_deck }}">
+                {% set item = namespace(
+                    card=card,
+                    uses_remaining=uses_remaining,
+                    quantity=quantity if quantity > 1 else None
+                ) %}
                 {% include "_card.html" %}
 
-                {% if item.count and item.count > 1 %}
-                <div class="card-count">x{{ item.count }}</div>
+                {% if mode == "deck" %}
+                    <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
+                        Add to Deck
+                    </button>
                 {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            {% for item in cards %}
+            <div class="card-wrapper" data-card-id="{{ item.id }}">
+                {% include "_card.html" %}
 
                 <!-- MODE-SPECIFIC ACTIONS -->
-                {% if is_owner %}
-                    {% if mode == "repair" %}
-                        <button class="btn btn-sm btn-warning w-100 mt-1 repair-btn">
-                            Repair
+                {% if is_owner and mode == "tradable" %}
+                    {% if item.tradable %}
+                        <button class="btn btn-sm btn-success w-100 mt-1 tradable-toggle" data-tradable="true">
+                            Tradable
                         </button>
-                    {% elif mode == "deck" %}
-                        <button class="btn btn-sm btn-success w-100 mt-1 add-to-deck">
-                            Add to Deck
+                    {% else %}
+                        <button class="btn btn-sm btn-warning w-100 mt-1 tradable-toggle" data-tradable="false">
+                            Not Tradable
                         </button>
                     {% endif %}
                 {% endif %}
-
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% endif %}
     </div>
 
     <!-- Page Buttons -->

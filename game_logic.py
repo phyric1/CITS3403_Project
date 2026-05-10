@@ -1,17 +1,11 @@
 import random
 from flask import request, jsonify
-from entities import Enemy
+from entities import Enemy, Gold, Goblin
+from collections import deque
+import app.utils
+from app import db
 
-#second priority - separate dungeon creation from entity spawning
-#third priority - patrol multiple enemies
-
-#1 enemy placed in each empty room
-#coin placed in a random empty room
-
-#enemies follow shortest path to player
-
-#player can pickup key
-#player can move through door only with key
+#coordinate boundary check function
 
 class Room():
     def __init__(self, width, height, x, y,):
@@ -36,32 +30,55 @@ class DungeonGame():
 
     def __init__(self):
         #used to start game
+        self.level = 0
+        self.dificulty = "Easy"
+        self.player = Player(0, 0)
+        self.generate_floor()
+        self.turnNum = 0
+        self.isVisible = True
+        self.filter = [[0] * 32 for _ in range(20)]
+
+    def generate_floor(self): #generates a new dungeon floor
         self.grid = Grid()
         x, y = self.grid.startRoom.center()
-        self.player = Player(x, y)
-        self.turnNum = 0
+        self.player.x = x
+        self.player.y = y
+        self.enemies = []
         self.enemies = self.grid.spawnEnemies()
-        self.isVisible = False
-        
+        self.grid.spawnGold()
+        self.level += 1
+
     def advance_game(self, direction):
         '''advances the game by one turn'''
+        self.filter = [[0] * 32 for _ in range(20)]
         grid = self.getGrid()
-        self.player.movePlayer(direction, grid)  #move player
-        for enemy in self.enemies: #move enemies
-            enemy.patrol(grid)
 
-        #apply any damage interactions
+        newFloor = self.player.movePlayer(direction, grid)  #move player
+        if newFloor:
+            self.generate_floor()
+            self.getGridObject().updateVisibility(self.player)
+            if self.isVisible:
+                return_grid = self.grid.grid
+            else:
+                return_grid = self.getGridObject().gridProxy()
+            self.turnNum += 1
+            return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
+
+        for enemy in self.enemies: #move enemies
+            enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
+            enemy.attack(self.player)
         #apply any map interactions
         #apply any card effects
         #draw new cards
 
         self.getGridObject().updateVisibility(self.player)
-        return_grid = self.getGridObject().gridProxy()
-        self.turnNum += 1 #increment turn count unless card effect overrides it
-        return jsonify({"grid": return_grid, "turn": self.turnNum, "keys": self.player.keys})
 
-    def generate_floor(self): #generates a new dungeon floor
-        Grid()
+        if self.isVisible:
+            return_grid = self.grid.grid
+        else:
+            return_grid = self.getGridObject().gridProxy()
+        self.turnNum += 1 #increment turn count unless card effect overrides it
+        return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
 
     def getGridObject(self): #return grid object
         return self.grid
@@ -80,7 +97,20 @@ class Player():
         self.x = x
         self.y = y
         self.keys = 0
+        self.health = 3
+        self.gold = 0
+        self.stealth = 0
 
+    def takeDamage(self, damage):
+        self.health -= damage
+        return self.health
+    
+    def attack(self, damage):
+        pass
+
+    def alert(self):
+        pass
+    
     def movePlayer(self, direction, grid):
         #directions
         dir = None
@@ -104,7 +134,7 @@ class Player():
             self.y += dy[dir]
             grid[self.y][self.x] = 2
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
-            #move this to collision functin eventually
+            #move this to collision function eventually
             #pickup keys
             grid[self.y][self.x] = 0
             self.x += dx[dir]
@@ -118,6 +148,15 @@ class Player():
             self.y += dy[dir]
             grid[self.y][self.x] = 2 
             self.keys -= 1
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 7:
+            grid[self.y][self.x] = 0
+            self.x += dx[dir]
+            self.y += dy[dir]
+            grid[self.y][self.x] = 2
+            self.gold += 1
+            print(self.gold)
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 6:
+            return True
         
 class Grid():
     '''Class that handles all logic to do with the game grid'''
@@ -141,9 +180,45 @@ class Grid():
             self.roomsList.remove(enemySpawn)
 
             self.grid[enemyY][enemyX] = 4
-            enemyList.append(Enemy(enemyX, enemyY))
+            enemyList.append(Goblin(enemyX, enemyY))
         return enemyList
 
+    def spawnGold(self):
+        goldCount = 2
+        for i in range(goldCount):
+            success = False
+            while success == False:
+                x = random.randint(0, 31)
+                y = random.randint(0, 19)
+                if self.grid[y][x] == 0:
+                    self.grid[y][x] = 7
+                    success = True
+
+    def distance_map(self, player: Player) :
+        GRID_HEIGHT = 20
+        GRID_WIDTH = 32
+        dist_map = [[-1] * GRID_WIDTH for _ in range(GRID_HEIGHT)]
+
+        queue = deque()
+        x, y = player.x, player.y
+
+        queue.append((x, y))
+        dist_map[y][x] = 0
+
+        while queue:
+            x, y = queue.popleft()
+            dx = [-1, 0, 0, 1]
+            dy = [0, -1, 1, 0]
+            for i in range(4):
+                zx, zy = x + dx[i], y + dy[i]
+                if self.grid[zy][zx] == 0 and dist_map[zy][zx] == -1:
+                    dist_map[zy][zx] = dist_map[y][x] + 1
+                    queue.append((zx, zy))
+        return dist_map
+
+    def visionMap(self):
+        highlight = [[0] * 32 for _ in range(20)]
+        return
 
     def updateVisibility(self, player: Player): #updates visible tiles
         for i in range(player.y-4, player.y+5):
@@ -248,7 +323,7 @@ class Grid():
         startX, startY = startRoom.center()
         endX, endY = endRoom.center()
         grid[startY][startX] = 2
-        grid[endY][endX] = 3
+        grid[endY][endX] = 6
 
         rooms.remove(startRoom)
         self.startRoom = startRoom
@@ -294,10 +369,3 @@ class Grid():
             y, x = tempArray[random.randint(0, len(tempArray)-1)]
             grid[y][x] = 3
         return grid, rooms
-    
-#cards implementation
-#card reader
-    #card processor
-#card shuffler
-    #card pool
-    #discard pool
