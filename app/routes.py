@@ -268,6 +268,19 @@ def new_trade():
     error = None
     target_user = None
 
+    previous_target_username = session.get("trade_target_username")
+
+    if not target_username:
+        session.pop("requested_card_ids", None)
+        session.pop("offered_card_ids", None)
+        session.pop("trade_target_username", None)
+    elif target_username != previous_target_username:
+        session.pop("requested_card_ids", None)
+        session.pop("offered_card_ids", None)
+        session["trade_target_username"] = target_username
+    else:
+        session["trade_target_username"] = target_username
+
     if target_username:
         target_user = User.query.filter_by(username=target_username).first()
 
@@ -302,6 +315,7 @@ def new_trade():
 
     return render_template("new_trade.html", current_user=current_user, target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
         my_cards=my_cards, target_pagination=target_pagination, my_pagination=my_pagination, requested_card_ids=requested_card_ids, offered_card_ids=offered_card_ids, error=error)
+
 
 
 
