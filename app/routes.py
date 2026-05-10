@@ -278,6 +278,13 @@ def card_pack_probability(token_type):
     
     return probabilities[token_type]
 
+def get_type_value(card):
+    card_type=card.type
+    if hasattr(card_type, "value"):
+        card_type=card_type.value
+
+    return str(card_type).lower()
+
 def get_rarity_value(card):
     rarity=card.rarity
     if hasattr(rarity, "value"):
@@ -328,8 +335,23 @@ def shop():
     for card in daily_cards:
         shop_items.append(SimpleNamespace(card=card,uses_remaining=card.uses,is_purchased=card.id in purchase_card_id,price=get_card_price(card)))
     message=request.args.get("message")
+    a_pack=session.pop("pack",None)
+    pack=[]
+    if a_pack:
+        for card in a_pack:
+            pack.append(SimpleNamespace(
+                card=SimpleNamespace(
+                    name=card["name"],
+                    effect=card["effect"],
+                    rarity=SimpleNamespace(value=card["rarity"]),
+                    type=SimpleNamespace(value=card["type"]),
+                    uses=card["uses"],
+                    max=card["max"]
+                ),
+                uses_remaining=card["uses_remaining"]
+            ))
 
-    return render_template("shop.html",user=user,shop_items=shop_items,today=today,message=message)
+    return render_template("shop.html",user=user,shop_items=shop_items,today=today,message=message,pack=pack)
 
 @bp.route("/shop/buy/<int:card_id>", methods=["POST"])
 def buy_card(card_id):
@@ -393,9 +415,14 @@ def open_pack(token_type):
     for card in cards:
         user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
         db.session.add(user_card)
+
+    pack=[]
+    for card in cards:
+        pack.append({"name":card.name,"effect":card.effect,"rarity":get_rarity_value(card),"type":get_type_value(card),"uses":card.uses,"max":card.max_in_deck,"uses_remaining":card.uses})
+    session["pack"]=pack
+    session.modified=True
     db.session.commit()
-    card_names=", ".join(card.name for card in cards)
-    return redirect(url_for(".shop",message=f"You have opened a {token_type} pack and received: {card_names}."))
+    return redirect(url_for(".shop",message=f"You have opened a {token_type} pack."))
 
 @bp.route("/cards")
 def show_cards():
