@@ -278,7 +278,28 @@ def card_pack_probability(token_type):
     
     return probabilities[token_type]
 
+def get_rarity_value(card):
+    rarity=card.rarity
+    if hasattr(rarity, "value"):
+        rarity=rarity.value
 
+    return str(rarity).lower()
+
+def random_cards(token_type):
+    probabilities=card_pack_probability(token_type)
+    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).all()
+    available_cards=[]
+    card_probability=[]
+    for card in all_cards:
+        rarity=get_rarity_value(card)
+        probability=probabilities.get(rarity,0)
+        if probability>0:
+            available_cards.append(card)
+            card_probability.append(probability)
+    if not available_cards:
+        return None
+    
+    return random.choices(available_cards,probabilities=card_probability,k=3)
 
 @bp.route("/shop")
 def shop():
