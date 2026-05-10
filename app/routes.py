@@ -206,61 +206,7 @@ def profile(username):
     return render_template("profile.html",player=player, username=username)
 
 
-@bp.route("/profile/<username>/inventory")
-def inventory(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    is_owner = (session.get('user_id')) == user.id
 
-    mode = request.args.get("mode", "view")
-    if not is_owner:
-        mode = "view"
-
-    # Card Queries
-    if mode == "deck":
-        cards_in_deck_query = (db.session.query(DeckCard.user_card_id)
-            .join(Deck, Deck.id == DeckCard.deck_id).filter(Deck.user_id == user.id))
-        card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)))
-    elif is_owner:
-        card_query = (db.session.query(UserCard).join(Card).filter(UserCard.user_id == user.id))
-    else:
-        card_query = (db.session.query(UserCard).join(Card)
-            .filter(UserCard.user_id == user.id, UserCard.tradable))
-
-    deck_query = (
-        db.session.query(UserCard).join(Card)
-        .join(DeckCard, DeckCard.user_card_id == UserCard.id)
-        .join(Deck, Deck.id == DeckCard.deck_id)
-        .filter(Deck.user_id == user.id, UserCard.user_id == user.id))
-
-    # Sorting
-    sort = request.args.get("sort")
-
-    if sort == "name":
-        card_query = card_query.order_by(Card.name)
-        deck_query = deck_query.order_by(Card.name)
-    elif sort == "rarity":
-        rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 4}
-        card_query = card_query.order_by(case(rarity_order, value=Card.rarity))
-        deck_query = deck_query.order_by(case(rarity_order, value=Card.rarity))
-    elif sort == "type":
-        card_query = card_query.order_by(Card.type)
-        deck_query = deck_query.order_by(Card.type)
-    elif sort == "max":
-        deck_query = deck_query.order_by(Card.max_in_deck.desc())
-    elif sort == "uses":
-        card_query = card_query.order_by(
-            case((UserCard.uses_remaining == -1, 1), else_=0),
-            UserCard.uses_remaining.desc())
-
-    # Pagination
-    page = request.args.get("page", 1, type=int)
-    pagination = card_query.paginate(page=page, per_page=100, error_out=False)
-
-    user_cards = pagination.items
-    deck_cards = deck_query.all()
-
-    return render_template("inventory.html", cards=user_cards, deck_cards=deck_cards, username=username, is_owner=is_owner, mode=mode, pagination=pagination)
 
 
 
