@@ -349,6 +349,38 @@ def buy_card(card_id):
 
     return redirect(url_for("main.shop",message="Card purchased successfully."))
 
+@bp.route("/shop/open_pack/<token_type>", methods=["POST"])
+def open_pack(token_type):
+    user=db.session.query(User).get(session.get("user_id"))
+    if token_type not in ["easy","medium","hard"]:
+        abort(404)
+    if token_type=="easy":
+        if user.easy_tokens<=0:
+            return redirect(url_for(".shop",message="You don't have enough easy tokens."))
+    elif token_type=="medium":
+        if user.medium_tokens<=0:
+            return redirect(url_for(".shop",message="You don't have enough medium tokens."))
+    elif token_type=="hard":
+        if user.hard_tokens<=0:
+            return redirect(url_for(".shop",message="You don't have enough hard tokens."))
+    
+    cards=random_cards(token_type)
+    if not cards:
+        return redirect(url_for(".shop",message="No cards available to open in this pack."))
+    
+    if token_type=="easy":
+        user.easy_tokens-=1
+    elif token_type=="medium":
+        user.medium_tokens-=1
+    elif token_type=="hard":
+        user.hard_tokens-=1
+    
+    for card in cards:
+        user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
+        db.session.add(user_card)
+    db.session.commit()
+    card_names=", ".join(card.name for card in cards)
+    return redirect(url_for(".shop",message=f"You have opened a {token_type} pack and received: {card_names}."))
 
 @bp.route("/cards")
 def show_cards():
