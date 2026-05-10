@@ -3,14 +3,15 @@ from app import db
 from app.models import User, Card, UserCard, Deck, DeckCard
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
+from app.utils import get_user_deck, get_deck_cards
 from app.utils import add_user_cards
+from cards_logic import PlayerDeck
 import random
 from datetime import date
 from types import SimpleNamespace
 
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
-
 @bp.route("/")
 @bp.route("/index")
 def index():
@@ -105,54 +106,25 @@ def register():
 
     return render_template("register.html",title="Register",errors=errors,success=success)
 
-
 @bp.route("/game")
 def game():
-    fake_data = { # TODO: Change to real query
-        "phyric1": [
-            {
-                "card": {
-                    "name": "Tailwind",
-                    "effect": "Move 2 Spaces without triggering enemy behavior",
-                    "type": type("Enum", (), {"value": "movement"})(),
-                    "rarity": type("Enum", (), {"value": "common"})(),
-                    "max": 7,
-                    "uses": 7,
-                },
-                "uses_remaining": 5,
-            },
-            {
-                "card": {
-                    "name": "Heal",
-                    "effect": "Heals 2 Hearts / Adds 2 Hearts",
-                    "type": type("Enum", (), {"value": "survival"})(),
-                    "rarity": type("Enum", (), {"value": "rare"})(),
-                    "max": 5,
-                    "uses": 5,
-                },
-                "uses_remaining": 2,
-            },
-            {
-                "card": {
-                    "name": "Silence Falls",
-                    "effect": "Stealth +1",
-                    "type": type("Enum", (), {"value": "utility"})(),
-                    "rarity": type("Enum", (), {"value": "common"})(),
-                    "max": 7,
-                    "uses": 7,
-                },
-                "uses_remaining": -1,
-            },
-        ]
-    }
-    items = fake_data.get("phyric1")
-
-    return render_template("game.html", grid=dungeon_game.getFakeGrid(), items=items)
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("main.login"))
+    dungeon_game.playerDeck = PlayerDeck()
+    dungeon_game.playerDeck.deck = get_deck_cards(user_id)
+    dungeon_game.playerDeck.loadDeck()
+    dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
+    return render_template("game.html", grid=dungeon_game.getFakeGrid())
 
 @bp.route("/move", methods=["POST"])
 def move():
-    direction = request.json.get("direction")
-    return dungeon_game.advance_game(direction)
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("main.login"))
+    
+    input = request.json.get("input")
+    return dungeon_game.advance_game(input)
 
 @bp.route("/leaderboard")
 def leaderboard():

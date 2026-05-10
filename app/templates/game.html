@@ -21,6 +21,32 @@
     .bright {
         filter: brightness(125%);
     }
+
+    /* Game page specific card styles */
+    #hand-cards .game-card {
+        min-width: 140px;
+    }
+
+    #hand-cards .card-body {
+        padding: 5%;
+        font-size: 90%;
+    }
+
+    #hand-cards .card-footer {
+        font-size: 0.8rem;
+    }
+
+    #hand-cards .card-title-box {
+        font-size: 0.8rem;
+    }
+
+    #hand-cards .rarity-master .card-title-box {
+        font-size: 0.7rem;
+    }
+
+    #hand-cards .card-uses {
+        font-size: 1rem;
+    }
 </style>
     <div class="container-fluid row">
 
@@ -60,18 +86,20 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="d-flex bg-dark vh-40" id="card-display">
+            <div class="d-flex bg-dark" id="card-display">
                 <div>
                 <h2 class="text-light">Deck</h2>
-                <p class="text-light">Cards Left: 35/40</p>
+                <p class="text-light">Cards Left: <span id="deck-size">35</span>/<span id="deck-max">40</span></p>
                 </div>
+                <div id="hand-cards" class="d-flex flex-wrap gap-2">
                     {% for item in items %}
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                <div class="card-wrapper">
-                    {% include "_card.html" %}
+                    <div>
+                        <div class="card-wrapper">
+                            {% include "_card.html" %}
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-            </div>
-        {% endfor %}
             </div>
         </div>
 

@@ -1,11 +1,12 @@
 import random
 from flask import request, jsonify
 from entities import Enemy, Gold, Goblin
+from cards_logic import PlayerDeck
+import cards_logic
 from collections import deque
-import app.utils
+from app.utils import get_user_deck
 from app import db
 
-#coordinate boundary check function
 
 class Room():
     def __init__(self, width, height, x, y,):
@@ -37,6 +38,15 @@ class DungeonGame():
         self.turnNum = 0
         self.isVisible = True
         self.filter = [[0] * 32 for _ in range(20)]
+        self.playerDeck: PlayerDeck
+        self.hand = []
+
+    def draw_hand(self):
+        deck_cards, err = cards_logic.get_deck()
+        if err:
+            return [], err
+        self.hand = self.playerDeck.shuffle(deck_cards)
+        return self.hand
 
     def generate_floor(self): #generates a new dungeon floor
         self.grid = Grid()
@@ -48,12 +58,22 @@ class DungeonGame():
         self.grid.spawnGold()
         self.level += 1
 
-    def advance_game(self, direction):
+    def advance_game(self, input):
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
         grid = self.getGrid()
 
-        newFloor = self.player.movePlayer(direction, grid)  #move player
+        newFloor = False
+        if input in ["left", "right", "up", "down"]:
+            newFloor = self.player.movePlayer(input, grid)  #move player
+        elif input in ["0", "1", "2"]:
+            if self.hand:
+                self.playerDeck.useSlot(int(input))
+
+        #draw new cards
+        self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
+        card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
+
         if newFloor:
             self.generate_floor()
             self.getGridObject().updateVisibility(self.player)
@@ -62,23 +82,45 @@ class DungeonGame():
             else:
                 return_grid = self.getGridObject().gridProxy()
             self.turnNum += 1
-            return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
+            return jsonify({
+                "grid": return_grid,
+                "filter": self.filter,
+                "turn": self.turnNum,
+                "hp": self.player.health,
+                "keys": self.player.keys,
+                "gold": self.player.gold,
+                "cards": self.player.stealth,
+                "floor": self.level,
+                "cards": card_data,
+                "deckMax": self.playerDeck.deckMax,
+                "deckSize": self.playerDeck.deckSize,
+            })
 
         for enemy in self.enemies: #move enemies
             enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
             enemy.attack(self.player)
         #apply any map interactions
-        #apply any card effects
-        #draw new cards
+        #apply any card passive card effects
 
         self.getGridObject().updateVisibility(self.player)
-
         if self.isVisible:
             return_grid = self.grid.grid
         else:
             return_grid = self.getGridObject().gridProxy()
         self.turnNum += 1 #increment turn count unless card effect overrides it
-        return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
+        return jsonify({
+            "grid": return_grid,
+            "filter": self.filter,
+            "turn": self.turnNum,
+            "hp": self.player.health,
+            "keys": self.player.keys,
+            "gold": self.player.gold,
+            "cards": self.player.stealth,
+            "floor": self.level,
+            "cards": card_data,
+            "deckMax": self.playerDeck.deckMax,
+            "deckSize": self.playerDeck.deckSize,
+        })
 
     def getGridObject(self): #return grid object
         return self.grid
