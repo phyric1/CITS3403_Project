@@ -27,34 +27,42 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-header bg-secondary text-center text-white">
+    <div class="card-header bg-secondary text-center text-white mb-3">
         <h2 class="mb-0">Cards Offered</h2>
     </div>
     <div class="card-view-body">
-        <div class="d-flex flex-wrap justify-content-center gap-4">
-            {% for card in trade.offered_cards %}
-                {% set item = {'card': card} %}
-                <div class="card-wrapper" style="width: 220px;">
-                    {% include "_card.html" %}
-                </div>
-            {% endfor %}
-        </div>
+        {% if trade.offered_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for user_card in trade.offered_cards %}
+                    {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
+                    <div class="card-wrapper mb-3" style="width: 220px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0 py-3">No cards offered.</p>
+        {% endif %}
     </div>
 </div>
 
 <div class="card mb-4">
-    <div class="card-header bg-secondary text-center text-white">
+    <div class="card-header bg-secondary text-center text-white mb-3">
         <h2 class="mb-0">Cards Requested</h2>
     </div>
     <div class="card-view-body">
-        <div class="d-flex flex-wrap justify-content-center gap-4">
-            {% for card in trade.requested_cards %}
-                {% set item = {'card': card} %}
-                <div class="card-wrapper" style="width: 220px;">
-                    {% include "_card.html" %}
-                </div>
-            {% endfor %}
-        </div>
+        {% if trade.requested_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for user_card in trade.requested_cards %}
+                    {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
+                    <div class="card-wrapper mb-3" style="width: 220px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0 py-3">No cards requested.</p>
+        {% endif %}
     </div>
 </div>
 
@@ -77,7 +85,5 @@
         </form>
     {% endif %}
 </div>
-
-
 
 {% endblock %}
