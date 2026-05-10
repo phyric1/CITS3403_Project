@@ -161,43 +161,6 @@ def update_trade_selection_ajax():
 
 
 
-@bp.route("/trading/new/update", methods=["POST"])
-def update_trade_selection():
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
-
-    action = request.form.get("action")
-    user_card_id = request.form.get("user_card_id", type=int)
-
-    requested_card_ids = session.get("requested_card_ids", [])
-    offered_card_ids = session.get("offered_card_ids", [])
-
-    if action == "add_requested":
-        if user_card_id not in requested_card_ids:
-            requested_card_ids.append(user_card_id)
-
-    elif action == "remove_requested":
-        if user_card_id in requested_card_ids:
-            requested_card_ids.remove(user_card_id)
-
-    elif action == "add_offered":
-        if user_card_id not in offered_card_ids:
-            offered_card_ids.append(user_card_id)
-
-    elif action == "remove_offered":
-        if user_card_id in offered_card_ids:
-            offered_card_ids.remove(user_card_id)
-
-    session["requested_card_ids"] = requested_card_ids
-    session["offered_card_ids"] = offered_card_ids
-
-    target_username = request.form.get("target_username", "")
-    target_page = request.form.get("target_page", 1, type=int)
-    my_page = request.form.get("my_page", 1, type=int)
-
-    return redirect(url_for(".new_trade", target_username=target_username, target_page=target_page, my_page=my_page))
-
-
 
 @bp.route("/trading/new/submit", methods=["POST"])
 def submit_trade():
