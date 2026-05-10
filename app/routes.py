@@ -299,7 +299,7 @@ def random_cards(token_type):
     if not available_cards:
         return None
     
-    return random.choices(available_cards,probabilities=card_probability,k=3)
+    return random.choices(available_cards,weights=card_probability,k=3)
 
 @bp.route("/shop")
 def shop():
