@@ -1,7 +1,8 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint
 from app import db
 from app.models import User, Card, UserCard, Trade, TradeCard
-from app.enums import TradeStatus
+from app.enums import TradeStatus, CardType
+
 
 bp = Blueprint("trading", __name__)
 
@@ -87,13 +88,13 @@ def new_trade():
     target_page = request.args.get("target_page", 1, type=int)
     my_page = request.args.get("my_page", 1, type=int)
 
-    my_card_query = db.session.query(UserCard).join(Card).filter(UserCard.user_id == current_user.id, UserCard.tradable == True).order_by(Card.name)
+    my_card_query = db.session.query(UserCard).join(Card).filter(UserCard.user_id == current_user.id, UserCard.tradable == True, UserCard.locked == False).order_by(Card.name)
 
     my_pagination = my_card_query.paginate(page=my_page, per_page=6, error_out=False)
     my_cards = my_pagination.items
 
     if target_user:
-        target_card_query = db.session.query(UserCard).join(Card).filter(UserCard.user_id == target_user.id, UserCard.tradable == True).order_by(Card.name)
+        target_card_query = db.session.query(UserCard).join(Card).filter(UserCard.user_id == target_user.id, UserCard.tradable == True, UserCard.locked == False).order_by(Card.name)
 
         target_pagination = target_card_query.paginate(page=target_page, per_page=6, error_out=False)
         target_cards = target_pagination.items
@@ -195,10 +196,12 @@ def submit_trade():
     db.session.flush()
 
     for card in requested_cards:
+        card.locked = True
         db.session.add(TradeCard(trade_id=trade.id, user_card_id=card.id))
 
     for card in offered_cards:
-        db.session.add(TradeCard(trade_id=trade.id,user_card_id=card.id))
+        card.locked = True
+        db.session.add(TradeCard(trade_id=trade.id, user_card_id=card.id))
     db.session.commit()
 
     session.pop("requested_card_ids", None)
@@ -243,7 +246,7 @@ def view_trade(trade_id):
 @bp.route("/trading/<int:trade_id>/action", methods=["POST"])
 def trade_action(trade_id):
     if "user_id" not in session:
-        return redirect(url_for(".login"))
+        return redirect(url_for("main.login"))
 
     current_user_id = session.get("user_id")
     trade = Trade.query.get(trade_id)
@@ -266,23 +269,50 @@ def trade_action(trade_id):
                 user_card.user_id = trade.receiver_id
             elif user_card.user_id == trade.receiver_id:
                 user_card.user_id = trade.sender_id
+            user_card.locked = False
+
         db.session.delete(trade)
         db.session.commit()
 
     elif action == "reject":
         if current_user_id != trade.receiver_id:
             return redirect(url_for(".trading"))
+
+        for trade_card in trade.trade_cards:
+            trade_card.user_card.locked = False
+
         db.session.delete(trade)
         db.session.commit()
 
     elif action == "cancel":
         if current_user_id != trade.sender_id:
             return redirect(url_for(".trading"))
+
+        for trade_card in trade.trade_cards:
+            trade_card.user_card.locked = False
+
         db.session.delete(trade)
         db.session.commit()
 
     else:
         return redirect(url_for(".trading"))
+
     return redirect(url_for(".trading"))
 
+
+
+"""
+@bp.route("/market")
+def trade_market():
+    cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
+
+    return render_template("trading/market.html", cards=cards)
+
+
+@bp.route("/market/<int:card_id>")
+def market_card(card_id):
+    cards = db.session.query(UserCard).filter(UserCard.card_id == card_id).all()
+
+    return render_template("trading/trade_market.html", cards=cards)
+"""
 ### ### ### ### ### ### ###
