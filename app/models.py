@@ -46,7 +46,8 @@ class Card(db.Model):
     max_in_deck = db.Column(db.Integer, nullable=False, default=1)
 
     __table_args__ = (
-        db.CheckConstraint('max_in_deck > 0', name='check_max_in_deck_positive'),
+        db.CheckConstraint('max_in_deck >= -1', name='check_max_in_deck_positive'),
+        db.CheckConstraint('uses >= -1', name='check_uses_positive'),
     )
 
     def __repr__(self):
