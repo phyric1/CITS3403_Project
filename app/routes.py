@@ -246,8 +246,8 @@ def view_trade(trade_id):
 
 
 def get_daily_shop_cards(user_id):
-    all_cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
-    today = date.today().isoformat()
+    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).all()
+    today=date.today().isoformat()
     #Different daily shops for each user
     random.seed(f"{today}-{user_id}")
 
@@ -266,6 +266,19 @@ def get_card_price(card):
         "master": 200
     }
     return price_rarity.get(rarity,30)
+
+def card_pack_probability(token_type):
+    probabilities={
+        "easy": {"common": 0.7, "uncommon": 0.2, "rare": 0.09, "legendary": 0.009, "master": 0.001},
+        "medium": {"common": 0.5, "uncommon": 0.3, "rare": 0.15, "legendary": 0.045, "master": 0.005},
+        "hard": {"common": 0.25, "uncommon": 0.4, "rare": 0.2, "legendary": 0.1, "master": 0.05}
+    }
+    if token_type not in probabilities:
+        raise ValueError("Invalid token type.")
+    
+    return probabilities[token_type]
+
+
 
 @bp.route("/shop")
 def shop():
