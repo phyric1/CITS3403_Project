@@ -83,7 +83,7 @@
 }
 
 /* Bottom section */
-.game-card .card-body {
+.card-body {
     transition: all 0.2s ease;
     height: 50%;
     padding: 10%;
@@ -101,7 +101,7 @@
     position: relative;
 }
 
-.game-card .card-body:hover {
+.card-body:hover {
     position: absolute;
     bottom: 0;
     left: 0;
