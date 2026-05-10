@@ -134,3 +134,14 @@ class TradeCard(db.Model):
 @event.listens_for(User, "after_insert")
 def create_deck(mapper, connection, target):
     connection.execute(Deck.__table__.insert().values(user_id=target.id, name=f"{target.username}'s Deck"))
+
+class DailyShopCard(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    card_id=db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
+    date=db.Column(db.String(10), nullable=False)  # Format: YYYY-MM-DD
+    user=db.relationship('User')
+    card=db.relationship('Card')
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'card_id', 'date', name='unique_daily_shop_card'),
+    )

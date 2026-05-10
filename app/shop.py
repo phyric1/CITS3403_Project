@@ -1,6 +1,6 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint, current_app as app
 from app import db
-from app.models import User, Card, UserCard, Deck, DeckCard
+from app.models import User, Card, UserCard, Deck, DeckCard,DailyShopCard
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 from app.utils import add_user_cards
@@ -11,7 +11,7 @@ from types import SimpleNamespace
 bp = Blueprint("shop", __name__)
 
 def get_daily_shop_cards(user_id):
-    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).all()
+    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).order_by(Card.id).all()
     today=date.today().isoformat()
     #Different daily shops for each user
     shop_seed=random.Random(f"{today}-{user_id}")
@@ -88,48 +88,16 @@ def random_cards(token_type):
     
     return cards
 
-#sperate 2 card_pack and make sure at least 1 high vlaue card.
-def random_cards(token_type):
-    probabilities=card_pack_probability(token_type)
-    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).all()
-    guarantee_cards=[]
-    guarantee_probability=[]
-    normal_cards=[]
-    normal_probability=[]
-    for card in all_cards:
-        rarity=get_rarity_value(card)
-        probability=probabilities.get(rarity,0)
-        if probability>0:
-            normal_cards.append(card)
-            normal_probability.append(probability)
-            if rarity in ["uncommon", "rare", "legendary", "master"]:
-                guarantee_cards.append(card)
-                guarantee_probability.append(probability)
-    if not normal_cards:
-        return []
-    
-    cards=[]
-    if guarantee_cards:
-        guarantee_cards=random.choices(guarantee_cards,weights=guarantee_probability,k=1)[0]
-        cards.append(guarantee_cards)
-    
-    count=3-len(cards)
-    if count>0:
-        cards.extend(random.choices(normal_cards,weights=normal_probability,k=count))
-    
-    return cards
-
 @bp.route("/shop")
 def shop():
     user=db.session.query(User).get(session.get("user_id"))
     daily_cards=get_daily_shop_cards(user.id)
     today=date.today().isoformat()
-    purchase_key=f"daily_shop_purchases_{user.id}_{today}"
-    purchase_card_id=session.get(purchase_key,[])
+    purchase_card_ids=[purchase.card_id for purchase in DailyShopCard.query.filter_by(user_id=user.id,date=today).all()]
 
     shop_items=[]
     for card in daily_cards:
-        shop_items.append(SimpleNamespace(card=card,uses_remaining=card.uses,is_purchased=card.id in purchase_card_id,price=get_card_price(card)))
+        shop_items.append(SimpleNamespace(card=card,uses_remaining=card.uses,is_purchased=card.id in purchase_card_ids,price=get_card_price(card)))
     message=request.args.get("message")
     a_pack=session.pop("pack",None)
     pack=[]
@@ -160,27 +128,26 @@ def buy_card(card_id):
     daily_cards=get_daily_shop_cards(user.id)
     daily_cards_ids=[daily_card.id for daily_card in daily_cards]
     if card.id not in daily_cards_ids:
-        return redirect(url_for("main.shop",message="This card is not available in Daily Shop"))
+        return redirect(url_for("shop.shop",message="This card is not available in Daily Shop"))
 
     today=date.today().isoformat()
-    purchase_key=f"daily_shop_purchases_{user.id}_{today}"
-    purchase_card_id=session.get(purchase_key,[])
-    if card.id in purchase_card_id:
-        return redirect(url_for("main.shop",message="You have buy this card today."))
+
+    existing_purchase=DailyShopCard.query.filter_by(user_id=user.id,card_id=card.id,date=today).first()
+    if existing_purchase:
+        return redirect(url_for("shop.shop",message="You have already bought this card today."))
 
     price=get_card_price(card)
     if user.gold<price:
-        return redirect(url_for("main.shop", message="You don't have enough money"))
+        return redirect(url_for("shop.shop", message="You don't have enough money"))
     user.gold-=price
 
     user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
+    
     db.session.add(user_card)
+    db.session.add(DailyShopCard(user_id=user.id,card_id=card.id,date=today))
     db.session.commit()
-    purchase_card_id.append(card.id)
-    session[purchase_key]= purchase_card_id
-    session.modified=True
 
-    return redirect(url_for("main.shop",message="Card purchased successfully."))
+    return redirect(url_for("shop.shop",message="Card purchased successfully."))
 
 @bp.route("/shop/open_pack/<token_type>", methods=["POST"])
 def open_pack(token_type):
@@ -189,17 +156,17 @@ def open_pack(token_type):
         abort(404)
     if token_type=="easy":
         if user.easy_tokens<=0:
-            return redirect(url_for(".shop",message="You don't have enough easy tokens."))
+            return redirect(url_for("shop.shop",message="You don't have enough easy tokens."))
     elif token_type=="medium":
         if user.medium_tokens<=0:
-            return redirect(url_for(".shop",message="You don't have enough medium tokens."))
+            return redirect(url_for("shop.shop",message="You don't have enough medium tokens."))
     elif token_type=="hard":
         if user.hard_tokens<=0:
-            return redirect(url_for(".shop",message="You don't have enough hard tokens."))
+            return redirect(url_for("shop.shop",message="You don't have enough hard tokens."))
     
     cards=random_cards(token_type)
     if not cards:
-        return redirect(url_for(".shop",message="No cards available to open in this pack."))
+        return redirect(url_for("shop.shop",message="No cards available to open in this pack."))
     
     if token_type=="easy":
         user.easy_tokens-=1
@@ -218,4 +185,4 @@ def open_pack(token_type):
     session["pack"]=pack
     session.modified=True
     db.session.commit()
-    return redirect(url_for(".shop",message=f"You have opened a {token_type} pack."))
+    return redirect(url_for("shop.shop",message=f"You have opened a {token_type} pack."))
