@@ -138,7 +138,7 @@
     </div>
 </div>
 
-<div class="card mb-4">
+<div class="card">
     <div class="card-header bg-secondary text-center text-white">
         <h2 class="mb-0">Cards Requested</h2>
     </div>
@@ -157,7 +157,7 @@
     </div>
 </div>
 
-<div class="card mb-4">
+<div class="card">
     <div class="card-header bg-secondary text-center text-white">
         <h2 class="mb-0">Cards Offered</h2>
     </div>
@@ -180,7 +180,7 @@
     <div class="card-header bg-secondary text-white">
         Trade Summary
     </div>
-    <div class="card-view-body text-center">
+    <div class="card-view-body text-center" style="border: 3px solid #000000; border-top: none;">
         <p class="mb-1"><strong>Target User:</strong> {{ target_user.username if target_user else "None selected" }}</p>
         <p class="mb-1"><strong>Cards Requested:</strong> <span id="requested-count">{{ requested_cards|length }}</span></p>
         <p class="mb-0"><strong>Cards Offered:</strong> <span id="offered-count">{{ offered_cards|length }}</span></p>
