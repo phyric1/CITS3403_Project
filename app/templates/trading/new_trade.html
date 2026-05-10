@@ -139,14 +139,14 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-header bg-secondary text-center text-white mb-3">
+    <div class="card-header bg-secondary text-center text-white">
         <h2 class="mb-0">Cards Requested</h2>
     </div>
-    <div class="card-view-body" id="requested-cards-section">
+    <div class="card-view-body bg-dark" style="min-height: 272px;" id="requested-cards-section">
         {% if requested_cards %}
             <div class="d-flex flex-wrap justify-content-center gap-4">
                 {% for item in requested_cards %}
-                    <div class="card-wrapper mb-3" style="width: 160px;">
+                    <div class="card-wrapper my-3" style="width: 160px;">
                         {% include "_card.html" %}
                     </div>
                 {% endfor %}
@@ -158,14 +158,14 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-header bg-secondary text-center text-white mb-3">
+    <div class="card-header bg-secondary text-center text-white">
         <h2 class="mb-0">Cards Offered</h2>
     </div>
-    <div class="card-view-body" id="offered-cards-section">
+    <div class="card-view-body bg-dark" style="min-height: 272px;" id="offered-cards-section">
         {% if offered_cards %}
             <div class="d-flex flex-wrap justify-content-center gap-4">
                 {% for item in offered_cards %}
-                    <div class="card-wrapper mb-3" style="width: 160px;">
+                    <div class="card-wrapper my-3" style="width: 160px;">
                         {% include "_card.html" %}
                     </div>
                 {% endfor %}
