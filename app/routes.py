@@ -285,21 +285,36 @@ def get_rarity_value(card):
 
     return str(rarity).lower()
 
+#sperate 2 card_pack and make sure at least 1 high vlaue card.
 def random_cards(token_type):
     probabilities=card_pack_probability(token_type)
     all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).all()
-    available_cards=[]
-    card_probability=[]
+    guarantee_cards=[]
+    guarantee_probability=[]
+    normal_cards=[]
+    normal_probability=[]
     for card in all_cards:
         rarity=get_rarity_value(card)
         probability=probabilities.get(rarity,0)
         if probability>0:
-            available_cards.append(card)
-            card_probability.append(probability)
-    if not available_cards:
-        return None
+            normal_cards.append(card)
+            normal_probability.append(probability)
+            if rarity in ["uncommon", "rare", "legendary", "master"]:
+                guarantee_cards.append(card)
+                guarantee_probability.append(probability)
+    if not normal_cards:
+        return []
     
-    return random.choices(available_cards,weights=card_probability,k=3)
+    cards=[]
+    if guarantee_cards:
+        guarantee_cards=random.choices(guarantee_cards,weights=guarantee_probability,k=1)[0]
+        cards.append(guarantee_cards)
+    
+    count=3-len(cards)
+    if count>0:
+        cards.extend(random.choices(normal_cards,weights=normal_probability,k=count))
+    
+    return cards
 
 @bp.route("/shop")
 def shop():
