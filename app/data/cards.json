@@ -1,7 +1,7 @@
 [
   {
     "name": "Tailwind",
-    "effect": "Move 2 spaces without triggering enemy behavior",
+    "effect": "Move 2 spaces in 1 turn",
     "rarity": "common",
     "type": "movement",
     "uses": -1,
@@ -12,7 +12,7 @@
     "effect": "Dash forward until you hit a wall, -1 stealth",
     "rarity": "uncommon",
     "type": "movement",
-    "uses": -1,
+    "uses": 2,
     "max_in_deck": 3
   },
   {
@@ -20,7 +20,7 @@
     "effect": "Move anywhere in a 5x5 radius, -1 stealth",
     "rarity": "rare",
     "type": "movement",
-    "uses": -1,
+    "uses": 10,
     "max_in_deck": 3
   },
   {
@@ -50,7 +50,7 @@
 
   {
     "name": "Rest",
-    "effect": "Heals 1 heart / adds 1 heart",
+    "effect": "+1 Heart",
     "rarity": "uncommon",
     "type": "survival",
     "uses": -1,
@@ -58,7 +58,7 @@
   },
   {
     "name": "Heal",
-    "effect": "Heals 2 hearts / adds 2 hearts",
+    "effect": "+2 Hearts",
     "rarity": "rare",
     "type": "survival",
     "uses": -1,
@@ -131,7 +131,7 @@
   },
   {
     "name": "Slingshot",
-    "effect": "Deal damage to one enemy in a 3x7 path in front of the player",
+    "effect": "Deal damage to one enemy in front of the player",
     "rarity": "common",
     "type": "combat",
     "uses": -1,
@@ -228,7 +228,7 @@
   },
   {
     "name": "Key to Victory",
-    "effect": "Gain a free key at the start of the game",
+    "effect": "+1 Key",
     "rarity": "uncommon",
     "type": "utility",
     "uses": -1,

@@ -23,43 +23,80 @@ document.addEventListener('keydown', (e) => {
         }
     })
 
-const cards = document.querySelectorAll('.card-wrapper');
-cards[0].addEventListener("click", function() {
-    move('None');
-    console.log('slot1');
-})
-cards[1].addEventListener("click", function() {
-    move('None');
-    console.log('slot2');
-})
-cards[2].addEventListener("click", function() {
-    move('None');
-    console.log('slot3');
-})
+const handArea = document.getElementById('hand-cards');
+if (handArea) {
+    handArea.addEventListener('click', (e) => {
+        const wrapper = e.target.closest('.card-wrapper');
+        if (!wrapper) return;
 
-    function move(direction) {
+        const wrappers = Array.from(handArea.querySelectorAll('.card-wrapper'));
+        const index = wrappers.indexOf(wrapper);
+        if (index === -1) return;
+
+        move(`${index}`);
+    });
+}
+
+    function move(input) {
         fetch('/move', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ direction: direction }),
+            body: JSON.stringify({ input: input }),
         })
         .then(response => response.json())
         .then(data => {
             console.log('Success:', data);
-            // Update the grid display with new player position
             updateGridDisplay(data.grid, data.filter);
-            updateGameState(data.turn, data.hp, data.keys, data.gold, data.floor);
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.floor, data.deckMax, data.deckSize);
+            if (data.cards) {
+                updateCards(data.cards);
+            }
         })
         .catch((error) => {
             console.error('Error:', error);
         });
     }
 
-    function updateCards(){
-        const cards = document.querySelectorAll('.inventory-card-wrapper');
-        //find out how to pass card data and display it
+    function updateCards(cards) {
+        const handArea = document.getElementById('hand-cards');
+        if (!handArea) return;
+
+        handArea.innerHTML = '';
+        cards.forEach(card => {
+
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'card-wrapper';
+
+            const usesHtml = card.uses_remaining !== undefined && card.uses_remaining !== null ?
+                `<div class="card-uses">${card.uses_remaining === -1 ? '∞' : `${card.uses_remaining}/${card.uses}`}</div>` : '';
+
+            const maxInDeck = card.max_in_deck === -1 ? '∞' : card.max_in_deck;
+            const cardHtml = `
+                <div class="game-card rarity-${card.rarity}">
+                    ${usesHtml}
+                    <div class="card-image type-${card.type}">
+                        <img src="/static/img/${card.type}.png" alt="${card.type}">
+                    </div>
+                    <div class="card-title-box" title="${card.name}">
+                        <p>${card.name}</p>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="card-body" title="${card.effect}">
+                        <div class="effect-wrapper">
+                            <p id="effect">${card.effect}</p>
+                        </div>
+                        <div class="card-footer">
+                            <p id="footer">${card.type.charAt(0).toUpperCase() + card.type.slice(1)} - Max ${maxInDeck}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            cardWrapper.innerHTML = cardHtml;
+            handArea.appendChild(cardWrapper);
+        });
     }
 
     function updateGridDisplay(newGrid, filter) {
@@ -99,10 +136,9 @@ cards[2].addEventListener("click", function() {
                 gridContainer.appendChild(tile);
             }
         }
-
     }
 
-    function updateGameState(turn, hp, keys, gold, floor) {
+    function updateGameState(turn, hp, keys, gold, floor, deckMax, deckSize) {
         const turnCount = document.getElementById('turn-value');
         turnCount.textContent = turn;
 
@@ -117,4 +153,10 @@ cards[2].addEventListener("click", function() {
 
         const levelCount = document.getElementById('floor-value');
         levelCount.textContent = floor;
+
+        const deckMaxSize = document.getElementById('deck-max');
+        deckMaxSize.textContent = deckMax;
+
+        const deckSizeCount = document.getElementById('deck-size');
+        deckSizeCount.textContent = deckSize;
     }
