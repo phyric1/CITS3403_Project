@@ -2,7 +2,7 @@ from flask import render_template, abort, request, url_for, session, redirect, B
 from flask_login import login_required, current_user
 from app import db
 from app.models import User, Card, UserCard, Trade, TradeCard
-from app.enums import TradeStatus, CardType
+from app.enums import TradeStatus
 
 
 bp = Blueprint("trading", __name__)
@@ -104,7 +104,7 @@ def new_trade():
     requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids)).all() if requested_card_ids else []
     offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids)).all() if offered_card_ids else []
 
-    return render_template("trading/new_trade.html", current_user=user, target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
+    return render_template("trading/new_trade.html", target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
         my_cards=my_cards, target_pagination=target_pagination, my_pagination=my_pagination, requested_card_ids=requested_card_ids, offered_card_ids=offered_card_ids, error=error)
 
 
@@ -177,9 +177,9 @@ def submit_trade():
     requested_card_ids = session.get("requested_card_ids", [])
     offered_card_ids = session.get("offered_card_ids", [])
 
-    requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids), UserCard.user_id == receiver.id).all() if requested_card_ids else []
+    requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids), UserCard.user_id == receiver.id,UserCard.tradable==True,UserCard.locked==False).all() if requested_card_ids else []
 
-    offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids), UserCard.user_id == sender_id).all() if offered_card_ids else []
+    offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids), UserCard.user_id == sender_id,UserCard.tradable==True,UserCard.locked==False).all() if offered_card_ids else []
 
     if not requested_cards and not offered_cards:
         return redirect(url_for(".new_trade", target_username=target_username))
