@@ -56,7 +56,7 @@ def new_trade():
     user = current_user
 
     target_username = request.args.get("target_username", "").strip()
-    error = None
+    error = request.args.get("error")
     target_user = None
 
     previous_target_username = session.get("trade_target_username")
@@ -177,9 +177,15 @@ def submit_trade():
     requested_card_ids = session.get("requested_card_ids", [])
     offered_card_ids = session.get("offered_card_ids", [])
 
-    requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids), UserCard.user_id == receiver.id,UserCard.tradable==True,UserCard.locked==False).all() if requested_card_ids else []
+    requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids), UserCard.user_id == receiver.id, UserCard.tradable == True, UserCard.locked == False).all() if requested_card_ids else []
 
-    offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids), UserCard.user_id == sender_id,UserCard.tradable==True,UserCard.locked==False).all() if offered_card_ids else []
+    offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids), UserCard.user_id == sender_id, UserCard.tradable == True, UserCard.locked == False).all() if offered_card_ids else []
+
+    if len(requested_cards) != len(requested_card_ids) or len(offered_cards) != len(offered_card_ids):
+        session.pop("requested_card_ids", None)
+        session.pop("offered_card_ids", None)
+        session.pop("trade_target_username", None)
+        return redirect(url_for(".new_trade", error="One or more selected cards are no longer available. Please create a new trade."))
 
     if not requested_cards and not offered_cards:
         return redirect(url_for(".new_trade", target_username=target_username))
@@ -199,8 +205,10 @@ def submit_trade():
 
     session.pop("requested_card_ids", None)
     session.pop("offered_card_ids", None)
+    session.pop("trade_target_username", None)
 
     return redirect(url_for(".trading"))
+
 
 
 
