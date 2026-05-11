@@ -74,7 +74,7 @@
   },
   {
     "name": "Parry",
-    "effect": "+10% chance to not take any damage",
+    "effect": "+5% chance to not take any damage",
     "rarity": "rare",
     "type": "survival",
     "uses": -1,

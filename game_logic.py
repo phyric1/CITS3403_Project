@@ -42,10 +42,6 @@ class DungeonGame():
         match card.card.name:
             case "Tailwind":
                 self.tailwind = 3
-            case "Light the Way":
-                self.isVisible = True
-            case "Key to Victory":
-                self.player.keys += 1
             case "Teleport":
                 success = False
                 while success == False:
@@ -62,18 +58,27 @@ class DungeonGame():
                 pass
             case "Timestop":
                 self.timeStopped = True
+            case "Rest":
+                self.player.health += 1
             case "Heal":
                 self.player.health += 2
             case "Guard":
-                self.player.health += 1
+                self.player.dodgeChance += 0.02
             case "Parry":
-                print("Tailwind")
-            case "Rest":
-                self.player.health += 1
+                self.player.dodgeChance += 0.05
             case "Strength":
                 self.player.attackDamage += 1
             case "Dexterity":
                 self.player.attackDamage += 1
+            case "Dagger":
+                x = self.player.x
+                y = self.player.y
+                dx = [-1, 1, 0, 0]
+                dy = [0, 0, -1, 1]
+                for dir in range(4):
+                    if self.grid.grid[y + dy[dir]][x + dx[dir]] == 4: 
+                        self.filter[y][x] == 5
+
             case "Dash Attack":
                 self.player.attackDamage += 1
             case "Meteor":
@@ -95,6 +100,13 @@ class DungeonGame():
                             grid[i][j] = 0
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
+            case "Light the Way":
+                self.isVisible = True
+            case "Key to Victory":
+                self.player.keys += 1
+            case "Recycle":
+                self.playerDeck.deck.append(self.playerDeck.discard[0])
+                self.playerDeck.deckSize = len(self.playerDeck.deck)
         return card
 
     def generate_floor(self): #generates a new dungeon floor
@@ -226,10 +238,13 @@ class Player():
         self.gold = 0
         self.stealth = 0
         self.attackDamage = 1
-        self.dodgeChance = 0
+        self.dodgeChance = 0.0
 
     def takeDamage(self, damage):
-        self.health -= damage
+        if self.dodgeChance < random.random():
+            self.health -= damage
+        else:
+            print("dodge")
         return self.health
     
     def attack(self, damage):

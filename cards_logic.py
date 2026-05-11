@@ -51,6 +51,7 @@ class PlayerDeck():
         self.deckSize: int
         self.deck = []
         self.hand = []
+        self.discard = []
 
     def loadDeck(self):
         for card in self.deck:
@@ -71,7 +72,8 @@ class PlayerDeck():
         #print(self.hand[slot].card.name)
         card = self.hand[slot]
         self.deck.remove(self.hand[slot])
-        self.deckSize -= 1
+        self.discard.append(card)
+        self.deckSize = len(self.deck)
         return card
 
     def serialize_card(self, user_card):
