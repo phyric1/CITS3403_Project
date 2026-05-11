@@ -19,6 +19,9 @@ Trade Market
     </div>
 
     <!-- Sort -->
+
+
+    
     <div class="mb-3">
         <form method="GET">
             <input type="hidden" name="mode" value="{{ mode }}">
@@ -36,13 +39,19 @@ Trade Market
     
     <!-- Card Grid -->
     <div class="card-grid" id="deck">
-        {% for card in cards %}
-        {% set item = namespace(card=card) %}
-        <div class="card-wrapper" data-card-id="{{ item.id }}">
+        {% for market_card in cards %}
+        {% set item = namespace(card=market_card.card) %}
+        <div class="card-wrapper" data-card-id="{{ market_card.card.id }}">
             {% include "_card.html" %}
-            <a href="{{ url_for('trading.market_card', card_id=card.id) }}" class="btn btn-sm btn-outline-primary w-100 mt-2">View</a>
+    
+            {% if market_card.has_tradable %}
+                <a href="{{ url_for('trading.market_card', card_id=market_card.card.id) }}" class="btn btn-sm btn-outline-primary w-100 mt-2">View Cards</a>
+            {% else %}
+                <button class="btn btn-sm btn-secondary w-100 mt-2" disabled>No Cards</button>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
+    
     
 {% endblock %}

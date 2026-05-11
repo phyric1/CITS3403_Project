@@ -11,10 +11,17 @@
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Cards</h2>
+        <h2>{{card.name}}'s Tradable</h2>
         <p>Click on a card to see copies that are available to trade</p>
     </div>
 
+    <form class="mb-3" method="GET">
+        <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
+            <option value="uses_desc" {% if sort == "uses_desc" %}selected{% endif %}>Highest Uses</option>
+            <option value="uses_asc" {% if sort == "uses_asc" %}selected{% endif %}>Lowest Uses</option>
+        </select>
+    </form>
+    
 
     <!-- Card Grid -->
     <div class="card-grid" id="deck">

@@ -1,9 +1,9 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint
 from flask_login import login_required, current_user
 from app import db
-from app.models import User, Card, UserCard, Trade, TradeCard
+from app.models import User, Card, UserCard, Trade, TradeCard, CardType
 from app.enums import TradeStatus
-
+from sqlalchemy import case
 
 bp = Blueprint("trading", __name__)
 
@@ -291,18 +291,66 @@ def trade_action(trade_id):
 
 
 
-"""
-@bp.route("/market")
-def trade_market():
-    cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
 
-    return render_template("trading/market.html", cards=cards)
+@bp.route("/market")
+@login_required
+def trade_market():
+    sort = request.args.get("sort", "name")
+
+    query = db.session.query(Card).filter(Card.type != CardType.debuff)
+
+    if sort == "name":
+        query = query.order_by(Card.name)
+    elif sort == "rarity":
+        rarity_order = {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3, "master": 4}
+        query = query.order_by(case(rarity_order, value=Card.rarity))
+    elif sort == "type":
+        query = query.order_by(Card.type)
+    elif sort == "max":
+        query = query.order_by(Card.max_in_deck.desc())
+    elif sort == "uses":
+        query = query.order_by(Card.uses.desc())
+
+    base_cards = query.all()
+
+    cards = []
+    for card in base_cards:
+        available_count = db.session.query(UserCard).join(User).filter(
+            UserCard.card_id == card.id,
+            UserCard.tradable == True,
+            UserCard.locked == False
+        ).count()
+
+        cards.append({
+            "card": card,
+            "available_count": available_count,
+            "has_tradable": available_count > 0
+        })
+
+    return render_template("trading/market.html", cards=cards, sort=sort)
 
 
 @bp.route("/market/<int:card_id>")
+@login_required
 def market_card(card_id):
-    cards = db.session.query(UserCard).filter(UserCard.card_id == card_id).all()
+    sort = request.args.get("sort", "uses_desc")
+    card = db.session.get(Card, card_id)
+    if card is None:
+        abort(404)
 
-    return render_template("trading/trade_market.html", cards=cards)
-"""
+    query = db.session.query(UserCard).join(User).filter(
+        UserCard.card_id == card_id,
+        UserCard.tradable == True,
+        UserCard.locked == False
+    )
+
+    if sort == "uses_asc":
+        query = query.order_by(UserCard.uses_remaining.asc())
+    else:
+        query = query.order_by(UserCard.uses_remaining.desc())
+
+    cards = query.all()
+
+    return render_template("trading/trade_market.html", cards=cards, card=card, sort=sort)
+
 ### ### ### ### ### ### ###
