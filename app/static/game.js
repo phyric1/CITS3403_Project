@@ -101,8 +101,7 @@ if (handArea) {
         });
     }
 
-     function updateDiscard(card) {
-        console.log("hey")
+    function updateDiscard(card) {
         const discardSlot = document.getElementById("discard");
         if (!discardSlot) return;
 
@@ -167,15 +166,30 @@ if (handArea) {
                     tile.classList.add('gold', 'bg-warning');
                 }
 
-                if (filter[i][j] === 1) {
+                if (filter[i][j] === 1 || filter[i][j] === 5) {
                     tile.classList.add('bright');
                 } else {
                     tile.classList.remove('bright');
                 }
 
+                if (filter[i][j] === 5) {
+                    tile.classList.add('clickable-tile');
+                    tile.classList.add('blink-fast');
+                    tile.dataset.x = j;
+                    tile.dataset.y = i;
+                    tile.style.cursor = 'pointer';
+                    tile.addEventListener('click', () => {
+                        handleFilterTileClick(j, i);
+                    });
+                }
+
                 gridContainer.appendChild(tile);
             }
         }
+    }
+
+    function handleTileClick(x, y) {
+        return { x, y };
     }
 
     function updateGameState(turn, hp, keys, gold, stealth, floor, deckMax, deckSize) {

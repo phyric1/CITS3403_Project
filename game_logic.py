@@ -53,7 +53,7 @@ class DungeonGame():
                         self.grid.grid[y][x] = 2
                         success = True
             case "Acrobatics":
-                print("Tailwind")
+                pass
             case "Sprint":
                 pass
             case "Timestop":
@@ -76,9 +76,8 @@ class DungeonGame():
                 dx = [-1, 1, 0, 0]
                 dy = [0, 0, -1, 1]
                 for dir in range(4):
-                    if self.grid.grid[y + dy[dir]][x + dx[dir]] == 4: 
-                        self.filter[y][x] == 5
-
+                    #if self.grid.grid[y + dy[dir]][x + dx[dir]] == 4: 
+                        self.filter[y + dy[dir]][x + dx[dir]] = 5
             case "Dash Attack":
                 self.player.attackDamage += 1
             case "Meteor":
