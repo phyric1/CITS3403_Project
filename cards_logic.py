@@ -16,7 +16,13 @@ def temp_add_cards(): #temporary function to add cards
                 ("Slingshot", 2),
                 ("Strip Mine", 2),
                 ("Meteor", 2),
-                ("Dash Attack", 2)
+                ("Dash Attack", 2),
+                ("Key to Victory", 2),
+                ("Light the Way", 2),
+                ("Master of Movement", 1),
+                ("Master of Combat", 1),
+                ("Master of Cards", 1),
+                ("Master of Survival", 1),
             ])
     db.session.commit()
 
@@ -44,21 +50,15 @@ class PlayerDeck():
         self.hand = []
 
     def loadDeck(self):
+        for card in self.deck:
+            if "Master" in card.card.name:
+                print("removed a card")
+        self.deck = [card for card in self.deck if "Master" not in card.card.name]
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
 
-    def cardProcessor(card):
-        match card.name:
-            case "Tailwind":
-                print("Tailwind")
-            case "Sprint":
-                print("Tailwind")
-            case "Acrobatics":
-                print("Tailwind")
-            case "Teleport":
-                print("Tailwind")
-            case "Timestop":
-                print("Tailwind")
+        for card in self.deck:
+            print(card.card.name)
 
     def shuffle(self, cards):
         hand = random.sample(cards, min(3, len(cards)))
@@ -66,9 +66,10 @@ class PlayerDeck():
 
     def useSlot(self, slot):
         print(self.hand[slot].card.name)
-        #pass this name to card processor
+        card = self.hand[slot]
         self.deck.remove(self.hand[slot])
         self.deckSize -= 1
+        return card
 
     def serialize_card(self, user_card):
             if user_card:

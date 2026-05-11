@@ -5,8 +5,6 @@ from cards_logic import PlayerDeck
 import cards_logic
 from collections import deque
 from app.utils import get_user_deck
-from app import db
-
 
 class Room():
     def __init__(self, width, height, x, y,):
@@ -36,18 +34,60 @@ class DungeonGame():
         self.player = Player(0, 0)
         self.generate_floor()
         self.turnNum = 0
-        self.isVisible = True
+        self.isVisible = False
         self.filter = [[0] * 32 for _ in range(20)]
         self.playerDeck: PlayerDeck
         self.hand = []
+        self.timeStopped = False
 
-    def draw_hand(self):
-        deck_cards, err = cards_logic.get_deck()
-        if err:
-            return [], err
-        self.hand = self.playerDeck.shuffle(deck_cards)
-        return self.hand
-
+    def cardProcessor(self, card):
+        #check if card type matches active master cards
+        match card.card.name:
+            case "Tailwind":
+                print("moved twice")
+            case "Light the Way":
+                self.isVisible = True
+            case "Key to Victory":
+                self.player.keys += 1
+            case "Teleport":
+                success = False
+                while success == False:
+                    x = random.randint(0, 31)
+                    y = random.randint(0, 19)
+                    if self.grid.grid[y][x] == 0:
+                        self.grid.grid[self.player.y][self.player.x] = 0
+                        self.player.x, self.player.y = x, y
+                        self.grid.grid[y][x] = 2
+                        success = True
+            case "Acrobatics":
+                print("Tailwind")
+            case "Sprint":
+                print("Tailwind")
+            case "Timestop":
+                self.timeStopped = True
+            case "Heal":
+                self.player.health += 2
+            case "Guard":
+                self.player.health += 1
+            case "Parry":
+                print("Tailwind")
+            case "Rest":
+                self.player.health += 1
+            case "Strength":
+                self.player.attackDamage += 1
+            case "Dexterity":
+                self.player.attackDamage += 1
+            case "Dash Attack":
+                self.player.attackDamage += 1
+            case "Meteor":
+                self.player.attackDamage += 1
+            case "Bear Trap":
+                self.player.attackDamage += 1
+            case "Silence Falls":
+                self.player.stealth += 1
+            case "Shadow Sneak":
+                self.player.stealth += 2
+    
     def generate_floor(self): #generates a new dungeon floor
         self.grid = Grid()
         x, y = self.grid.startRoom.center()
@@ -68,13 +108,20 @@ class DungeonGame():
             newFloor = self.player.movePlayer(input, grid)  #move player
         elif input in ["0", "1", "2"]:
             if self.hand:
-                self.playerDeck.useSlot(int(input))
+                self.cardProcessor(self.playerDeck.useSlot(int(input)))
+                #all cards flip over
+                #card is already sent to discard slot
+                #load new grid data
+                #activate new event listeners
+                #upon new input, increment turn and continue advancing the game
 
+    #start of phase 2
         #draw new cards
         self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
         card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
 
         if newFloor:
+            self.timeStopped = False
             self.generate_floor()
             self.getGridObject().updateVisibility(self.player)
             if self.isVisible:
@@ -89,16 +136,16 @@ class DungeonGame():
                 "hp": self.player.health,
                 "keys": self.player.keys,
                 "gold": self.player.gold,
-                "cards": self.player.stealth,
+                "stealth": self.player.stealth,
                 "floor": self.level,
                 "cards": card_data,
                 "deckMax": self.playerDeck.deckMax,
                 "deckSize": self.playerDeck.deckSize,
             })
-
-        for enemy in self.enemies: #move enemies
-            enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
-            enemy.attack(self.player)
+        if not self.timeStopped:
+            for enemy in self.enemies: #move enemies
+                enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
+                enemy.attack(self.player)
         #apply any map interactions
         #apply any card passive card effects
 
@@ -115,7 +162,8 @@ class DungeonGame():
             "hp": self.player.health,
             "keys": self.player.keys,
             "gold": self.player.gold,
-            "cards": self.player.stealth,
+            "gold": self.player.gold,
+            "stealth": self.player.stealth,
             "floor": self.level,
             "cards": card_data,
             "deckMax": self.playerDeck.deckMax,
@@ -142,6 +190,8 @@ class Player():
         self.health = 3
         self.gold = 0
         self.stealth = 0
+        self.attackDamage = 1
+        self.dodgeChance = 0
 
     def takeDamage(self, damage):
         self.health -= damage

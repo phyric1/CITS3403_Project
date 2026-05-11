@@ -49,7 +49,7 @@ if (handArea) {
         .then(data => {
             console.log('Success:', data);
             updateGridDisplay(data.grid, data.filter);
-            updateGameState(data.turn, data.hp, data.keys, data.gold, data.floor, data.deckMax, data.deckSize);
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
             if (data.cards) {
                 updateCards(data.cards);
             }
@@ -65,7 +65,6 @@ if (handArea) {
 
         handArea.innerHTML = '';
         cards.forEach(card => {
-
             const cardWrapper = document.createElement('div');
             cardWrapper.className = 'card-wrapper';
 
@@ -138,7 +137,7 @@ if (handArea) {
         }
     }
 
-    function updateGameState(turn, hp, keys, gold, floor, deckMax, deckSize) {
+    function updateGameState(turn, hp, keys, gold, stealth, floor, deckMax, deckSize) {
         const turnCount = document.getElementById('turn-value');
         turnCount.textContent = turn;
 
@@ -147,6 +146,9 @@ if (handArea) {
 
         const keyCount = document.getElementById('keys-value');
         keyCount.textContent = keys;
+
+        const stealthCount = document.getElementById('stealth-value');
+        stealthCount.textContent = stealth;
 
         const goldCount = document.getElementById('treasure-value');
         goldCount.textContent = gold;
