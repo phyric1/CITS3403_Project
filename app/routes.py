@@ -1,7 +1,8 @@
-from flask import render_template, abort, request, url_for, session, redirect, Blueprint, current_app as app
+from flask import render_template, abort, request, url_for, session, redirect, flash, Blueprint, current_app as app
 from app import db
 from sqlalchemy import case
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
+from app.forms import LoginForm, RegisterForm
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 from app.utils import add_user_cards
@@ -20,27 +21,17 @@ def index():
 
 @bp.route("/login",methods=["GET","POST"])
 def login():
-    errors={}
-    if request.method=="POST":
-        username=request.form.get("username","").strip()
-        password=request.form.get("password","")
+    form = LoginForm()
+    if form.validate_on_submit():
+        user=db.session.query(User).filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Invalid username or password.", "danger")
+        else:
+            session["user_id"]=user.id
+            session["username"]=user.username
+            return redirect(url_for("main.profile", username=user.username))
 
-        if not username:
-            errors["username"]="Username is required."
-        if not password:
-            errors["password"]="Password is required."
-        if not errors:
-            user=db.session.query(User).filter_by(username=username).first()
-            if user is None:
-                errors["general"]="Invalid username or password."
-            elif not user.check_password(password):
-                errors["general"]="Invalid username or password."
-            else:
-                session["user_id"]=user.id
-                session["username"]=user.username
-                return redirect(url_for("main.index"))
-
-    return render_template("login.html",title="Login",errors=errors)
+    return render_template("login.html",title="Login", form=form)
 
 
 @bp.route("/logout")
@@ -51,46 +42,20 @@ def logout():
 
 @bp.route("/register",methods=["GET","POST"])
 def register():
-    errors={}
+    form = RegisterForm()
     success=session.pop("register_success",False)
-    if request.method=="POST":
-        username=request.form.get("username","").strip()
-        email=request.form.get("email","").strip().lower()
-        password=request.form.get("password","")
-        confirm_password=request.form.get("confirm_password","")
 
-        if not username:
-            errors["username"]="Username is required."
+    if form.validate_on_submit():
+        existing_username=db.session.query(User).filter_by(username=form.username.data).first()
+        existing_email=db.session.query(User).filter_by(email=form.email.data).first()
 
-        if not email:
-            errors["email"]="Email is required."
-        elif "@" not in email or "." not in email:
-            errors["email"]="Please enter a valid email address."
-
-        if not password:
-            errors["password"]="Password is required."
-        elif len(password)<8:
-            errors["password"]="Password must be at least 8 characters"
-
-        if not confirm_password:
-            errors["confirm_password"]="Please confirm your password."
-        elif password != confirm_password:
-            errors["confirm_password"]="Passwords do not match."
-
-        #Check whether the username and email already exist.
-        if not errors:
-            existing_username=db.session.query(User).filter_by(username=username).first()
-            existing_emial=db.session.query(User).filter_by(email=email).first()
-
-            if existing_username:
-                errors["username"]="This username is already taken."
-
-            if existing_emial:
-                errors["email"]="This email is already registered."
-
-        if not errors:
-            user=User(username=username,email=email)
-            user.set_password(password)
+        if existing_username:
+            flash("Username is already taken.", "danger")
+        elif existing_email:
+            flash("Email is already registered.", "danger")
+        else:
+            user=User(username=form.username.data, email=form.email.data)
+            user.set_password(form.password.data)
             db.session.add(user)
             db.session.flush()
             add_user_cards(user.id, [
@@ -104,7 +69,7 @@ def register():
             session["register_success"]=True
             return redirect(url_for("main.register"))
 
-    return render_template("register.html",title="Register",errors=errors,success=success)
+    return render_template("register.html", title="Register", form=form, success=success)
 
 
 @bp.route("/game")
