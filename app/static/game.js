@@ -53,6 +53,9 @@ if (handArea) {
             if (data.cards) {
                 updateCards(data.cards);
             }
+            if (data.discard) {
+                updateDiscard(data.discard);
+            }
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -97,6 +100,44 @@ if (handArea) {
             handArea.appendChild(cardWrapper);
         });
     }
+
+     function updateDiscard(card) {
+        console.log("hey")
+        const discardSlot = document.getElementById("discard");
+        if (!discardSlot) return;
+
+        discardSlot.innerHTML = '';
+        const cardWrapper = document.createElement('div');
+        cardWrapper.className = 'card-wrapper';
+
+        const usesHtml = card.uses_remaining !== undefined && card.uses_remaining !== null ?
+        `<div class="card-uses">${card.uses_remaining === -1 ? '∞' : `${card.uses_remaining}/${card.uses}`}</div>` : '';
+
+        const maxInDeck = card.max_in_deck === -1 ? '∞' : card.max_in_deck;
+        const cardHtml = `
+                <div class="game-card rarity-${card.rarity}">
+                    ${usesHtml}
+                    <div class="card-image type-${card.type}">
+                        <img src="/static/img/${card.type}.png" alt="${card.type}">
+                    </div>
+                    <div class="card-title-box" title="${card.name}">
+                        <p>${card.name}</p>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="card-body" title="${card.effect}">
+                        <div class="effect-wrapper">
+                            <p id="effect">${card.effect}</p>
+                        </div>
+                        <div class="card-footer">
+                            <p id="footer">${card.type.charAt(0).toUpperCase() + card.type.slice(1)} - Max ${maxInDeck}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        cardWrapper.innerHTML = cardHtml;
+        discardSlot.appendChild(cardWrapper);
+    };
 
     function updateGridDisplay(newGrid, filter) {
         const gridContainer = document.getElementById('grid');

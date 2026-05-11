@@ -20,12 +20,8 @@ class Room():
             
 class DungeonGame():
     '''class representing a game instance and all its properties'''
-    #player -> health, attack
     #dificulty
     #floors
-    #enemies
-    #grid/board (walls and such)
-    #cards/deck -> active card effects
 
     def __init__(self):
         #used to start game
@@ -99,8 +95,8 @@ class DungeonGame():
                             grid[i][j] = 0
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
+        return card
 
-    
     def generate_floor(self): #generates a new dungeon floor
         self.grid = Grid()
         x, y = self.grid.startRoom.center()
@@ -115,13 +111,16 @@ class DungeonGame():
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
         grid = self.getGrid()
+        discard_data = None
 
         newFloor = False
         if input in ["left", "right", "up", "down"]:
             newFloor = self.player.movePlayer(input, grid)  #move player
         elif input in ["0", "1", "2"] and self.tailwind == 0:
             if self.hand:
-                self.cardProcessor(self.playerDeck.useSlot(int(input)))
+                card = self.cardProcessor(self.playerDeck.useSlot(int(input)))
+                discard_data = self.playerDeck.serialize_card(card)
+                print(discard_data)
                 #all cards flip over
                 #card is already sent to discard slot
                 #load new grid data
@@ -201,6 +200,7 @@ class DungeonGame():
             "stealth": self.player.stealth,
             "floor": self.level,
             "cards": card_data,
+            "discard": discard_data,
             "deckMax": self.playerDeck.deckMax,
             "deckSize": self.playerDeck.deckSize,
         })

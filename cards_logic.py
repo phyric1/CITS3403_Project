@@ -68,7 +68,7 @@ class PlayerDeck():
         return hand
 
     def useSlot(self, slot):
-        print(self.hand[slot].card.name)
+        #print(self.hand[slot].card.name)
         card = self.hand[slot]
         self.deck.remove(self.hand[slot])
         self.deckSize -= 1
