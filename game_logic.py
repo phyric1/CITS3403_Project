@@ -39,12 +39,13 @@ class DungeonGame():
         self.playerDeck: PlayerDeck
         self.hand = []
         self.timeStopped = False
+        self.tailwind = 0
 
     def cardProcessor(self, card):
         #check if card type matches active master cards
         match card.card.name:
             case "Tailwind":
-                print("moved twice")
+                self.tailwind = 3
             case "Light the Way":
                 self.isVisible = True
             case "Key to Victory":
@@ -62,7 +63,7 @@ class DungeonGame():
             case "Acrobatics":
                 print("Tailwind")
             case "Sprint":
-                print("Tailwind")
+                pass
             case "Timestop":
                 self.timeStopped = True
             case "Heal":
@@ -87,6 +88,18 @@ class DungeonGame():
                 self.player.stealth += 1
             case "Shadow Sneak":
                 self.player.stealth += 2
+            case "Dynamite":
+                grid = self.grid.grid
+                radius = 2
+                x  = self.player.x
+                y  = self.player.y
+                for i in range(y - radius, y + radius + 1):
+                    for j in range(x - radius, x + radius + 1):
+                        if grid[i][j] == 1:
+                            grid[i][j] = 0
+            case "Eye for Treasure":
+                self.grid.spawnGold(1)
+
     
     def generate_floor(self): #generates a new dungeon floor
         self.grid = Grid()
@@ -95,7 +108,7 @@ class DungeonGame():
         self.player.y = y
         self.enemies = []
         self.enemies = self.grid.spawnEnemies()
-        self.grid.spawnGold()
+        self.grid.spawnGold(2)
         self.level += 1
 
     def advance_game(self, input):
@@ -106,7 +119,7 @@ class DungeonGame():
         newFloor = False
         if input in ["left", "right", "up", "down"]:
             newFloor = self.player.movePlayer(input, grid)  #move player
-        elif input in ["0", "1", "2"]:
+        elif input in ["0", "1", "2"] and self.tailwind == 0:
             if self.hand:
                 self.cardProcessor(self.playerDeck.useSlot(int(input)))
                 #all cards flip over
@@ -114,6 +127,28 @@ class DungeonGame():
                 #load new grid data
                 #activate new event listeners
                 #upon new input, increment turn and continue advancing the game
+
+        if self.tailwind > 0:
+            self.tailwind -= 1
+            self.getGridObject().updateVisibility(self.player)
+            if self.isVisible:
+                return_grid = self.grid.grid
+            else:
+                return_grid = self.getGridObject().gridProxy()
+            self.turnNum += 1 #increment turn count unless card effect overrides it
+            return jsonify({
+                "grid": return_grid,
+                "filter": self.filter,
+                "turn": self.turnNum,
+                "hp": self.player.health,
+                "keys": self.player.keys,
+                "gold": self.player.gold,
+                "gold": self.player.gold,
+                "stealth": self.player.stealth,
+                "floor": self.level,
+                "deckMax": self.playerDeck.deckMax,
+                "deckSize": self.playerDeck.deckSize,
+            })
 
     #start of phase 2
         #draw new cards
@@ -275,8 +310,7 @@ class Grid():
             enemyList.append(Goblin(enemyX, enemyY))
         return enemyList
 
-    def spawnGold(self):
-        goldCount = 2
+    def spawnGold(self, goldCount):
         for i in range(goldCount):
             success = False
             while success == False:

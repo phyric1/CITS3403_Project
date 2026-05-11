@@ -4,7 +4,7 @@ import random
 
 def temp_add_cards(): #temporary function to add cards
     i, j = app.utils.get_current_user_id()
-    app.utils.add_user_cards(i, [
+    """app.utils.add_user_cards(i, [
                 ("Teleport", 1),
                 ("Timestop", 1),
                 ("Heal", 1),
@@ -23,6 +23,9 @@ def temp_add_cards(): #temporary function to add cards
                 ("Master of Combat", 1),
                 ("Master of Cards", 1),
                 ("Master of Survival", 1),
+            ])"""
+    app.utils.add_user_cards(i, [
+                ("Eye for Treasure", 3),
             ])
     db.session.commit()
 
