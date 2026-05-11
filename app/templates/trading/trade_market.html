@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Cards{% endblock %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Cards</h2>
+        <p>Click on a card to see copies that are available to trade</p>
+    </div>
+
+
+    <!-- Card Grid -->
+    <div class="card-grid" id="deck">
+        {% for user_card in cards %}
+        {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
+        <div class="card-wrapper" data-card-id="{{ user_card.id }}">
+            {% include "_card.html" %}
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}
