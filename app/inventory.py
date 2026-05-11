@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from app import db
 from app.models import User, Card, UserCard, Deck, DeckCard, MAX_DECK_SIZE
-from app.utils import get_user_card, get_user_deck
+from app.utils import get_user_card, get_user_deck, get_current_user_id
 from sqlalchemy import case, func
 
 bp = Blueprint("inventory", __name__)
@@ -89,7 +89,9 @@ def inventory(username):
 @bp.route("/api/deck/add", methods=["POST"]) # Potentially refactor to avoid repetition with remove route
 @login_required
 def add_to_deck():
-    user_id = current_user.id
+    user_id, err = get_current_user_id()
+    if err:
+        return err
 
     data = request.get_json()
 
@@ -129,7 +131,9 @@ def add_to_deck():
 @bp.route("/api/deck/remove", methods=["POST"])
 @login_required
 def remove_from_deck():
-    user_id = current_user.id
+    user_id, err = get_current_user_id()
+    if err:
+        return err
 
     data = request.get_json()
 
@@ -148,10 +152,6 @@ def remove_from_deck():
 
     if not deck_card:
         return jsonify({"error": "Card not in deck"}), 404
-    
-    user_card=UserCard.query.filter_by(id=user_card_id,user_id=user_id).first()
-    if user_card:
-        user_card.tradable = True
 
     db.session.delete(deck_card)
     db.session.commit()
@@ -162,7 +162,9 @@ def remove_from_deck():
 @bp.route("/api/user_card/tradable", methods=["POST"])
 @login_required
 def tradable():
-    user_id = current_user.id
+    user_id, err = get_current_user_id()
+    if err:
+        return err
 
     data = request.get_json()
 
