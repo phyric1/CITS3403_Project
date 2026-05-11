@@ -3,11 +3,12 @@ from sqlalchemy import event
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.enums import TradeStatus, CardRarity, CardType
+from flask_login import UserMixin
 
 MAX_DECK_SIZE = 40
 
 
-class User(db.Model):
+class User(UserMixin,db.Model):
     id=db.Column(db.Integer,primary_key=True)
     username=db.Column(db.String(64),index=True,unique=True,nullable=False)
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)

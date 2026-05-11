@@ -1,4 +1,5 @@
 from flask import render_template, abort, request, url_for, session, redirect, flash, Blueprint, current_app as app
+from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from sqlalchemy import case
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
@@ -21,29 +22,29 @@ def index():
 
 @bp.route("/login",methods=["GET","POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.profile", username=current_user.username))
     form = LoginForm()
     if form.validate_on_submit():
         user=db.session.query(User).filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password.", "danger")
         else:
-            session["user_id"]=user.id
-            session["username"]=user.username
+            login_user(user)
             return redirect(url_for("main.profile", username=user.username))
 
     return render_template("login.html",title="Login", form=form)
 
 
 @bp.route("/logout")
+@login_required
 def logout():
-    session.pop("user_id",None)
-    session.pop("username",None)
+    logout_user()
     return redirect(url_for("main.index"))
 
 @bp.route("/register",methods=["GET","POST"])
 def register():
     form = RegisterForm()
-    success=session.pop("register_success",False)
 
     if form.validate_on_submit():
         existing_username=db.session.query(User).filter_by(username=form.username.data).first()
@@ -66,13 +67,14 @@ def register():
                 ("Rest", 2),
             ])
             db.session.commit()
-            session["register_success"]=True
-            return redirect(url_for("main.register"))
+            login_user(user)
+            return redirect(url_for("main.profile", username=user.username))
 
-    return render_template("register.html", title="Register", form=form, success=success)
+    return render_template("register.html", title="Register", form=form)
 
 
 @bp.route("/game")
+@login_required
 def game():
     fake_data = { # TODO: Change to real query
         "phyric1": [
@@ -116,6 +118,7 @@ def game():
     return render_template("game.html", grid=dungeon_game.getFakeGrid(), items=items)
 
 @bp.route("/move", methods=["POST"])
+@login_required
 def move():
     direction = request.json.get("direction")
     return dungeon_game.advance_game(direction)
@@ -150,6 +153,7 @@ def leaderboard():
 
 
 @bp.route("/profile/<username>")
+@login_required
 def profile(username):
     user = db.session.query(User).filter_by(username=username).first()
 
@@ -158,7 +162,7 @@ def profile(username):
 
     player={
             "username": user.username,
-            "gold": 120,
+            "gold": user.gold,
             "fastest_time": 3.55,
             "total_runs": 10,
             "dungeons_cleared": 8,
@@ -170,11 +174,8 @@ def profile(username):
 
     return render_template("profile.html",player=player, username=username)
 
-
-
-
-
 @bp.route("/cards")
+@login_required
 def show_cards():
     cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
 
