@@ -1,4 +1,5 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint
+from flask_login import login_required, current_user
 from app import db
 from app.models import User, Card, UserCard, Trade, TradeCard
 from app.enums import TradeStatus, CardType
@@ -10,11 +11,9 @@ bp = Blueprint("trading", __name__)
 
 
 @bp.route("/trading")
+@login_required
 def trading():
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
-
-    current_user_id = session.get("user_id")
+    current_user_id=current_user.id
 
     incoming_trade_rows = Trade.query.filter_by(receiver_id=current_user_id).order_by(Trade.creation_date.desc()).all()
     outgoing_trade_rows = Trade.query.filter_by(sender_id=current_user_id).order_by(Trade.creation_date.desc()).all()
@@ -52,12 +51,9 @@ def trading():
 
 
 @bp.route("/trading/new")
+@login_required
 def new_trade():
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
-
-    current_user_id = session.get("user_id")
-    current_user = User.query.get_or_404(current_user_id)
+    user = current_user
 
     target_username = request.args.get("target_username", "").strip()
     error = None
@@ -81,14 +77,14 @@ def new_trade():
 
         if target_user is None:
             error = "User not found."
-        elif target_user.id == current_user.id:
+        elif target_user.id == user.id:
             error = "You cannot trade with yourself."
             target_user = None
 
     target_page = request.args.get("target_page", 1, type=int)
     my_page = request.args.get("my_page", 1, type=int)
 
-    my_card_query = db.session.query(UserCard).join(Card).filter(UserCard.user_id == current_user.id, UserCard.tradable == True, UserCard.locked == False).order_by(Card.name)
+    my_card_query = db.session.query(UserCard).join(Card).filter(UserCard.user_id == user.id, UserCard.tradable == True, UserCard.locked == False).order_by(Card.name)
 
     my_pagination = my_card_query.paginate(page=my_page, per_page=6, error_out=False)
     my_cards = my_pagination.items
@@ -108,15 +104,14 @@ def new_trade():
     requested_cards = UserCard.query.filter(UserCard.id.in_(requested_card_ids)).all() if requested_card_ids else []
     offered_cards = UserCard.query.filter(UserCard.id.in_(offered_card_ids)).all() if offered_card_ids else []
 
-    return render_template("trading/new_trade.html", current_user=current_user, target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
+    return render_template("trading/new_trade.html", current_user=user, target_user=target_user, target_username=target_username, target_cards=target_cards, requested_cards=requested_cards, offered_cards=offered_cards,
         my_cards=my_cards, target_pagination=target_pagination, my_pagination=my_pagination, requested_card_ids=requested_card_ids, offered_card_ids=offered_card_ids, error=error)
 
 
 
 @bp.route("/trading/new/update-ajax", methods=["POST"])
+@login_required
 def update_trade_selection_ajax():
-    if "user_id" not in session:
-        return {"success": False, "error": "Not logged in"}, 401
 
     data = request.get_json() or {}
     action = data.get("action")
@@ -164,11 +159,9 @@ def update_trade_selection_ajax():
 
 
 @bp.route("/trading/new/submit", methods=["POST"])
+@login_required
 def submit_trade():
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
-
-    sender_id = session.get("user_id")
+    sender_id = current_user.id
     target_username = request.form.get("target_username", "").strip()
 
     if not target_username:
@@ -212,15 +205,13 @@ def submit_trade():
 
 
 @bp.route("/trading/<int:trade_id>")
+@login_required
 def view_trade(trade_id):
-    if "user_id" not in session:
-        return redirect(url_for(".login"))
-
-    trade_row = Trade.query.get(trade_id)
+    trade_row = db.session.get(Trade, trade_id)
     if trade_row is None:
         return redirect(url_for(".trading"))
 
-    current_user_id = session.get("user_id")
+    current_user_id = current_user.id
     if current_user_id not in [trade_row.sender_id, trade_row.receiver_id]:
         return redirect(url_for(".trading"))
 
@@ -244,12 +235,11 @@ def view_trade(trade_id):
 
 
 @bp.route("/trading/<int:trade_id>/action", methods=["POST"])
+@login_required
 def trade_action(trade_id):
-    if "user_id" not in session:
-        return redirect(url_for("main.login"))
 
-    current_user_id = session.get("user_id")
-    trade = Trade.query.get(trade_id)
+    current_user_id = current_user.id
+    trade = db.session.get(Trade, trade_id)
 
     if trade is None:
         return redirect(url_for(".trading"))
