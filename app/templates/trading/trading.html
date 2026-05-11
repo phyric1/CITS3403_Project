@@ -4,8 +4,11 @@
 
 <h1 class="text-center mb-4">Trading</h1>
 
-<div class="d-flex justify-content-end mb-4">
-    <a href="{{ url_for('main.new_trade') }}" class="btn btn-primary">Create New Trade</a>
+<div class="d-flex justify-content-between mb-4">
+    <a href="{{ url_for('main.profile', username=session.get('username')) }}" class="btn btn-outline-primary">
+        Back to Profile
+    </a>
+    <a href="{{ url_for('trading.new_trade') }}" class="btn btn-primary">Create New Trade</a>
 </div>
 
 <div class="row g-5">
@@ -21,9 +24,10 @@
                             <div class="border rounded p-3 mb-3 bg-light text-dark">
                                 <h5 class="mb-2">From: {{ trade.from_user }}</h5>
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
+                                <p class="mb-1">Status: {{ trade.status|capitalize }}</p>
                                 <p class="mb-1">They want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">They offer: {{ trade.cards_offered }} cards</p>
-                                <a href="{{ url_for('main.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
+                                <a href="{{ url_for('trading.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -46,9 +50,10 @@
                             <div class="border rounded p-3 mb-3 bg-light text-dark">
                                 <h5 class="mb-2">To: {{ trade.to_user }}</h5>
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
+                                <p class="mb-1">Status: {{ trade.status|capitalize }}</p>
                                 <p class="mb-1">You want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">You offer: {{ trade.cards_offered }} cards</p>
-                                <a href="{{ url_for('main.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
+                                <a href="{{ url_for('trading.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
                         {% endfor %}
                     {% else %}

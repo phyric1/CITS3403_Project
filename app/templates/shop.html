@@ -101,21 +101,21 @@
     <div class="card-body">
         <div class="row g-3">
             <div class="col-md-4">
-                <form method="post" action="{{url_for('.open_pack',token_type='easy')}}">
+                <form method="post" action="{{url_for('shop.open_pack',token_type='easy')}}">
                     <button type="submit" class="btn btn-secondary w-100" {% if user.easy_tokens<=0 %}disabled{% endif %}>
                         Open Easy Pack
                     </button>
                 </form>
             </div>
             <div class="col-md-4">
-                <form method="post" action="{{url_for('.open_pack',token_type='medium')}}">
+                <form method="post" action="{{url_for('shop.open_pack',token_type='medium')}}">
                     <button type="submit" class="btn btn-primary w-100" {% if user.medium_tokens<=0 %}disabled{% endif %}>
                         Open Medium Pack
                     </button>
                 </form>
             </div>
             <div class="col-md-4">
-                <form method="post" action="{{url_for('.open_pack',token_type='hard')}}">
+                <form method="post" action="{{url_for('shop.open_pack',token_type='hard')}}">
                     <button type="submit" class="btn btn-danger w-100" {% if user.hard_tokens<=0 %}disabled{% endif %}>
                         Open Hard Pack
                     </button>
@@ -147,7 +147,7 @@
                         Sold Out
                     </button>
                 {% else %}
-                    <form method="post" action="{{url_for('main.buy_card', card_id=shop_item.card.id)}}" class="w-100">
+                    <form method="post" action="{{url_for('shop.buy_card', card_id=shop_item.card.id)}}" class="w-100">
                         <button type="submit" class="btn btn-success w-100" title="Price:{{shop_item.price}}gold">
                             Buy
                         </button>

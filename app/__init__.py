@@ -20,8 +20,12 @@ def create_app():
 
     from app.routes import bp
     from app.inventory import bp as inventory_bp
+    from app.trading import bp as trading_bp
+    from app.shop import bp as shop_bp
     app.register_blueprint(bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(shop_bp)
+    app.register_blueprint(trading_bp)
     register_cli(app)
 
     return app

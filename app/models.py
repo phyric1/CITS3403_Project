@@ -13,9 +13,9 @@ class User(db.Model):
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)
     password_hash=db.Column(db.String(256),nullable=False)
     gold=db.Column(db.Integer,default=20,nullable=False)
-    easy_tokens=db.Column(db.Integer,default=0);
-    medium_tokens=db.Column(db.Integer,default=0);
-    hard_tokens=db.Column(db.Integer,default=0);
+    easy_tokens=db.Column(db.Integer,default=0)
+    medium_tokens=db.Column(db.Integer,default=0)
+    hard_tokens=db.Column(db.Integer,default=0)
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')
@@ -46,7 +46,8 @@ class Card(db.Model):
     max_in_deck = db.Column(db.Integer, nullable=False, default=1)
 
     __table_args__ = (
-        db.CheckConstraint('max_in_deck > 0', name='check_max_in_deck_positive'),
+        db.CheckConstraint('max_in_deck >= -1', name='check_max_in_deck_positive'),
+        db.CheckConstraint('uses >= -1', name='check_uses_positive'),
     )
 
     def __repr__(self):
@@ -134,3 +135,14 @@ class TradeCard(db.Model):
 @event.listens_for(User, "after_insert")
 def create_deck(mapper, connection, target):
     connection.execute(Deck.__table__.insert().values(user_id=target.id, name=f"{target.username}'s Deck"))
+
+class DailyShopCard(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    card_id=db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
+    date=db.Column(db.String(10), nullable=False)  # Format: YYYY-MM-DD
+    user=db.relationship('User')
+    card=db.relationship('Card')
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'card_id', 'date', name='unique_daily_shop_card'),
+    )
