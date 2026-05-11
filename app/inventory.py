@@ -148,10 +148,10 @@ def remove_from_deck():
     if not deck_card:
         return jsonify({"error": "Card not in deck"}), 404
     
-    User_card=UserCard.query.filter_by(id=user_card_id,user_id=user_id).first()
-    if User_card:
-        User_card.tradable = True
-        
+    user_card=UserCard.query.filter_by(id=user_card_id,user_id=user_id).first()
+    if user_card:
+        user_card.tradable = True
+
     db.session.delete(deck_card)
     db.session.commit()
 
