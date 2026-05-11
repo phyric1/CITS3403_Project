@@ -353,4 +353,24 @@ def market_card(card_id):
 
     return render_template("trading/trade_market.html", cards=cards, card=card, sort=sort)
 
+@bp.route("/trading/start/<int:user_card_id>")
+@login_required
+def start_trade_from_market(user_card_id):
+    user_card = db.session.get(UserCard, user_card_id)
+    if user_card is None:
+        abort(404)
+
+    if not user_card.tradable or user_card.locked:
+        return redirect(url_for(".trade_market"))
+
+    if user_card.user_id == current_user.id:
+        return redirect(url_for(".trade_market"))
+
+    session["trade_target_username"] = user_card.user.username
+    session["requested_card_ids"] = [user_card.id]
+    session["offered_card_ids"] = []
+
+    return redirect(url_for(".new_trade", target_username=user_card.user.username))
+
+
 ### ### ### ### ### ### ###

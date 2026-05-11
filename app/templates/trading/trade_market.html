@@ -30,7 +30,7 @@
         <div class="card-wrapper" data-card-id="{{ user_card.id }}">
             {% include "_card.html" %}
             <p class="m-0 text-center">User: {{ user_card.user.username }}</p>
-            <a href="{{ url_for('trading.new_trade', target_username=user_card.user.username) }}" class="btn btn-sm btn-success w-100 mt-2">Trade</a>
+            <a href="{{ url_for('trading.start_trade_from_market', user_card_id=user_card.id) }}" class="btn btn-sm btn-success w-100 mt-2">Trade</a>
         </div>
         {% endfor %}
 
