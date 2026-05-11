@@ -13,9 +13,9 @@ class User(db.Model):
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)
     password_hash=db.Column(db.String(256),nullable=False)
     gold=db.Column(db.Integer,default=20,nullable=False)
-    easy_tokens=db.Column(db.Integer,default=0);
-    medium_tokens=db.Column(db.Integer,default=0);
-    hard_tokens=db.Column(db.Integer,default=0);
+    easy_tokens=db.Column(db.Integer,default=0)
+    medium_tokens=db.Column(db.Integer,default=0)
+    hard_tokens=db.Column(db.Integer,default=0)
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')
@@ -46,7 +46,8 @@ class Card(db.Model):
     max_in_deck = db.Column(db.Integer, nullable=False, default=1)
 
     __table_args__ = (
-        db.CheckConstraint('max_in_deck > 0', name='check_max_in_deck_positive'),
+        db.CheckConstraint('max_in_deck >= -1', name='check_max_in_deck_positive'),
+        db.CheckConstraint('uses >= -1', name='check_uses_positive'),
     )
 
     def __repr__(self):
