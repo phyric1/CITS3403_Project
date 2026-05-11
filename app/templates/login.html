@@ -8,16 +8,6 @@
     <div class="col-md-4">
         <h2 class="mb-4 text-center">Login</h2>
 
-        {% with errors = get_flashed_messages() %}
-            {% if errors %}
-            <ul>
-                {% for error in errors %}
-                <div class="text-danger small">{{ error }}</div>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        {% endwith %}
-
         <form method="POST">
             {{ form.hidden_tag() }}
 

@@ -4,15 +4,8 @@
 
 {% block content %}
 
-<body class="bg-light">
-
-
-
-    <section class="container py-5 min-vh-100">
-
-
-
-      <div class="p-3 pb-4 bg-dark text-white rounded shadow-lg mb-0" style="min-height: 90vh;">
+<section class="container py-5 min-vh-100">
+  <div class="p-3 pb-4 bg-dark text-white rounded shadow-lg mb-0" style="min-height: 90vh;">
         <h1 class="mb-4 border-bottom text-center text-truncate d-block">Leaderboard</h1>
           <div class="table-responsive border rounded">
             <table class="table table-striped table-md table-dark mb-0 table-bordered">
@@ -32,7 +25,7 @@
                     <a class = "text-dark text-decoration-none {% if sort == 'stat1' %}text-decoration-underline{% endif %}" href="{{ url_for('main.leaderboard', sort='stat1') }}"> stat1 </a>
                   </th>
                   <th class = "text-center" scope="col">
-                    <a class = "text-dark text-decoration-none {% if sort == 'stat2' %}text-decoration-underline{% endif %}" href="{{ url_for('.leaderboard', sort='stat2') }}"> stat2 </a>
+                    <a class = "text-dark text-decoration-none {% if sort == 'stat2' %}text-decoration-underline{% endif %}" href="{{ url_for('main.leaderboard', sort='stat2') }}"> stat2 </a>
                   </th>
               </tr>
               </thead>
@@ -60,10 +53,5 @@
           </div>
       </div>
 
-    </section>
-
-
-
-
-  </body>
+</section>
 {% endblock %}
