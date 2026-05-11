@@ -82,7 +82,8 @@ def inventory(username):
         mode=mode,
         pagination=pagination,
         deck_size=len(deck_cards),
-        max_deck_size=MAX_DECK_SIZE)
+        max_deck_size=MAX_DECK_SIZE,
+        sort=sort)
 
 
 @bp.route("/api/deck/add", methods=["POST"]) # Potentially refactor to avoid repetition with remove route
