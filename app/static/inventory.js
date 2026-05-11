@@ -111,11 +111,11 @@ async function removeFromDeck(button) {
     const ids = existing_stack.dataset.cardIds
       ? existing_stack.dataset.cardIds.split(",")
       : [];
-    ids.push(card.dataset.userCardId);
+    ids.push(card.dataset.cardId);
     existing_stack.dataset.cardIds = ids.join(",");
   } else {
     const inventory_card = card.cloneNode(true);
-    inventory_card.dataset.cardIds = card.dataset.userCardId;
+    inventory_card.dataset.cardIds = card.dataset.cardId;
     inventory_card.querySelector(".remove-from-deck")?.remove();
 
     addAddButton(inventory_card);
