@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+<script src="{{ url_for('static', filename='new_trade.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<h2 class="text-center mb-2">New Trade</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{{ url_for('.trading') }}" class="btn btn-primary">Return To Trading</a>
+
+    <form method="GET" action="{{ url_for('.new_trade') }}" class="d-flex gap-2">
+        <input
+            type="text"
+            name="target_username"
+            class="form-control"
+            placeholder="Enter target user"
+            style="width: 180px;"
+            value="{{ target_username }}">
+        <button type="submit" class="btn btn-success">Search User</button>
+    </form>
+</div>
+
+{% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% endif %}
+
+<div class="card mb-2" style="border: 3px solid #000000;">
+    <div class="card-view-body">
+        {% if target_user %}
+            <p class="mb-3 text-center"><strong>{{ target_user.username }}'s Tradable Cards:</strong></p>
+
+            {% if target_cards|length == 0 %}
+                <p class="text-center mb-0">This user has no tradable cards.</p>
+            {% else %}
+                <div class="d-flex flex-wrap justify-content-center gap-4">
+                    {% for item in target_cards %}
+                        <div class="card-wrapper" style="width: 160px;">
+                            {% include "_card.html" %}
+
+                            {% if item.id in requested_card_ids %}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-danger w-100 mt-2 trade-toggle-btn"
+                                    data-action="remove_requested"
+                                    data-user-card-id="{{ item.id }}">
+                                    Remove
+                                </button>
+                            {% else %}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-success w-100 mt-2 trade-toggle-btn"
+                                    data-action="add_requested"
+                                    data-user-card-id="{{ item.id }}">
+                                    Add
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-center align-items-center gap-3 mt-2 mb-2">
+                    {% if target_pagination.has_prev %}
+                        <a href="{{ url_for('.new_trade', target_username=target_user.username, target_page=target_pagination.prev_num, my_page=my_pagination.page) }}" class="btn btn-sm btn-outline-primary">
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    <span>Page {{ target_pagination.page }} of {{ target_pagination.pages }}</span>
+
+                    {% if target_pagination.has_next %}
+                        <a href="{{ url_for('.new_trade', target_username=target_user.username, target_page=target_pagination.next_num, my_page=my_pagination.page) }}" class="btn btn-sm btn-outline-primary">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <p class="text-center mb-0">Search for a target user to view tradable cards.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4" style="border: 3px solid #1104d4;">
+    <div class="card-view-body">
+        <p class="mb-3 text-center"><strong>Your Tradable Cards:</strong></p>
+
+        {% if my_cards|length == 0 %}
+            <p class="text-center mb-0">You have no tradable cards.</p>
+        {% else %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for item in my_cards %}
+                    <div class="card-wrapper" style="width: 160px;">
+                        {% include "_card.html" %}
+
+                        {% if item.id in offered_card_ids %}
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-danger w-100 mt-2 trade-toggle-btn"
+                                data-action="remove_offered"
+                                data-user-card-id="{{ item.id }}">
+                                Remove
+                            </button>
+                        {% else %}
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-success w-100 mt-2 trade-toggle-btn"
+                                data-action="add_offered"
+                                data-user-card-id="{{ item.id }}">
+                                Add
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-center align-items-center gap-3 mt-2 mb-2">
+                {% if my_pagination.has_prev %}
+                    <a href="{{ url_for('.new_trade', target_username=target_user.username if target_user else '', target_page=target_pagination.page if target_pagination else 1, my_page=my_pagination.prev_num) }}" class="btn btn-sm btn-outline-primary">
+                        Previous
+                    </a>
+                {% endif %}
+
+                <span>Page {{ my_pagination.page }} of {{ my_pagination.pages }}</span>
+
+                {% if my_pagination.has_next %}
+                    <a href="{{ url_for('.new_trade', target_username=target_user.username if target_user else '', target_page=target_pagination.page if target_pagination else 1, my_page=my_pagination.next_num) }}" class="btn btn-sm btn-outline-primary">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-secondary text-center text-white">
+        <h2 class="mb-0">Cards Requested</h2>
+    </div>
+    <div class="card-view-body bg-dark" style="min-height: 272px;" id="requested-cards-section">
+        {% if requested_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for item in requested_cards %}
+                    <div class="card-wrapper my-3" style="width: 160px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0">No cards requested yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-secondary text-center text-white">
+        <h2 class="mb-0">Cards Offered</h2>
+    </div>
+    <div class="card-view-body bg-dark" style="min-height: 272px;" id="offered-cards-section">
+        {% if offered_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for item in offered_cards %}
+                    <div class="card-wrapper my-3" style="width: 160px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0">No cards offered yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        Trade Summary
+    </div>
+    <div class="card-view-body text-center" style="border: 3px solid #000000; border-top: none;">
+        <p class="mb-1"><strong>Target User:</strong> {{ target_user.username if target_user else "None selected" }}</p>
+        <p class="mb-1"><strong>Cards Requested:</strong> <span id="requested-count">{{ requested_cards|length }}</span></p>
+        <p class="mb-0"><strong>Cards Offered:</strong> <span id="offered-count">{{ offered_cards|length }}</span></p>
+    </div>
+</div>
+
+<div class="d-flex justify-content-center gap-3 mt-4">
+    <form method="POST" action="{{ url_for('.submit_trade') }}">
+        <input type="hidden" name="target_username" value="{{ target_user.username if target_user else '' }}">
+        <button type="submit" class="btn btn-success">Submit Trade</button>
+    </form>
+</div>
+
+{% endblock %}

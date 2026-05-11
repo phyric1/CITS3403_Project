@@ -1,0 +1,11 @@
+{% if offered_cards %}
+    <div class="d-flex flex-wrap justify-content-center gap-4">
+        {% for item in offered_cards %}
+            <div class="card-wrapper my-3" style="width: 160px;">
+                {% include "_card.html" %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-center mb-0">No cards offered yet.</p>
+{% endif %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h1 class="text-center mb-4">Trade Details</h1>
+
+<div class="d-flex justify-content-start mb-4">
+    <a href="{{ url_for('trading.trading') }}" class="btn btn-primary">Return To Trading</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header text-center bg-secondary text-white">
+        Trade Summary
+    </div>
+    <div class="card-view-body text-center" style="border: 3px solid #000000; border-top: none;">
+        <p class="mb-0">
+            <strong>From:</strong> {{ trade.from_user }}
+            <strong>To:</strong> {{ trade.to_user }}
+            <strong>Created:</strong> {{ trade.created_at }}
+            <strong>Status:</strong> {{ trade.status|capitalize }}
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-secondary text-center text-white">
+        <h2 class="mb-0">Cards Offered</h2>
+    </div>
+    <div class="card-view-body bg-dark">
+        {% if trade.offered_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for user_card in trade.offered_cards %}
+                    {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
+                    <div class="card-wrapper my-3" style="width: 220px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0 py-3">No cards offered.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-center text-white">
+        <h2 class="mb-0">Cards Requested</h2>
+    </div>
+    <div class="card-view-body bg-dark">
+        {% if trade.requested_cards %}
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                {% for user_card in trade.requested_cards %}
+                    {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
+                    <div class="card-wrapper my-3" style="width: 220px;">
+                        {% include "_card.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center mb-0 py-3">No cards requested.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="d-flex justify-content-center gap-3 my-4">
+    {% if is_receiver %}
+        <form method="POST" action="{{ url_for('.trade_action', trade_id=trade.id) }}">
+            <input type="hidden" name="action" value="accept">
+            <button type="submit" class="btn btn-success">Accept</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('.trade_action', trade_id=trade.id) }}">
+            <input type="hidden" name="action" value="reject">
+            <button type="submit" class="btn btn-danger">Reject</button>
+        </form>
+
+    {% elif is_sender %}
+        <form method="POST" action="{{ url_for('.trade_action', trade_id=trade.id) }}">
+            <input type="hidden" name="action" value="cancel">
+            <button type="submit" class="btn btn-warning">Cancel</button>
+        </form>
+    {% endif %}
+</div>
+
+{% endblock %}
