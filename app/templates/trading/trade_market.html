@@ -12,7 +12,7 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>{{card.name}}'s Tradable</h2>
-        <p>Click on a card to see copies that are available to trade</p>
+        <p>Click on a users card to begin a trade with them</p>
     </div>
 
     <form class="mb-3" method="GET">
@@ -29,7 +29,10 @@
         {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
         <div class="card-wrapper" data-card-id="{{ user_card.id }}">
             {% include "_card.html" %}
+            <p class="m-0 text-center">User: {{ user_card.user.username }}</p>
+            <a href="{{ url_for('trading.new_trade', target_username=user_card.user.username) }}" class="btn btn-sm btn-success w-100 mt-2">Trade</a>
         </div>
         {% endfor %}
+
     </div>
 {% endblock %}
