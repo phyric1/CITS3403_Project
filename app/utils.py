@@ -1,5 +1,5 @@
 import json
-from flask import session
+from flask_login import current_user
 from pathlib import Path
 from sqlalchemy.orm import joinedload
 
@@ -92,7 +92,7 @@ def get_current_user_id() -> tuple[int | None, tuple | None]:
               if the user is not authenticated, otherwise None.
 
     """
-    user_id = session.get("user_id")
+    user_id = current_user.id
     if not user_id:
         return None, ({"error": "Unauthorized"}, 401)
     return user_id, None
