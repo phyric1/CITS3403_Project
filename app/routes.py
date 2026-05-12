@@ -130,7 +130,7 @@ def profile(username):
     if user is None:
         abort(404)
 
-    owner=current_user.id == user.id
+    is_owner=current_user.id == user.id
     cards_collected=(db.session.query(UserCard).filter_by(user_id=user.id).count())
     active_trades=(db.session.query(Trade).filter(or_(Trade.sender_id==user.id, Trade.receiver_id==user.id)).count())
     deck=Deck.query.filter_by(user_id=user.id).first()
@@ -152,7 +152,7 @@ def profile(username):
         "deck_size":deck_size,
         "active_trades":active_trades
     }
-    return render_template("profile.html", player=player, username=username, owner=owner)
+    return render_template("profile.html", player=player, username=username, is_owner=is_owner)
 
 @bp.route("/cards")
 @login_required
