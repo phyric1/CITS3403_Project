@@ -4,6 +4,7 @@
 
 {% block extra_links %}
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='inventory.css') }}">
 {% if is_owner %}
     <script src="{{ url_for('static', filename='inventory.js') }}"></script>
 {% endif %}
