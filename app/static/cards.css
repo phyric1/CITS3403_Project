@@ -48,7 +48,7 @@
 .rarity-common { border-color: #6c757d; background-color: #6c757d }
 .rarity-uncommon { border-color: #0f961d; background-color: #0f961d }
 .rarity-rare { border-color: #0d6efd; background-color: #0d6efd }
-.rarity-epic { border-color: #6f42c1; background-color: #6f42c1 }
+.rarity-epic { border-color: #6f42c1; background-color: #6f42c1 } /* Unused */
 .rarity-legendary { border-color: #ffc107; background-color: #ffc107 }
 .rarity-master { border-color: #d35400; background-color: #d35400 }
 
