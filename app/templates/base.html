@@ -45,15 +45,22 @@
                             </ul>  
                         </li>
 
-                        <li class="nav-item dropdown">
-                            <span class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{current_user.username}}
-                            </span>
+                        <li class="nav-item dropdown position-relative">
+                            <a class="nav-link dropdown-toggle pe-4" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ current_user.username }} 
+                                {% if has_unseen_trades %}
+                                    <span class="trade-notification-badge">!</span>
+                                {% endif %}
+                            </a>
                             <ul class="dropdown-menu dropdown-menu-dark">
                                 <li><a class="dropdown-item {% if request.endpoint == 'main.profile' %}active{% endif %}" href="{{ url_for('main.profile', username=current_user.username) }}">Profile</a></li>
                                 <li><a class="dropdown-item {% if request.endpoint == 'inventory.inventory' %}active{% endif %}" href="{{ url_for('inventory.inventory', username=current_user.username) }}">Inventory</a></li>
-                                <li><a class="dropdown-item {% if request.endpoint and request.endpoint.startswith('trading.') %}active{% endif %}" href="{{ url_for('trading.trading') }}">Trades</a></li>
-                            </ul>  
+                                <li><a class="dropdown-item {% if request.endpoint and request.endpoint.startswith('trading.') %}active{% endif %}" href="{{ url_for('trading.trading') }}">Trades
+                                    {% if has_unseen_trades %}
+                                        <span class="bg-danger badge badge-pill badge-danger">!</span>
+                                    {% endif %}
+                                </a></li>
+                            </ul>
                         </li>
 
                         <li class="nav-item">

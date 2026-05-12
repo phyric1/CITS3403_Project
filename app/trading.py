@@ -29,7 +29,8 @@ def trading():
             "created_at": trade.creation_date.strftime("%Y-%m-%d"),
             "cards_requested": cards_requested,
             "cards_offered": cards_offered,
-            "status": trade.status.value
+            "status": trade.status.value,
+            "receiver_viewed": trade.receiver_viewed
         })
 
     outgoing_trades = []
@@ -190,7 +191,7 @@ def submit_trade():
     if not requested_cards and not offered_cards:
         return redirect(url_for(".new_trade", target_username=target_username))
 
-    trade = Trade(sender_id=sender_id, receiver_id=receiver.id, status=TradeStatus.pending)
+    trade = Trade(sender_id=sender_id, receiver_id=receiver.id, status=TradeStatus.pending, receiver_viewed=False)
     db.session.add(trade)
     db.session.flush()
 
@@ -222,6 +223,10 @@ def view_trade(trade_id):
     current_user_id = current_user.id
     if current_user_id not in [trade_row.sender_id, trade_row.receiver_id]:
         return redirect(url_for(".trading"))
+    if current_user_id == trade_row.receiver_id and not trade_row.receiver_viewed:
+        trade_row.receiver_viewed = True
+        db.session.commit()
+
 
     offered_cards = []
     requested_cards = []
