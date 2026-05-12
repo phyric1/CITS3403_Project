@@ -217,3 +217,16 @@ if (handArea) {
         const deckSizeCount = document.getElementById('deck-size');
         deckSizeCount.textContent = deckSize;
     }
+
+    function resetGame() {
+         fetch('/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success: game cleared');
+        })
+    }

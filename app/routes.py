@@ -1,8 +1,8 @@
-from flask import render_template, abort, request, url_for, session, redirect, flash, Blueprint, current_app as app
+from flask import render_template, abort, request, url_for, session, redirect, flash, jsonify, Blueprint, current_app as app
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from sqlalchemy import case
-from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
+from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game
 from app.forms import LoginForm, RegisterForm
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
@@ -12,6 +12,7 @@ from cards_logic import PlayerDeck
 import random
 from datetime import date
 from types import SimpleNamespace
+from sqlalchemy.orm.attributes import flag_modified
 
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
@@ -78,10 +79,22 @@ def register():
 def game():
     if not current_user.id:
         return redirect(url_for("main.login"))
-    dungeon_game.playerDeck = PlayerDeck()
-    dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
-    dungeon_game.playerDeck.loadDeck()
-    dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
+    difficulty = "Normal"
+    existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    if existingGame:
+        print("LOADING SAVED GAME")
+        dungeon_game = existingGame.game
+        return render_template("game.html", grid=dungeon_game.getFakeGrid())
+    else:
+        print("MAKING NEW GAME")
+        dungeon_game = DungeonGame()
+        dungeon_game.playerDeck = PlayerDeck()
+        dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
+        dungeon_game.playerDeck.loadDeck()
+        dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
+        game = Game(user_id=current_user.id, game = dungeon_game)
+        db.session.add(game)
+        db.session.commit()
     return render_template("game.html", grid=dungeon_game.getFakeGrid())
 
 @bp.route("/move", methods=["POST"])
@@ -89,9 +102,24 @@ def game():
 def move():
     if not current_user.id:
         return redirect(url_for("main.login"))
+    existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    dungeon_game = existingGame.game
+    input = request.json.get("input")
+     #change to input data
+    output = dungeon_game.advance_game(input)
+    existingGame.game = dungeon_game
+    flag_modified(existingGame, "game")
+    db.session.commit()
+    return output
+
+@bp.route("/reset", methods=["POST"])
+def reset():
+    existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    if existingGame:
+        db.session.delete(existingGame)
+        db.session.commit()
+    return redirect(url_for("main.game"))
     
-    input = request.json.get("input") #change to input data
-    return dungeon_game.advance_game(input)
 
 @bp.route("/leaderboard")
 def leaderboard():

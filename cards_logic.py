@@ -61,9 +61,6 @@ class PlayerDeck():
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
 
-        for card in self.deck:
-            print(card.card.name)
-
     def shuffle(self, cards):
         hand = random.sample(cards, min(3, len(cards)))
         return hand
