@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Cards{% endblock %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{card.name}}'s Tradable</h2>
+        <p>Click on a users card to begin a trade with them</p>
+        <a href="{{ url_for('trading.trade_market') }}" class="btn btn-success">Back To Market</a>
+    </div>
+
+    <form class="mb-3" method="GET">
+        <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
+            <option value="uses_desc" {% if sort == "uses_desc" %}selected{% endif %}>Highest Uses</option>
+            <option value="uses_asc" {% if sort == "uses_asc" %}selected{% endif %}>Lowest Uses</option>
+        </select>
+    </form>
+    
+
+    <!-- Card Grid -->
+    <div class="card-grid" id="deck">
+        {% for user_card in cards %}
+        {% set item = namespace(card=user_card.card, uses_remaining=user_card.uses_remaining) %}
+        <div class="card-wrapper" data-card-id="{{ user_card.id }}">
+            {% include "_card.html" %}
+
+            {% if user_card.user.username == current_user.username %}
+                <p class="m-0 text-center">Your Card</p>
+                <button class="btn btn-sm btn-secondary w-100 mt-2" disabled>Owned</button>
+            {% else %}
+                <p class="m-0 text-center">User: {{ user_card.user.username }}</p>
+                <a href="{{ url_for('trading.start_trade_from_market', user_card_id=user_card.id) }}" class="btn btn-sm btn-success w-100 mt-2">Trade</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}

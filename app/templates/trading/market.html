@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}
+Trade Market
+{% endblock %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Trade Market</h1>
+        <p style="color: rgb(0, 0, 0);">Click on a card to see copies that are available to trade</p>
+        <a href="{{ url_for('trading.trading') }}" class="btn btn-primary">Go To Trading</a>
+    </div>
+
+    <!-- Sort -->
+
+
+    
+    <div class="mb-3">
+        <form method="GET">
+            <input type="hidden" name="mode" value="{{ mode }}">
+            <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
+                <option value="">Sort</option>
+                <option value="name">Name</option>
+                <option value="rarity">Rarity</option>
+                <option value="type">Type</option>
+                <option value="max">Max</option>
+                <option value="uses">Uses</option>
+            </select>
+        </form>
+    </div>
+    
+    
+    <!-- Card Grid -->
+    <div class="card-grid" id="deck">
+        {% for market_card in cards %}
+        {% set item = namespace(card=market_card.card) %}
+        <div class="card-wrapper" data-card-id="{{ market_card.card.id }}">
+            {% include "_card.html" %}
+    
+            {% if market_card.has_tradable %}
+                <a href="{{ url_for('trading.market_card', card_id=market_card.card.id) }}" class="btn btn-sm btn-outline-primary w-100 mt-2">View Cards</a>
+            {% else %}
+                <button class="btn btn-sm btn-secondary w-100 mt-2" disabled>No Cards</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    
+{% endblock %}

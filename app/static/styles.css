@@ -162,7 +162,7 @@ li {
         0 0 30px rgba(110,231,255,0.08);
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 1500 !important;
 }
 
 .navbar-brand {
@@ -177,6 +177,11 @@ li {
     content: "_";
     color: var(--gold);
     animation: blink 1s infinite;
+}
+
+.dropdown-menu {
+    z-index: 2000 !important;
+    isolation: isolate;
 }
 
 @keyframes blink {
@@ -244,9 +249,14 @@ li {
        border-radius: 24px !important;
        box-shadow:
            0 8px 28px rgba(0,0,0,0.35);
-       position: relative;
-       overflow: hidden;
    }
+
+.card,
+#game-container,
+#game-info,
+#card-display {
+    overflow: hidden;
+}
 
 
 @keyframes borderFlow {
@@ -259,6 +269,7 @@ li {
     transition:
         transform 0.18s ease,
         box-shadow 0.18s ease;
+    position: relative;
 }
 
 .card:hover {

@@ -1,9 +1,10 @@
 import json
-from flask import session
+from flask_login import current_user
 from pathlib import Path
+from sqlalchemy.orm import joinedload
 
 from app import db
-from app.models import Card, UserCard, Deck
+from app.models import Card, UserCard, Deck, DeckCard
 from app.enums import CardRarity, CardType
 
 
@@ -91,7 +92,7 @@ def get_current_user_id() -> tuple[int | None, tuple | None]:
               if the user is not authenticated, otherwise None.
 
     """
-    user_id = session.get("user_id")
+    user_id = current_user.id
     if not user_id:
         return None, ({"error": "Unauthorized"}, 401)
     return user_id, None
@@ -129,7 +130,24 @@ def get_user_deck(user_id: int) -> tuple[Deck | None, tuple | None]:
             - tuple | None: An error response in the form (dict, status_code)
               if no deck is found for the user.
     """
-    deck = Deck.query.filter_by(user_id=user_id).first()
+    deck = (Deck.query
+            .options(joinedload(Deck.deck_cards).joinedload(DeckCard.user_card).joinedload(UserCard.card))
+            .filter_by(user_id=user_id)
+            .first())
     if not deck:
         return None, ({"error": "Deck not found"}, 404)
     return deck, None
+
+def get_deck_cards(user_id: int):
+    """
+    Retrieves all cards in a deck
+    """
+    deck_query = (
+        db.session.query(UserCard)
+        .join(DeckCard, DeckCard.user_card_id == UserCard.id)
+        .join(Deck, Deck.id == DeckCard.deck_id)
+        .options(joinedload(UserCard.card))
+        .filter(Deck.user_id == user_id, UserCard.user_id == user_id)
+    )
+    cards = deck_query.all()
+    return cards
