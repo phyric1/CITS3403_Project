@@ -18,6 +18,7 @@ class User(UserMixin,db.Model):
     medium_tokens=db.Column(db.Integer,default=0)
     hard_tokens=db.Column(db.Integer,default=0)
 
+
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')
     sender_trades = db.relationship('Trade', foreign_keys='Trade.sender_id', back_populates='sender')
@@ -113,6 +114,7 @@ class Trade(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     status = db.Column(db.Enum(TradeStatus, validate_strings=True, native_enum=False), default=TradeStatus.pending, nullable=False)
     creation_date = db.Column(db.DateTime, default=db.func.now(), nullable=False,)
+    receiver_viewed = db.Column(db.Boolean, nullable=False, default=False)
 
     trade_cards = db.relationship('TradeCard', back_populates='trade', cascade='all, delete-orphan')
     sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sender_trades')
