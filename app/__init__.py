@@ -3,7 +3,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from app.config import Config
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -28,10 +28,13 @@ def create_app():
     from app.inventory import bp as inventory_bp
     from app.trading import bp as trading_bp
     from app.shop import bp as shop_bp
+    from app.context_processors import register_context_processors
+
     app.register_blueprint(bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(shop_bp)
     app.register_blueprint(trading_bp)
+    register_context_processors(app)
     register_cli(app)
 
     return app
