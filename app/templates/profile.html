@@ -47,11 +47,17 @@
         </div>
 
         <div class="card-body">
-            <p><strong>Active Trades:</strong> {{ player.active_trades }}</p>
+            {% if is_owner %}
+                <p><strong>Active Trades:</strong> {{ player.active_trades }}</p>
 
-            <a href="{{ url_for('trading.trading') }}" class="btn btn-success">
-                Go to Trading Page
-            </a>
+                <a href="{{ url_for('trading.trading') }}" class="btn btn-success">
+                    Manage Trades
+                </a>
+            {% else %}
+                <a href="{{ url_for('trading.new_trade', target_username=player.username) }}" class="btn btn-success">
+                    Start Trade with {{ player.username }}
+                </a>
+            {% endif %}
         </div>
     </div>
 
