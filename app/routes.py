@@ -1,7 +1,7 @@
 from flask import render_template, abort, request, url_for, session, redirect, flash, Blueprint, current_app as app
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
-from sqlalchemy import case
+from sqlalchemy import case, func, or_
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
 from app.forms import LoginForm, RegisterForm
 from app.enums import TradeStatus, CardRarity, CardType
@@ -9,9 +9,9 @@ from game_logic import DungeonGame, Player, Grid
 from app.utils import get_user_deck, get_deck_cards
 from app.utils import add_user_cards
 from cards_logic import PlayerDeck
-import random
-from datetime import date
-from types import SimpleNamespace
+
+
+
 
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
@@ -130,19 +130,29 @@ def profile(username):
     if user is None:
         abort(404)
 
-    player={
-            "username": user.username,
-            "gold": user.gold,
-            "fastest_time": 3.55,
-            "total_runs": 10,
-            "dungeons_cleared": 8,
-            "cards_collected": 10,
-            "deck_size": 4,
-            "trade_completed": 3,
-            "favourite_card": "Tailwind"
-        }
+    owner=current_user.id == user.id
+    cards_collected=(db.session.query(UserCard).filter_by(user_id=user.id).count())
+    active_trades=(db.session.query(Trade).filter(or_(Trade.sender_id==user.id, Trade.receiver_id==user.id)).count())
+    deck=Deck.query.filter_by(user_id=user.id).first()
+    if  deck:
+        deck_size=DeckCard.query.filter_by(deck_id=deck.id).count()
+    else:
+        deck_size=0
 
-    return render_template("profile.html",player=player, username=username)
+    player={
+        "username":user.username,
+        "gold":user.gold,
+        "easy_tokens":user.easy_tokens,
+        "medium_tokens":user.medium_tokens,
+        "hard_tokens":user.hard_tokens,
+        "fastest_time":"N/A", #placeholder
+        "total_runs":"N/A", #placeholder
+        "dungeons_cleared":"N/A", #placeholder
+        "cards_collected":cards_collected,
+        "deck_size":deck_size,
+        "active_trades":active_trades
+    }
+    return render_template("profile.html", player=player, username=username, owner=owner)
 
 @bp.route("/cards")
 @login_required
