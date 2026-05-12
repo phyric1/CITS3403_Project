@@ -1,11 +1,8 @@
-from flask import render_template, abort, request, url_for, session, redirect, flash, Blueprint, current_app as app
-from flask_login import login_user,logout_user,login_required,current_user
+from flask import render_template, abort, request, url_for, redirect, flash, Blueprint, current_app as app
+from flask_login import login_required,current_user
 from app import db
 from sqlalchemy import or_
 from app.models import User, UserCard, Deck, DeckCard, Trade
-from app.utils import get_user_deck, get_deck_cards
-from app.utils import add_user_cards
-from cards_logic import PlayerDeck
 import os
 from werkzeug.utils import secure_filename
 
@@ -69,6 +66,13 @@ def upload_profile_photo(username):
     new_filename=f"user_{user.id}.{extension}"
     upload_folder=os.path.join(app.root_path,"static","profile_photo")
     os.makedirs(upload_folder, exist_ok=True)
+
+    old_photo=user.profile_photo
+    #delete old profile photo
+    if old_photo and  old_photo != "default.png":
+        old_photo_path=os.path.join(upload_folder,old_photo)
+        if os.path.exists(old_photo_path):
+            os.remove(old_photo_path)
     file.save(os.path.join(upload_folder, new_filename))
     user.profile_photo=new_filename
     db.session.commit()
