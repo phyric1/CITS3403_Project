@@ -3,7 +3,7 @@ from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from sqlalchemy import case, func, or_
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
-from app.forms import LoginForm, RegisterForm
+from app.forms import LoginForm, RegisterForm, ResetPasswordForm
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 from app.utils import get_user_deck, get_deck_cards
