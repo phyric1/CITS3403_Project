@@ -22,7 +22,7 @@ def index():
 @bp.route("/login",methods=["GET","POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.profile", username=current_user.username))
+        return redirect(url_for("profile.profile", username=current_user.username))
     form = LoginForm()
     if form.validate_on_submit():
         user=db.session.query(User).filter_by(username=form.username.data).first()
@@ -30,10 +30,25 @@ def login():
             flash("Invalid username or password.", "danger")
         else:
             login_user(user)
-            return redirect(url_for("main.profile", username=user.username))
+            return redirect(url_for("profile.profile", username=user.username))
 
     return render_template("login.html",title="Login", form=form)
 
+@bp.route("/reset-password",methods=["GET","POST"])
+def reset_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("profile.profile", username=current_user.username))
+    form=ResetPasswordForm()
+    if form.validate_on_submit():
+        user=db.session.query(User).filter_by(username=form.username.data,email=form.email.data).first()
+        if user is None:
+            flash("Invalid username or email","danger")
+            return redirect(url_for("main.reset_password"))
+        user.set_password(form.new_password.data)
+        db.session.commit()
+        flash("Password reser successfully. Please log in with new password.","success")
+        return redirect(url_for("main.login"))
+    return render_template("reset_password.html",form=form)
 
 @bp.route("/logout")
 @login_required
@@ -67,7 +82,7 @@ def register():
             ])
             db.session.commit()
             login_user(user)
-            return redirect(url_for("main.profile", username=user.username))
+            return redirect(url_for("profile.profile", username=user.username))
 
     return render_template("register.html", title="Register", form=form)
 
