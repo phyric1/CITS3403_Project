@@ -1,11 +1,10 @@
 import random
 from flask import request, jsonify
 from entities import Enemy, Gold, Goblin
+from cards_logic import PlayerDeck
+import cards_logic
 from collections import deque
-import app.utils
-from app import db
-
-#coordinate boundary check function
+from app.utils import get_user_deck
 
 class Room():
     def __init__(self, width, height, x, y,):
@@ -21,12 +20,8 @@ class Room():
             
 class DungeonGame():
     '''class representing a game instance and all its properties'''
-    #player -> health, attack
     #dificulty
     #floors
-    #enemies
-    #grid/board (walls and such)
-    #cards/deck -> active card effects
 
     def __init__(self):
         #used to start game
@@ -35,8 +30,83 @@ class DungeonGame():
         self.player = Player(0, 0)
         self.generate_floor()
         self.turnNum = 0
-        self.isVisible = True
+        self.isVisible = False
         self.filter = [[0] * 32 for _ in range(20)]
+        self.playerDeck: PlayerDeck
+        self.hand = []
+        self.timeStopped = False
+        self.tailwind = 0
+
+    def cardProcessor(self, card):
+        #check if card type matches active master cards
+        match card.card.name:
+            case "Tailwind":
+                self.tailwind = 3
+            case "Teleport":
+                success = False
+                while success == False:
+                    x = random.randint(0, 31)
+                    y = random.randint(0, 19)
+                    if self.grid.grid[y][x] == 0:
+                        self.grid.grid[self.player.y][self.player.x] = 0
+                        self.player.x, self.player.y = x, y
+                        self.grid.grid[y][x] = 2
+                        success = True
+            case "Acrobatics":
+                pass
+            case "Sprint":
+                pass
+            case "Timestop":
+                self.timeStopped = True
+            case "Rest":
+                self.player.health += 1
+            case "Heal":
+                self.player.health += 2
+            case "Guard":
+                self.player.dodgeChance += 0.02
+            case "Parry":
+                self.player.dodgeChance += 0.05
+            case "Strength":
+                self.player.attackDamage += 1
+            case "Dexterity":
+                self.player.attackDamage += 1
+            case "Dagger":
+                x = self.player.x
+                y = self.player.y
+                dx = [-1, 1, 0, 0]
+                dy = [0, 0, -1, 1]
+                for dir in range(4):
+                    #if self.grid.grid[y + dy[dir]][x + dx[dir]] == 4: 
+                        self.filter[y + dy[dir]][x + dx[dir]] = 5
+            case "Dash Attack":
+                self.player.attackDamage += 1
+            case "Meteor":
+                self.player.attackDamage += 1
+            case "Bear Trap":
+                self.player.attackDamage += 1
+            case "Silence Falls":
+                self.player.stealth += 1
+            case "Shadow Sneak":
+                self.player.stealth += 2
+            case "Dynamite":
+                grid = self.grid.grid
+                radius = 2
+                x  = self.player.x
+                y  = self.player.y
+                for i in range(y - radius, y + radius + 1):
+                    for j in range(x - radius, x + radius + 1):
+                        if grid[i][j] == 1:
+                            grid[i][j] = 0
+            case "Eye for Treasure":
+                self.grid.spawnGold(1)
+            case "Light the Way":
+                self.isVisible = True
+            case "Key to Victory":
+                self.player.keys += 1
+            case "Recycle":
+                self.playerDeck.deck.append(self.playerDeck.discard[0])
+                self.playerDeck.deckSize = len(self.playerDeck.deck)
+        return card
 
     def generate_floor(self): #generates a new dungeon floor
         self.grid = Grid()
@@ -45,16 +115,57 @@ class DungeonGame():
         self.player.y = y
         self.enemies = []
         self.enemies = self.grid.spawnEnemies()
-        self.grid.spawnGold()
+        self.grid.spawnGold(2)
         self.level += 1
 
-    def advance_game(self, direction):
+    def advance_game(self, input):
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
         grid = self.getGrid()
+        discard_data = None
 
-        newFloor = self.player.movePlayer(direction, grid)  #move player
+        newFloor = False
+        if input in ["left", "right", "up", "down"]:
+            newFloor = self.player.movePlayer(input, grid)  #move player
+        elif input in ["0", "1", "2"] and self.tailwind == 0:
+            if self.hand:
+                card = self.cardProcessor(self.playerDeck.useSlot(int(input)))
+                discard_data = self.playerDeck.serialize_card(card)
+                #all cards flip over
+                #card is already sent to discard slot
+                #load new grid data
+                #activate new event listeners
+                #upon new input, increment turn and continue advancing the game
+
+        if self.tailwind > 0:
+            self.tailwind -= 1
+            self.getGridObject().updateVisibility(self.player)
+            if self.isVisible:
+                return_grid = self.grid.grid
+            else:
+                return_grid = self.getGridObject().gridProxy()
+            self.turnNum += 1 #increment turn count unless card effect overrides it
+            return jsonify({
+                "grid": return_grid,
+                "filter": self.filter,
+                "turn": self.turnNum,
+                "hp": self.player.health,
+                "keys": self.player.keys,
+                "gold": self.player.gold,
+                "gold": self.player.gold,
+                "stealth": self.player.stealth,
+                "floor": self.level,
+                "deckMax": self.playerDeck.deckMax,
+                "deckSize": self.playerDeck.deckSize,
+            })
+
+    #start of phase 2
+        #draw new cards
+        self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
+        card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
+
         if newFloor:
+            self.timeStopped = False
             self.generate_floor()
             self.getGridObject().updateVisibility(self.player)
             if self.isVisible:
@@ -62,23 +173,47 @@ class DungeonGame():
             else:
                 return_grid = self.getGridObject().gridProxy()
             self.turnNum += 1
-            return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
-
-        for enemy in self.enemies: #move enemies
-            enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
-            enemy.attack(self.player)
+            return jsonify({
+                "grid": return_grid,
+                "filter": self.filter,
+                "turn": self.turnNum,
+                "hp": self.player.health,
+                "keys": self.player.keys,
+                "gold": self.player.gold,
+                "stealth": self.player.stealth,
+                "floor": self.level,
+                "cards": card_data,
+                "deckMax": self.playerDeck.deckMax,
+                "deckSize": self.playerDeck.deckSize,
+            })
+        if not self.timeStopped:
+            for enemy in self.enemies: #move enemies
+                enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
+                enemy.attack(self.player)
         #apply any map interactions
-        #apply any card effects
-        #draw new cards
+        #apply any card passive card effects
 
         self.getGridObject().updateVisibility(self.player)
-
         if self.isVisible:
             return_grid = self.grid.grid
         else:
             return_grid = self.getGridObject().gridProxy()
         self.turnNum += 1 #increment turn count unless card effect overrides it
-        return jsonify({"grid": return_grid, "filter": self.filter ,"turn": self.turnNum, "hp": self.player.health, "keys": self.player.keys, "gold": self.player.gold, "floor": self.level})
+        return jsonify({
+            "grid": return_grid,
+            "filter": self.filter,
+            "turn": self.turnNum,
+            "hp": self.player.health,
+            "keys": self.player.keys,
+            "gold": self.player.gold,
+            "gold": self.player.gold,
+            "stealth": self.player.stealth,
+            "floor": self.level,
+            "cards": card_data,
+            "discard": discard_data,
+            "deckMax": self.playerDeck.deckMax,
+            "deckSize": self.playerDeck.deckSize,
+        })
 
     def getGridObject(self): #return grid object
         return self.grid
@@ -100,9 +235,14 @@ class Player():
         self.health = 3
         self.gold = 0
         self.stealth = 0
+        self.attackDamage = 1
+        self.dodgeChance = 0.0
 
     def takeDamage(self, damage):
-        self.health -= damage
+        if self.dodgeChance < random.random():
+            self.health -= damage
+        else:
+            print("dodge")
         return self.health
     
     def attack(self, damage):
@@ -183,8 +323,7 @@ class Grid():
             enemyList.append(Goblin(enemyX, enemyY))
         return enemyList
 
-    def spawnGold(self):
-        goldCount = 2
+    def spawnGold(self, goldCount):
         for i in range(goldCount):
             success = False
             while success == False:
