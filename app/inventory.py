@@ -1,16 +1,18 @@
-from flask import Blueprint, render_template, request, session, jsonify
+from flask import Blueprint, render_template, request, jsonify
+from flask_login import login_required, current_user
 from app import db
 from app.models import User, Card, UserCard, Deck, DeckCard, MAX_DECK_SIZE
-from app.utils import get_current_user_id, get_user_card, get_user_deck
+from app.utils import get_user_card, get_user_deck
 from sqlalchemy import case, func
 
 bp = Blueprint("inventory", __name__)
 
 
 @bp.route("/profile/<username>/inventory")
+@login_required
 def inventory(username):
     user = User.query.filter_by(username=username).first_or_404()
-    is_owner = (session.get('user_id')) == user.id
+    is_owner = current_user.id == user.id
 
     mode = request.args.get("mode", "view")
     if not is_owner:
@@ -47,7 +49,7 @@ def inventory(username):
         card_query = card_query.order_by(Card.name)
         deck_query = deck_query.order_by(Card.name)
     elif sort == "rarity":
-        rarity_order = {"common": 0, "rare": 1, "epic": 2, "legendary": 3, "master": 4}
+        rarity_order = {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3, "master": 4}
         card_query = card_query.order_by(case(rarity_order, value=Card.rarity))
         deck_query = deck_query.order_by(case(rarity_order, value=Card.rarity))
     elif sort == "type":
@@ -55,10 +57,15 @@ def inventory(username):
         deck_query = deck_query.order_by(Card.type)
     elif sort == "max":
         deck_query = deck_query.order_by(Card.max_in_deck.desc())
+        card_query = card_query.order_by(Card.max_in_deck.desc())
     elif sort == "uses":
         card_query = card_query.order_by(
             case((UserCard.uses_remaining == -1, 1), else_=0),
             UserCard.uses_remaining.desc())
+        deck_query = deck_query.order_by(
+            case((UserCard.uses_remaining == -1, 1), else_=0),
+            UserCard.uses_remaining.desc()
+        )
 
     # Pagination
     page = request.args.get("page", 1, type=int)
@@ -75,14 +82,14 @@ def inventory(username):
         mode=mode,
         pagination=pagination,
         deck_size=len(deck_cards),
-        max_deck_size=MAX_DECK_SIZE)
+        max_deck_size=MAX_DECK_SIZE,
+        sort=sort)
 
 
 @bp.route("/api/deck/add", methods=["POST"]) # Potentially refactor to avoid repetition with remove route
+@login_required
 def add_to_deck():
-    user_id, err = get_current_user_id()
-    if err:
-        return err
+    user_id = current_user.id
 
     data = request.get_json()
 
@@ -116,14 +123,13 @@ def add_to_deck():
     db.session.add(DeckCard(deck_id=deck.id, user_card_id=user_card.id))
     user_card.tradable = False
     db.session.commit()
-    return {"success": True}
+    return jsonify({"success": True})
 
 
 @bp.route("/api/deck/remove", methods=["POST"])
+@login_required
 def remove_from_deck():
-    user_id, err = get_current_user_id()
-    if err:
-        return err
+    user_id = current_user.id
 
     data = request.get_json()
 
@@ -142,18 +148,21 @@ def remove_from_deck():
 
     if not deck_card:
         return jsonify({"error": "Card not in deck"}), 404
+    
+    user_card=UserCard.query.filter_by(id=user_card_id,user_id=user_id).first()
+    if user_card:
+        user_card.tradable = True
 
     db.session.delete(deck_card)
     db.session.commit()
 
-    return {"success": True}
+    return jsonify({"success": True})
 
 
 @bp.route("/api/user_card/tradable", methods=["POST"])
+@login_required
 def tradable():
-    user_id, err = get_current_user_id()
-    if err:
-        return err
+    user_id = current_user.id
 
     data = request.get_json()
 
@@ -179,4 +188,4 @@ def tradable():
     user_card.tradable = value
     db.session.commit()
 
-    return {"success": True}
+    return jsonify({"success": True})

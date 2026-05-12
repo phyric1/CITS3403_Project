@@ -7,9 +7,9 @@
 {% block content %}
 
 <div class="d-flex justify-content-end mb-3">
-    {% if session.get("user_id") %}
+    {% if current_user.is_authenticated %}
     <span class="badge bg-success fs-6">
-        Logged in as {{ session.get("username") }}
+        Logged in as {{ current_user.username }}
     </span>
     {% else %}
         <span class="badge bg-secondary fs-6">
@@ -37,9 +37,9 @@
                 How to Play Game
             </button>
         </div>
-        {% if session.get("user_id") %}
+        {% if current_user.is_authenticated %}
             <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('main.profile', username=session.get('username')) }}">
+                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('main.profile', username=current_user.username) }}">
                     Profile
                 </a>
 

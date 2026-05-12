@@ -7,16 +7,6 @@
     <div class="col-md-4">
         <h2 class="mb-4 text-center">Register</h2>
 
-        {% with errors = get_flashed_messages() %}
-            {% if errors %}
-            <ul>
-                {% for error in errors %}
-                <div class="text-danger small">{{ error }}</div>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        {% endwith %}
-
         <form method="POST">
             {{ form.hidden_tag() }}
 
@@ -62,10 +52,4 @@
     </div>
 </div>
 
-{% if success %}
-<script>
-    alert("Registration successful!");
-    window.location.href = "{{ url_for('main.login') }}";
-</script>
-{% endif %}
 {% endblock %}
