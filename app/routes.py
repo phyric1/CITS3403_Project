@@ -11,8 +11,6 @@ from app.utils import add_user_cards
 from cards_logic import PlayerDeck
 
 
-
-
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
 @bp.route("/")
@@ -121,38 +119,6 @@ def leaderboard():
 
     return render_template("leaderboard.html", players = players, sort=sort)
 
-
-@bp.route("/profile/<username>")
-@login_required
-def profile(username):
-    user = db.session.query(User).filter_by(username=username).first()
-
-    if user is None:
-        abort(404)
-
-    is_owner=current_user.id == user.id
-    cards_collected=(db.session.query(UserCard).filter_by(user_id=user.id).count())
-    active_trades=(db.session.query(Trade).filter(or_(Trade.sender_id==user.id, Trade.receiver_id==user.id)).count())
-    deck=Deck.query.filter_by(user_id=user.id).first()
-    if  deck:
-        deck_size=DeckCard.query.filter_by(deck_id=deck.id).count()
-    else:
-        deck_size=0
-
-    player={
-        "username":user.username,
-        "gold":user.gold,
-        "easy_tokens":user.easy_tokens,
-        "medium_tokens":user.medium_tokens,
-        "hard_tokens":user.hard_tokens,
-        "fastest_time":"N/A", #placeholder
-        "total_runs":"N/A", #placeholder
-        "dungeons_cleared":"N/A", #placeholder
-        "cards_collected":cards_collected,
-        "deck_size":deck_size,
-        "active_trades":active_trades
-    }
-    return render_template("profile.html", player=player, username=username, is_owner=is_owner)
 
 @bp.route("/cards")
 @login_required

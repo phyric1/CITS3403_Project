@@ -7,6 +7,41 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>{{ player.username }}'s Profile</h2>
+        <div class="text-end">
+            {% if is_owner %}
+            <form
+                id="profile-photo"
+                method="POST"
+                action="{{ url_for('profile.upload_profile_photo', username=player.username) }}"
+                enctype="multipart/form-data">
+
+                <label for="profile-photo-input" style="cursor: pointer;">
+                    <img
+                        src="{{ url_for('static', filename='profile_photo/' ~ player.profile_photo) }}"
+                        alt="{{ player.username }}'s profile photo"
+                        class="rounded-circle border"
+                        style="width: 90px; height: 90px; object-fit: cover;"
+                        title="Click to change profile photo">
+                </label>
+
+                <input
+                    id="profile-photo-input"
+                    type="file"
+                    name="profile_photo"
+                    accept="image/*"
+                    class="d-none"
+                    onchange="document.getElementById('profile-photo').submit();">
+            </form>
+
+            <div class="small text-muted mt-1">Click the profile photo to change</div>
+        {% else %}
+            <img
+                src="{{ url_for('static', filename='profile_photo/' ~ player.profile_photo) }}"
+                alt="{{ player.username }}'s profile photo"
+                class="rounded-circle border"
+                style="width: 90px; height: 90px; object-fit: cover;">
+        {% endif %}
+        </div>
     </div>
 
     <div class="card mb-4">

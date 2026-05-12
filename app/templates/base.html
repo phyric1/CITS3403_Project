@@ -13,7 +13,7 @@
 
 <body>
     {% block navbar %}
-    <nav class=" navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="font-size: 18px;">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">Dungeon Dealer</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -21,7 +21,7 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     
                     {% if current_user.is_authenticated %}
 
@@ -46,11 +46,22 @@
                         </li>
 
                         <li class="nav-item dropdown">
-                            <span class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{current_user.username}}
-                            </span>
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+
+                            <img
+                                src="{{ url_for('static', filename='profile_photo/' ~ (current_user.profile_photo or 'default.png')) }}"
+                                alt="Profile photo"
+                                class="rounded-circle border"
+                                style="width: 36px; height: 36px; object-fit: cover;">
+
+                            {{ current_user.username }}
+                            </a>
                             <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><a class="dropdown-item {% if request.endpoint == 'main.profile' %}active{% endif %}" href="{{ url_for('main.profile', username=current_user.username) }}">Profile</a></li>
+                                <li><a class="dropdown-item {% if request.endpoint == 'profile.profile' %}active{% endif %}" href="{{ url_for('profile.profile', username=current_user.username) }}">Profile</a></li>
                                 <li><a class="dropdown-item {% if request.endpoint == 'inventory.inventory' %}active{% endif %}" href="{{ url_for('inventory.inventory', username=current_user.username) }}">Inventory</a></li>
                                 <li><a class="dropdown-item {% if request.endpoint and request.endpoint.startswith('trading.') %}active{% endif %}" href="{{ url_for('trading.trading') }}">Trades</a></li>
                             </ul>  

@@ -28,10 +28,12 @@ def create_app():
     from app.inventory import bp as inventory_bp
     from app.trading import bp as trading_bp
     from app.shop import bp as shop_bp
+    from app.profile import bp as profile_bp
     app.register_blueprint(bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(shop_bp)
     app.register_blueprint(trading_bp)
+    app.register_blueprint(profile_bp)
     register_cli(app)
 
     return app
