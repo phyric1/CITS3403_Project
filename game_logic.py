@@ -131,7 +131,6 @@ class DungeonGame():
             if self.hand:
                 card = self.cardProcessor(self.playerDeck.useSlot(int(input)))
                 discard_data = self.playerDeck.serialize_card(card)
-                print(discard_data)
                 #all cards flip over
                 #card is already sent to discard slot
                 #load new grid data

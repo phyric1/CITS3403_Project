@@ -76,11 +76,10 @@ def register():
 @bp.route("/game")
 @login_required
 def game():
-    user_id = session.get("user_id")
-    if not user_id:
+    if not current_user.id:
         return redirect(url_for("main.login"))
     dungeon_game.playerDeck = PlayerDeck()
-    dungeon_game.playerDeck.deck = get_deck_cards(user_id)
+    dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
     dungeon_game.playerDeck.loadDeck()
     dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
     return render_template("game.html", grid=dungeon_game.getFakeGrid())
@@ -88,11 +87,10 @@ def game():
 @bp.route("/move", methods=["POST"])
 @login_required
 def move():
-    user_id = session.get("user_id")
-    if not user_id:
+    if not current_user.id:
         return redirect(url_for("main.login"))
     
-    input = request.json.get("input")
+    input = request.json.get("input") #change to input data
     return dungeon_game.advance_game(input)
 
 @bp.route("/leaderboard")
