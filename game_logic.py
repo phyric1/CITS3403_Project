@@ -18,11 +18,11 @@ class Room():
             centerX = (self.x + (self.x2)) // 2
             centerY = (self.y + (self.y2)) // 2
             return centerX, centerY
-            
+
 class DungeonGame():
     '''class representing a game instance and all its properties'''
     #player -> health, attack
-    #dificulty
+    #difficulty
     #floors
     #enemies
     #grid/board (walls and such)
@@ -31,7 +31,7 @@ class DungeonGame():
     def __init__(self):
         #used to start game
         self.level = 0
-        self.dificulty = "Easy"
+        self.difficulty = "Easy"
         self.player = Player(0, 0)
         self.generate_floor()
         self.turnNum = 0
@@ -82,13 +82,13 @@ class DungeonGame():
 
     def getGridObject(self): #return grid object
         return self.grid
-    
+
     def getGrid(self):  #return grid as 2d array
         return self.grid.grid
-    
+
     def getFakeGrid(self): #return grid with limited FOV
         return self.grid.fake_grid
-    
+
     def getPlayer(self): #return player object
         return self.player
 
@@ -104,13 +104,13 @@ class Player():
     def takeDamage(self, damage):
         self.health -= damage
         return self.health
-    
+
     def attack(self, damage):
         pass
 
     def alert(self):
         pass
-    
+
     def movePlayer(self, direction, grid):
         #directions
         dir = None
@@ -127,8 +127,8 @@ class Player():
 
         dx = [-1, 1, 0, 0]
         dy = [0, 0, -1, 1]
-        
-        if grid[self.y + dy[dir]][self.x + dx[dir]] == 0: 
+
+        if grid[self.y + dy[dir]][self.x + dx[dir]] == 0:
             grid[self.y][self.x] = 0
             self.x += dx[dir]
             self.y += dy[dir]
@@ -146,7 +146,7 @@ class Player():
             grid[self.y][self.x] = 0
             self.x += dx[dir]
             self.y += dy[dir]
-            grid[self.y][self.x] = 2 
+            grid[self.y][self.x] = 2
             self.keys -= 1
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 7:
             grid[self.y][self.x] = 0
@@ -157,7 +157,7 @@ class Player():
             print(self.gold)
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 6:
             return True
-        
+
 class Grid():
     '''Class that handles all logic to do with the game grid'''
     grid = [[]]
@@ -225,7 +225,7 @@ class Grid():
             for j in range(player.x-4, player.x+5):
                 if 0 <= i < 20 and 0 <= j < 32:
                     self.isVisible[i][j] = True
-    
+
     def gridProxy(self): #returns proxy grid with limited FOV
         for i in range(0,20):
             for j in range(0,32):
@@ -235,7 +235,7 @@ class Grid():
                     self.fake_grid[i][j] = -1
         return self.fake_grid
 
-    def generate_dungeon(self):    
+    def generate_dungeon(self):
         GRID_HEIGHT = 20
         GRID_WIDTH = 32
 
@@ -259,7 +259,7 @@ class Grid():
         def carve_corridor(room1, room2):
             x1, y1 = room1.center()
             x2, y2 = room2.center()
-            
+
             if random.random() < 0.5: #randomise corridor direction
                 #horizontal first
                 for i in range(min(x1,x2),max(x1,x2)+1):
@@ -281,7 +281,7 @@ class Grid():
             x1, y1 = room1.center()
             x2, y2 = room2.center()
             return (abs(x1-x2) + abs(y1-y2))
-        
+
         rooms = []
         #initialize grid
         success = False
