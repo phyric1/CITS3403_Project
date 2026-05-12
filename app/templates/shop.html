@@ -14,14 +14,14 @@
     </div>
 
     {% if user.gold is defined %}
-        <div class="badge bg-warning text-dark fs-6">Gold:{{user.gold}}</div>
+        <div class="badge bg-warning text-dark fs-6">Gold: {{user.gold}}</div>
     {% endif %}
 </div>
 
 <div class="d-flex gap-2 mb-4">
-    <span class="badge bg-secondary fs-6">Easy Tokens:{{ user.easy_tokens }}</span>
-    <span class="badge bg-secondary fs-6">Medium Tokens:{{ user.medium_tokens }}</span>
-    <span class="badge bg-secondary fs-6">Hard Tokens:{{ user.hard_tokens }}</span>
+    <span class="badge bg-secondary fs-6">Easy Tokens: {{ user.easy_tokens }}</span>
+    <span class="badge bg-secondary fs-6">Medium Tokens: {{ user.medium_tokens }}</span>
+    <span class="badge bg-secondary fs-6">Hard Tokens: {{ user.hard_tokens }}</span>
 </div>
 
 <div class="card mb-4 shop-pack-card" bg-dark>
@@ -65,7 +65,7 @@
                     {% set item=shop_item %}
                     {% include "_card.html" %}
                 </div>
-                <p class="fw-bold text-center mb-2">Price:{{shop_item.price}}gold</p>
+                <p class="fw-bold text-center mb-2">Price: {{shop_item.price}} gold</p>
                 {% if shop_item.is_purchased %}
                     <button type="button" class="btn btn-secondary w-100" disabled>
                         Sold Out
