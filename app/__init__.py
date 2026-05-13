@@ -1,9 +1,10 @@
 import click
-from flask import Flask
+from flask import Flask, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from app.config import Config
 from flask_login import LoginManager
+from werkzeug.exceptions import RequestEntityTooLarge
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -35,6 +36,11 @@ def create_app():
     app.register_blueprint(trading_bp)
     app.register_blueprint(profile_bp)
     register_cli(app)
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_file_too_large(e):
+        flash("Profile photo is too large. Maximum size is 1MB.", "danger")
+        return redirect(request.referrer or url_for("main.index"))
 
     return app
 
