@@ -39,7 +39,7 @@
         </div>
         {% if current_user.is_authenticated %}
             <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('main.profile', username=current_user.username) }}">
+                <a class="btn btn-outline-primary btn-lg w-50" href="{{ url_for('profile.profile', username=current_user.username) }}">
                     Profile
                 </a>
 

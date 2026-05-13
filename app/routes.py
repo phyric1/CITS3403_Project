@@ -1,17 +1,15 @@
 from flask import render_template, abort, request, url_for, session, redirect, flash, Blueprint, current_app as app
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
-from sqlalchemy import case
+from sqlalchemy import case, func, or_
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
-from app.forms import LoginForm, RegisterForm
+from app.forms import LoginForm, RegisterForm, ResetPasswordForm
 from app.enums import TradeStatus, CardRarity, CardType
 from game_logic import DungeonGame, Player, Grid
 from app.utils import get_user_deck, get_deck_cards
 from app.utils import add_user_cards
 from cards_logic import PlayerDeck
-import random
-from datetime import date
-from types import SimpleNamespace
+
 
 bp = Blueprint("main", __name__)
 dungeon_game = DungeonGame()
@@ -24,7 +22,7 @@ def index():
 @bp.route("/login",methods=["GET","POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.profile", username=current_user.username))
+        return redirect(url_for("profile.profile", username=current_user.username))
     form = LoginForm()
     if form.validate_on_submit():
         user=db.session.query(User).filter_by(username=form.username.data).first()
@@ -32,10 +30,25 @@ def login():
             flash("Invalid username or password.", "danger")
         else:
             login_user(user)
-            return redirect(url_for("main.profile", username=user.username))
+            return redirect(url_for("profile.profile", username=user.username))
 
     return render_template("login.html",title="Login", form=form)
 
+@bp.route("/reset-password",methods=["GET","POST"])
+def reset_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("profile.profile", username=current_user.username))
+    form=ResetPasswordForm()
+    if form.validate_on_submit():
+        user=db.session.query(User).filter_by(username=form.username.data,email=form.email.data).first()
+        if user is None:
+            flash("Invalid username or email","danger")
+            return redirect(url_for("main.reset_password"))
+        user.set_password(form.new_password.data)
+        db.session.commit()
+        flash("Password reser successfully. Please log in with new password.","success")
+        return redirect(url_for("main.login"))
+    return render_template("reset_password.html",form=form)
 
 @bp.route("/logout")
 @login_required
@@ -69,7 +82,7 @@ def register():
             ])
             db.session.commit()
             login_user(user)
-            return redirect(url_for("main.profile", username=user.username))
+            return redirect(url_for("profile.profile", username=user.username))
 
     return render_template("register.html", title="Register", form=form)
 
@@ -121,28 +134,6 @@ def leaderboard():
 
     return render_template("leaderboard.html", players = players, sort=sort)
 
-
-@bp.route("/profile/<username>")
-@login_required
-def profile(username):
-    user = db.session.query(User).filter_by(username=username).first()
-
-    if user is None:
-        abort(404)
-
-    player={
-            "username": user.username,
-            "gold": user.gold,
-            "fastest_time": 3.55,
-            "total_runs": 10,
-            "dungeons_cleared": 8,
-            "cards_collected": 10,
-            "deck_size": 4,
-            "trade_completed": 3,
-            "favourite_card": "Tailwind"
-        }
-
-    return render_template("profile.html",player=player, username=username)
 
 @bp.route("/cards")
 @login_required
