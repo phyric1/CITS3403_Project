@@ -45,7 +45,6 @@ class Game(db.Model):
 class Stats(db.Model): #lifetime
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     #current gold
     #gold collected
     #Fastest Run

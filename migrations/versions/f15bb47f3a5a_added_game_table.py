@@ -1,7 +1,7 @@
 """added game table
 
 Revision ID: f15bb47f3a5a
-Revises: 5adb974016b9
+Revises: b816fefc59cc
 Create Date: 2026-05-12 12:38:59.324585
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'f15bb47f3a5a'
-down_revision = '5adb974016b9'
+down_revision = 'b816fefc59cc'
 branch_labels = None
 depends_on = None
 
