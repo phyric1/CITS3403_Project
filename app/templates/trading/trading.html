@@ -5,7 +5,7 @@
 <h1 class="text-center mb-4">Trading</h1>
 
 <div class="d-flex justify-content-between mb-4">
-    <a href="{{ url_for('main.profile', username=current_user.username) }}" class="btn btn-outline-primary">
+    <a href="{{ url_for('profile.profile', username=current_user.username) }}" class="btn btn-outline-primary">
         Back to Profile
     </a>
     <a href="{{ url_for('trading.new_trade') }}" class="btn btn-primary">Create New Trade</a>

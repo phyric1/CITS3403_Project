@@ -16,6 +16,7 @@ class User(UserMixin,db.Model):
     easy_tokens=db.Column(db.Integer,default=0)
     medium_tokens=db.Column(db.Integer,default=0)
     hard_tokens=db.Column(db.Integer,default=0)
+    profile_photo=db.Column(db.String(256),default="default.png",nullable=False)
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')

@@ -30,3 +30,19 @@ class RegisterForm(FlaskForm):
                 EqualTo("password", message="Passwords must match")
             ])
     submit = SubmitField("Register")
+
+class ResetPasswordForm(FlaskForm):
+    username=StringField("Username",validators=[DataRequired()])
+    email=StringField("Register Email",validators=[DataRequired(),Email()])
+    new_password=PasswordField("New Password", validators=[
+        DataRequired(), Length(min=8, max=128),
+        Regexp(
+            r'^(?=.*[A-Za-z])(?=.*\d).+$',
+            message="Password must contain letters and numbers"
+        )
+    ])
+    confirm_password = PasswordField("Confirm New Password", validators=[
+                DataRequired(),
+                EqualTo("new_password", message="Passwords must match")
+            ])
+    submit = SubmitField("Reset Password")

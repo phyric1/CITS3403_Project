@@ -7,10 +7,41 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>{{ player.username }}'s Profile</h2>
+        <div class="text-end">
+            {% if is_owner %}
+            <form
+                id="profile-photo"
+                method="POST"
+                action="{{ url_for('profile.upload_profile_photo', username=player.username) }}"
+                enctype="multipart/form-data">
 
-        <a href="{{ url_for('inventory.inventory', username=player.username) }}" class="btn btn-primary">
-            View Inventory
-        </a>
+                <label for="profile-photo-input" style="cursor: pointer;">
+                    <img
+                        src="{{ url_for('static', filename='profile_photo/' ~ player.profile_photo) }}"
+                        alt="{{ player.username }}'s profile photo"
+                        class="rounded-circle border"
+                        style="width: 90px; height: 90px; object-fit: cover;"
+                        title="Click to change profile photo">
+                </label>
+
+                <input
+                    id="profile-photo-input"
+                    type="file"
+                    name="profile_photo"
+                    accept="image/*"
+                    class="d-none"
+                    onchange="document.getElementById('profile-photo').submit();">
+            </form>
+
+            <div class="small text-muted mt-1">Click the profile photo to change</div>
+        {% else %}
+            <img
+                src="{{ url_for('static', filename='profile_photo/' ~ player.profile_photo) }}"
+                alt="{{ player.username }}'s profile photo"
+                class="rounded-circle border"
+                style="width: 90px; height: 90px; object-fit: cover;">
+        {% endif %}
+        </div>
     </div>
 
     <div class="card mb-4">
@@ -21,6 +52,9 @@
         <div class="card-body">
             <p><strong>Username:</strong> {{ player.username }}</p>
             <p><strong>Gold:</strong> {{ player.gold }}</p>
+            <p><strong>Easy Tokens:</strong> {{ player.easy_tokens }}</p>
+            <p><strong>Medium Tokens:</strong> {{ player.medium_tokens }}</p>
+            <p><strong>Hard Tokens:</strong> {{ player.hard_tokens }}</p>
             <p><strong>Fastest Time:</strong> {{ player.fastest_time }} minutes</p>
             <p><strong>Total Runs:</strong> {{ player.total_runs }}</p>
             <p><strong>Dungeons Cleared:</strong> {{ player.dungeons_cleared }}</p>
@@ -35,10 +69,9 @@
         <div class="card-body">
             <p><strong>Cards Collected:</strong> {{ player.cards_collected }}</p>
             <p><strong>Deck Size:</strong> {{ player.deck_size }}</p>
-            <p><strong>Favourite Card:</strong> {{ player.favourite_card }}</p>
 
             <a href="{{ url_for('inventory.inventory', username=player.username) }}" class="btn btn-outline-primary">
-                Manage Inventory
+                {% if is_owner %}Manage Inventory{% else %}View Inventory{% endif %}
             </a>
         </div>
     </div>
@@ -49,11 +82,17 @@
         </div>
 
         <div class="card-body">
-            <p><strong>Trades Completed:</strong> {{ player.trade_completed }}</p>
+            {% if is_owner %}
+                <p><strong>Active Trades:</strong> {{ player.active_trades }}</p>
 
-            <a href="{{ url_for('trading.trading') }}" class="btn btn-success">
-                Go to Trading Page
-            </a>
+                <a href="{{ url_for('trading.trading') }}" class="btn btn-success">
+                    Manage Trades
+                </a>
+            {% else %}
+                <a href="{{ url_for('trading.new_trade', target_username=player.username) }}" class="btn btn-success">
+                    Start Trade with {{ player.username }}
+                </a>
+            {% endif %}
         </div>
     </div>
 
