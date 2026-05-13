@@ -37,6 +37,10 @@ class DungeonGame():
         self.hand = []
         self.timeStopped = False
         self.tailwind = 0
+        self.card_data = None
+
+        self.waiting_for_tile_click = False
+        self.pending_card = None
 
     def dificulty_modifier(self):
         '''Adjusts dungeon based on dificulty'''
@@ -54,6 +58,7 @@ class DungeonGame():
             grid = self.grid.grid
         else:
             grid = self.grid.gridProxy()
+        discard_data = self.playerDeck.serialize_card(self.playerDeck.discard[-1]) if self.playerDeck.discard else None
         return jsonify({
                     "grid": grid,
                     "filter": self.filter,
@@ -63,6 +68,8 @@ class DungeonGame():
                     "gold": self.player.gold,
                     "stealth": self.player.stealth,
                     "floor": self.level,
+                    "cards": self.card_data,
+                    "discard": discard_data,
                     "deckMax": self.playerDeck.deckMax,
                     "deckSize": self.playerDeck.deckSize,
                 })
@@ -89,7 +96,21 @@ class DungeonGame():
             case "Acrobatics":
                 pass
             case "Sprint":
-                pass
+                x = self.player.x
+                y = self.player.y
+                dx = [-1, 1, 0, 0]
+                dy = [0, 0, -1, 1]
+                for dir in range(4):
+                    collide = False
+                    i = 0
+                    while not collide:
+                        i += 1
+                        if self.grid.grid[y + dy[dir]*i][x + dx[dir]*i] == 1:
+                             collide = True
+                        else:
+                            self.filter[y + dy[dir]*i][x + dx[dir]*i] = 5
+                self.waiting_for_tile_click = True
+                self.pending_card = "Sprint"
             case "Timestop":
                 self.timeStopped = True
             case "Rest":
@@ -152,6 +173,14 @@ class DungeonGame():
         self.grid.spawnGold(2)
         self.level += 1
 
+    def process_tile_click(self, x, y):
+        if self.pending_card == "Sprint":
+            # move player to x, y
+            self.grid.grid[self.player.y][self.player.x] = 0
+            self.player.x = x
+            self.player.y = y
+            self.grid.grid[y][x] = 2
+
     def advance_game(self, input):
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
@@ -159,67 +188,47 @@ class DungeonGame():
         discard_data = None
 
         newFloor = False
-        if input in ["left", "right", "up", "down"]:
-            newFloor = self.player.movePlayer(input, grid)  #move player
-        elif input in ["0", "1", "2"] and self.tailwind == 0:
+        input_type = input.get("type")
+        if input_type == "move":
+            newFloor = self.player.movePlayer(input.get("direction"), grid)  #move player
+        elif input_type == "pick_card" and self.tailwind == 0:
             if self.hand:
-                card = self.cardProcessor(self.playerDeck.useSlot(int(input)))
+                card = self.cardProcessor(self.playerDeck.useSlot(int(input.get("slot"))))
                 discard_data = self.playerDeck.serialize_card(card)
                 #all cards flip over
                 #card is already sent to discard slot
                 #load new grid data
                 #activate new event listeners
                 #upon new input, increment turn and continue advancing the game
+        elif input_type == "tile_click":
+            x = input.get("x")
+            y = input.get("y")
+            if self.waiting_for_tile_click:
+                self.process_tile_click(x, y)
+                self.waiting_for_tile_click = False
+                self.pending_card = None
 
+        #flow control module for card effects that last multiple turns or require player input
         if self.tailwind > 0:
             self.tailwind -= 1
             self.getGridObject().updateVisibility(self.player)
-            if self.isVisible:
-                return_grid = self.grid.grid
-            else:
-                return_grid = self.getGridObject().gridProxy()
             self.turnNum += 1 #increment turn count unless card effect overrides it
-            return jsonify({
-                "grid": return_grid,
-                "filter": self.filter,
-                "turn": self.turnNum,
-                "hp": self.player.health,
-                "keys": self.player.keys,
-                "gold": self.player.gold,
-                "gold": self.player.gold,
-                "stealth": self.player.stealth,
-                "floor": self.level,
-                "deckMax": self.playerDeck.deckMax,
-                "deckSize": self.playerDeck.deckSize,
-            })
+            return self.displayGame()
 
-    #start of phase 2
-        #draw new cards
+        if self.waiting_for_tile_click: #2 phase card, end turn early and wait for tile click input before advancing game state
+            return self.displayGame()
+        #upon picking a 2 phase card, a description of what to do appears where the hand usually is
+        #game over goes here as well
+
         self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
-        card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
+        self.card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
 
         if newFloor:
             self.timeStopped = False
             self.generate_floor()
             self.getGridObject().updateVisibility(self.player)
-            if self.isVisible:
-                return_grid = self.grid.grid
-            else:
-                return_grid = self.getGridObject().gridProxy()
             self.turnNum += 1
-            return jsonify({
-                "grid": return_grid,
-                "filter": self.filter,
-                "turn": self.turnNum,
-                "hp": self.player.health,
-                "keys": self.player.keys,
-                "gold": self.player.gold,
-                "stealth": self.player.stealth,
-                "floor": self.level,
-                "cards": card_data,
-                "deckMax": self.playerDeck.deckMax,
-                "deckSize": self.playerDeck.deckSize,
-            })
+            self.displayGame()
         if not self.timeStopped:
             for enemy in self.enemies: #move enemies
                 enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
@@ -228,13 +237,12 @@ class DungeonGame():
                     self.gameOver()
         #apply any map interactions
         #apply any card passive card effects
-
+        self.turnNum += 1 #increment turn count unless card effect overrides it
         self.getGridObject().updateVisibility(self.player)
         if self.isVisible:
             return_grid = self.grid.grid
         else:
             return_grid = self.getGridObject().gridProxy()
-        self.turnNum += 1 #increment turn count unless card effect overrides it
         return jsonify({
             "grid": return_grid,
             "filter": self.filter,
@@ -245,7 +253,7 @@ class DungeonGame():
             "gold": self.player.gold,
             "stealth": self.player.stealth,
             "floor": self.level,
-            "cards": card_data,
+            "cards": self.card_data,
             "discard": discard_data,
             "deckMax": self.playerDeck.deckMax,
             "deckSize": self.playerDeck.deckSize,
