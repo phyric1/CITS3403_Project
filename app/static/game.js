@@ -147,9 +147,9 @@ if (handArea) {
                 const tile = document.createElement('div');
                 tile.className = 'grid-tile';
                 if (newGrid[i][j] === 0) {
-                    tile.classList.add('floor', 'bg-secondary');
+                    tile.classList.add('floor');
                 } else if (newGrid[i][j] === 1) {
-                    tile.classList.add('wall', 'bg-dark');
+                    tile.classList.add('wall');
                 } else if (newGrid[i][j] === 2) {
                     tile.classList.add('start', 'bg-success');
                 } else if (newGrid[i][j] === 3) {
@@ -157,9 +157,9 @@ if (handArea) {
                 } else if (newGrid[i][j] === 4) {
                     tile.classList.add('enemy', 'bg-info');
                 } else if (newGrid[i][j] === -1) {
-                    tile.classList.add('bg-dark');
+                    tile.classList.add('darkness');
                 } else if (newGrid[i][j] === 5) {
-                    tile.classList.add('key', 'bg-white');
+                    tile.classList.add('key');
                 } else if (newGrid[i][j] === 6) {
                     tile.classList.add('exit', 'bg-primary');
                 } else if (newGrid[i][j] === 7) {
@@ -218,15 +218,58 @@ if (handArea) {
         deckSizeCount.textContent = deckSize;
     }
 
-    function resetGame() {
-         fetch('/reset', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
+function loadGameState() {
+    fetch('/game/state')
         .then(response => response.json())
         .then(data => {
-            console.log('Success: game cleared');
+            if (data.error) {
+                console.error('Game state error:', data.error);
+                return;
+            }
+            updateGridDisplay(data.grid, data.filter);
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
+            if (data.cards) {
+                updateCards(data.cards);
+            }
+            if (data.discard) {
+                updateDiscard(data.discard);
+            }
         })
+        .catch((error) => console.error('Error loading game state:', error));
+}
+
+function resetGame() {
+    fetch('/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '/game';
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function startGame() {
+    const difficulty =
+        document.getElementById("difficulty").value;
+
+    fetch('/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ difficulty })
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '/game';
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('game-container')) {
+        loadGameState();
     }
+});

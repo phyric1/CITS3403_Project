@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Game{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+<style>
+    .bright {
+        filter: brightness(125%);
+    }
+
+    /* Game page specific card styles */
+    #hand-cards .game-card {
+        min-width: 140px;
+    }
+
+    #hand-cards .card-body {
+        padding: 5%;
+        font-size: 90%;
+    }
+
+    #hand-cards .card-footer {
+        font-size: 0.8rem;
+    }
+
+    #hand-cards .card-title-box {
+        font-size: 0.8rem;
+    }
+
+    #hand-cards .rarity-master .card-title-box {
+        font-size: 0.7rem;
+    }
+
+    #hand-cards .card-uses {
+        font-size: 1rem;
+    }
+
+    #discard {
+        width: 70%;
+    }
+</style>
+    <div class="container-fluid row">
+        <div class="start-menu">
+            <div class="difficulty-select">
+                <h1>Select Difficulty</h1>
+                <select id="difficulty">
+                    <option value="Easy">Easy</option>
+                    <option value="Normal" selected>Normal</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            <button onclick="startGame()">Start New Game</button>
+        </div>
+
+        <div class="rewards">
+            <h1>Rewards</h1>
+            <h1>Floor Count</h1>
+        </div>
+         <div class="Deck">
+            <h1>Deck Info<h1>
+        </div>
+    </div>
+<script src="{{ url_for('static', filename='game.js') }}"></script>
+{% endblock %}

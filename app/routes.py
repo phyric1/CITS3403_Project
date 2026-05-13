@@ -15,7 +15,6 @@ from types import SimpleNamespace
 from sqlalchemy.orm.attributes import flag_modified
 
 bp = Blueprint("main", __name__)
-dungeon_game = DungeonGame()
 @bp.route("/")
 @bp.route("/index")
 def index():
@@ -74,28 +73,43 @@ def register():
 
     return render_template("register.html", title="Register", form=form)
 
+@bp.route("/start", methods=["POST"])
+@login_required
+def start():
+    if not current_user.id:
+        return redirect(url_for("main.login"))
+    existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    if not existingGame: #create new game
+        difficulty = request.json.get("difficulty")
+        dungeon_game = DungeonGame(difficulty)
+        dungeon_game.playerDeck = PlayerDeck()
+        dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
+        dungeon_game.playerDeck.loadDeck()
+        dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
+        game = Game(user_id = current_user.id, game = dungeon_game)
+        db.session.add(game)
+        db.session.commit()
+    return redirect(url_for("main.game"))
+
 @bp.route("/game")
 @login_required
 def game():
     if not current_user.id:
         return redirect(url_for("main.login"))
-    difficulty = "Normal"
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
-        print("LOADING SAVED GAME")
-        dungeon_game = existingGame.game
-        return render_template("game.html", grid=dungeon_game.getFakeGrid())
+        return render_template("game.html")
     else:
-        print("MAKING NEW GAME")
-        dungeon_game = DungeonGame()
-        dungeon_game.playerDeck = PlayerDeck()
-        dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
-        dungeon_game.playerDeck.loadDeck()
-        dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
-        game = Game(user_id=current_user.id, game = dungeon_game)
-        db.session.add(game)
-        db.session.commit()
-    return render_template("game.html", grid=dungeon_game.getFakeGrid())
+        return render_template("start_game.html")
+
+@bp.route("/game/state")
+@login_required
+def game_state():
+    existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    if not existingGame:
+        return jsonify({"error": "No active game"}), 404
+    dungeon_game = existingGame.game
+    return dungeon_game.displayGame()
 
 @bp.route("/move", methods=["POST"])
 @login_required
@@ -113,13 +127,13 @@ def move():
     return output
 
 @bp.route("/reset", methods=["POST"])
+@login_required
 def reset():
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
         db.session.delete(existingGame)
         db.session.commit()
     return redirect(url_for("main.game"))
-    
 
 @bp.route("/leaderboard")
 def leaderboard():

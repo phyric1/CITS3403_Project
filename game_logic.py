@@ -23,10 +23,10 @@ class DungeonGame():
     #difficulty
     #floors
 
-    def __init__(self):
+    def __init__(self, difficulty):
         #used to start game
         self.level = 0
-        self.difficulty = "Easy"
+        self.difficulty = difficulty
         self.player = Player(0, 0)
         self.generate_floor()
         self.turnNum = 0
@@ -42,10 +42,13 @@ class DungeonGame():
         #easy - 2 floors
         #medium - 4 floors,
         #hard - 6 floors, higher health enemies
+        #chance of darkness
+        #number of enemies
         pass
 
     def displayGame(self):
     #returns json information for the game in its current state
+        self.grid.updateVisibility(self.player)
         if self.isVisible:
             grid = self.grid.grid
         else:
@@ -64,6 +67,7 @@ class DungeonGame():
                 })
 
     def gameOver(self):
+        #game over screen and reset button
         print("game over")
 
     def cardProcessor(self, card):
