@@ -153,30 +153,6 @@ class Goblin(Enemy):
     def __init__(self, x, y):
         super().__init__(x, y)
 
-class Hound(Enemy):
-    detectRange = int
-    maxRange = int
-    expand = True
-    def __init__(self, x, y):
-        pass
-
-    def sleep(self, grid):
-        if self.detectRange > self.maxRange:
-            self.expand = False
-        elif self.detectRange == 0:
-            self.expand = True
-
-        if self.expand:
-            self.detectRange += 1
-        else:
-            self.detectRange -= 1
-
-        #check radius
-        for i in range(self.y - self.detectRange, self.y + self.detectRange + 1):
-            for j in range(self.x - self.detectRange, self.x + self.detectRange + 1):
-                    if grid[i][j] == 2:
-                        print("caught")
-
 class Keys(Items):
     def __init__(self):
         pass

@@ -20,13 +20,14 @@ class Room():
             
 class DungeonGame():
     '''class representing a game instance and all its properties'''
+    #player -> health, attack
     #dificulty
     #floors
 
-    def __init__(self):
+    def __init__(self, difficulty):
         #used to start game
         self.level = 0
-        self.dificulty = "Easy"
+        self.difficulty = difficulty
         self.player = Player(0, 0)
         self.generate_floor()
         self.turnNum = 0
@@ -36,6 +37,39 @@ class DungeonGame():
         self.hand = []
         self.timeStopped = False
         self.tailwind = 0
+
+    def dificulty_modifier(self):
+        '''Adjusts dungeon based on dificulty'''
+        #easy - 2 floors
+        #medium - 4 floors,
+        #hard - 6 floors, higher health enemies
+        #chance of darkness
+        #number of enemies
+        pass
+
+    def displayGame(self):
+    #returns json information for the game in its current state
+        self.grid.updateVisibility(self.player)
+        if self.isVisible:
+            grid = self.grid.grid
+        else:
+            grid = self.grid.gridProxy()
+        return jsonify({
+                    "grid": grid,
+                    "filter": self.filter,
+                    "turn": self.turnNum,
+                    "hp": self.player.health,
+                    "keys": self.player.keys,
+                    "gold": self.player.gold,
+                    "stealth": self.player.stealth,
+                    "floor": self.level,
+                    "deckMax": self.playerDeck.deckMax,
+                    "deckSize": self.playerDeck.deckSize,
+                })
+
+    def gameOver(self):
+        #game over screen and reset button
+        print("game over")
 
     def cardProcessor(self, card):
         #check if card type matches active master cards
@@ -190,6 +224,8 @@ class DungeonGame():
             for enemy in self.enemies: #move enemies
                 enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
                 enemy.attack(self.player)
+                if self.player.health <= 0:
+                    self.gameOver()
         #apply any map interactions
         #apply any card passive card effects
 
@@ -308,8 +344,8 @@ class Grid():
     endRoom = Room
     def __init__(self):
         self.grid, self.roomsList = self.generate_dungeon()
-        self.isVisible = [[False] * 32 for _ in range(20)]
-        self.fake_grid = [[-1] * 32 for _ in range(20)]
+        self.isVisible = [[False] * 33 for _ in range(20)]
+        self.fake_grid = [[-1] * 33 for _ in range(20)]
 
     def spawnEnemies(self):
         enemyList = []
@@ -335,7 +371,7 @@ class Grid():
 
     def distance_map(self, player: Player) :
         GRID_HEIGHT = 20
-        GRID_WIDTH = 32
+        GRID_WIDTH = 33
         dist_map = [[-1] * GRID_WIDTH for _ in range(GRID_HEIGHT)]
 
         queue = deque()
@@ -355,14 +391,10 @@ class Grid():
                     queue.append((zx, zy))
         return dist_map
 
-    def visionMap(self):
-        highlight = [[0] * 32 for _ in range(20)]
-        return
-
     def updateVisibility(self, player: Player): #updates visible tiles
         for i in range(player.y-4, player.y+5):
             for j in range(player.x-4, player.x+5):
-                if 0 <= i < 20 and 0 <= j < 32:
+                if 0 <= i < 20 and 0 <= j < 33:
                     self.isVisible[i][j] = True
     
     def gridProxy(self): #returns proxy grid with limited FOV
@@ -376,7 +408,7 @@ class Grid():
 
     def generate_dungeon(self):    
         GRID_HEIGHT = 20
-        GRID_WIDTH = 32
+        GRID_WIDTH = 33
 
         #Room constants
         ROOM_COUNT = 8

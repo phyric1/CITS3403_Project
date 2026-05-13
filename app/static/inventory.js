@@ -59,12 +59,19 @@ async function addToDeck(button) {
   addRemoveButton(deck_card);
 
   document.getElementById("deck").appendChild(deck_card);
+  animateIn(deck_card);
+  deck_card.classList.add("deck-flash");
+  setTimeout(() => {
+    deck_card.classList.remove("deck-flash");
+  }, 400);
 
   const quantity = getQuantity(card);
   if (quantity <= 1) {
+    await animateOut(card);
     card.remove();
   } else {
     setQuantity(card, quantity - 1);
+    bumpQuantity(card);
   }
 
   button.disabled = false;
@@ -107,6 +114,7 @@ async function removeFromDeck(button) {
   if (existing_stack) {
     const quantity = getQuantity(existing_stack);
     setQuantity(existing_stack, quantity + 1)
+    bumpQuantity(existing_stack);
 
     const ids = existing_stack.dataset.cardIds
       ? existing_stack.dataset.cardIds.split(",")
@@ -120,8 +128,10 @@ async function removeFromDeck(button) {
 
     addAddButton(inventory_card);
     inventory.appendChild(inventory_card);
+    animateIn(inventory_card);
   }
 
+  await animateOut(card);
   card.remove();
   button.disabled = false;
   updateDeckLimits();
@@ -251,4 +261,35 @@ async function setTradable(button, cardId, value) {
     alert("Network error");
   }
   button.disabled = false;
+}
+
+
+function animateIn(card) {
+  card.classList.add("card-enter");
+  requestAnimationFrame(() => {
+    card.classList.add("card-enter-active");
+    setTimeout(() => {
+      card.classList.remove("card-enter");
+      card.classList.remove("card-enter-active");
+    }, 250);
+  });
+}
+
+
+function animateOut(card) {
+  return new Promise(resolve => {
+    card.classList.add("card-leave");
+    requestAnimationFrame(() => {
+      card.classList.add("card-leave-active");
+      setTimeout(() => {resolve();}, 250);
+    });
+  });
+}
+
+
+function bumpQuantity(card) {
+  const quantity = card.querySelector(".card-quantity");
+  if (!quantity) return;
+  quantity.classList.add("bump");
+  setTimeout(() => {quantity.classList.remove("bump");}, 200);
 }

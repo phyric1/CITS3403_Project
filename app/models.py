@@ -7,7 +7,6 @@ from flask_login import UserMixin
 
 MAX_DECK_SIZE = 40
 
-
 class User(UserMixin,db.Model):
     id=db.Column(db.Integer,primary_key=True)
     username=db.Column(db.String(64),index=True,unique=True,nullable=False)
@@ -35,6 +34,42 @@ class User(UserMixin,db.Model):
     def __repr__(self):
         return f"<User {self.username}>"
 
+class Game(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False, index=True)
+    game = db.Column(db.PickleType, nullable=False, index=True)
+    #per game stats
+    #boolean for is active
+    #all games are canon
+
+class Stats(db.Model): #lifetime
+    id=db.Column(db.Integer,primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    #current gold
+    #gold collected
+    #Fastest Run
+    #Longest Run
+    #easy dungeons cleared
+    #mid dungeons cleared
+    #hard dungeons cleared
+    #total
+    #most used card
+    #over runs
+
+#class Stats(db.Model): #lifetime
+    #id=db.Column(db.Integer,primary_key=True)
+    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    #current gold
+    #gold collected
+    #Fastest Run
+    #Longest Run
+    #easy dungeons cleared
+    #mid dungeons cleared
+    #hard dungeons cleared
+    #total
+    #most used card
+    #over runs
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
