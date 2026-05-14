@@ -200,6 +200,10 @@ function setTileType(tile, value) {
 }
 
 function setTileFilter(tile, filterValue) {
+    if (tile.dataset.filterValue == filterValue) {
+        return;
+    }
+
     tile.classList.remove(
         "bright",
         "clickable-tile",

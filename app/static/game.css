@@ -165,7 +165,26 @@ grid-template-columns: repeat(32, 24px);
 }
 
 .bright {
-    filter: brightness(125%);
+    filter: brightness(125%) !important;
+}
+
+.blink-fast {
+    animation: blink 0.5s infinite !important;
+}
+
+@keyframes blink {
+    50% {
+        filter: brightness(250%) !important;
+    }
+}
+
+.clickable-tile {
+    cursor: pointer;
+}
+
+.clickable-tile:hover {
+    outline: 2px solid rgba(255,255,255,0.5);
+    transform: scale(1.05);
 }
 
 /* Game page specific card styles */
