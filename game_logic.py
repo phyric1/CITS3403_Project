@@ -38,7 +38,6 @@ class DungeonGame():
         self.isVisible = True
         self.filter = [[0] * 32 for _ in range(20)]
 
-
         self.timeStopped = False
         self.tailwind = 0
 
@@ -95,7 +94,6 @@ class DungeonGame():
         #gold collected, floors cleared, whether dungeon was cleared, which type of dungeon, enemies killed, number of turns played
 
     def cardProcessor(self, card):
-        #check if card type matches active master cards
         match card.card.name:
             case "Tailwind":
                 self.tailwind = 3
@@ -216,6 +214,7 @@ class DungeonGame():
                             self.grid.grid[enemy.y][enemy.x] = 0
                             self.enemies.remove(enemy)
                             self.player.gold += 1
+                            self.player.enemies_defeated += 1
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
             case "Light the Way":
@@ -238,7 +237,10 @@ class DungeonGame():
         x, y = self.grid.startRoom.center()
         self.player.x, self.player.y = x, y
         self.enemies = [] #new enemies on each floor
-        self.enemies = self.grid.spawnEnemies()
+        if self.difficulty == "Normal":
+            self.enemies = self.grid.spawnEnemies(3)
+        if self.difficulty == "Hard":
+            self.enemies = self.grid.spawnEnemies(4)
         self.grid.spawnGold(2)
         self.level += 1
 
@@ -264,6 +266,7 @@ class DungeonGame():
                         self.grid.grid[enemy.y][enemy.x] = 0
                         self.enemies.remove(enemy)
                         self.player.gold += 1
+                        self.player.enemies_defeated += 1
                     break
         elif self.pending_card == "Meteor":
             for enemy in self.enemies:
@@ -273,6 +276,7 @@ class DungeonGame():
                         self.grid.grid[enemy.y][enemy.x] = 0
                         self.enemies.remove(enemy)
                         self.player.gold += 1
+                        self.player.enemies_defeated += 1
                     break
         elif self.pending_card == "Slingshot":
             for enemy in self.enemies:
@@ -282,6 +286,7 @@ class DungeonGame():
                         self.grid.grid[enemy.y][enemy.x] = 0
                         self.enemies.remove(enemy)
                         self.player.gold += 1
+                        self.player.enemies_defeated += 1
                     break
 
     def advance_game(self, input):
@@ -436,9 +441,9 @@ class Grid():
         self.isVisible = [[False] * self.WIDTH for _ in range(self.HEIGHT)]
         self.fake_grid = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
-    def spawnEnemies(self):
+    def spawnEnemies(self, enemyCount):
+        #change types of enemies
         enemyList = []
-        enemyCount = 3
         for i in range(enemyCount):
             enemySpawn = self.roomsList[random.randint(0, len(self.roomsList)-1)]
             enemyX, enemyY = enemySpawn.center()
