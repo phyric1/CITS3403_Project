@@ -1,3 +1,42 @@
+const TILE_CLASS = {
+    "-1": "dark",
+    "0": "floor",
+    "1": "wall",
+    "2": "start",
+    "3": "end",
+    "4": "enemy",
+    "5": "key",
+    "6": "exit",
+    "7": "gold",
+    "8": "exit"
+};
+
+let previousGrid = [];
+let previousFilter = [];
+const tileElements = [];
+
+function createGridTiles(grid) {
+    console.log('Creating grid tiles');
+    const gridElement = document.getElementById('grid');
+    if (!gridElement || !Array.isArray(grid)) return;
+
+    gridElement.innerHTML = '';
+    tileElements.length = 0;
+    gridElement.style.gridTemplateColumns = `repeat(${grid[0].length}, 24px)`;
+
+    for (let row = 0; row < grid.length; row++) {
+        tileElements[row] = [];
+        for (let col = 0; col < grid[row].length; col++) {
+            const tile = document.createElement('div');
+            tile.className = `grid-tile row-${row} col-${col}`;
+            tile.dataset.tileType = '';
+            tile.addEventListener('click', () => handleTileClick(col, row));
+            tileElements[row][col] = tile;
+            gridElement.appendChild(tile);
+        }
+    }
+}
+
 document.addEventListener('keydown', (e) => {
         switch (e.code) {
             case 'ArrowLeft':
@@ -138,55 +177,54 @@ if (handArea) {
         discardSlot.appendChild(cardWrapper);
     };
 
-    function updateGridDisplay(newGrid, filter) {
-        const gridContainer = document.getElementById('grid');
-        gridContainer.innerHTML = '';
-
-        for (let i = 0; i < newGrid.length; i++) {
-            for (let j = 0; j < newGrid[i].length; j++) {
-                const tile = document.createElement('div');
-                tile.className = 'grid-tile';
-                if (newGrid[i][j] === 0) {
-                    tile.classList.add('floor', 'bg-secondary');
-                } else if (newGrid[i][j] === 1) {
-                    tile.classList.add('wall', 'bg-dark');
-                } else if (newGrid[i][j] === 2) {
-                    tile.classList.add('start', 'bg-success');
-                } else if (newGrid[i][j] === 3) {
-                    tile.classList.add('end', 'bg-danger');
-                } else if (newGrid[i][j] === 4) {
-                    tile.classList.add('enemy', 'bg-info');
-                } else if (newGrid[i][j] === -1) {
-                    tile.classList.add('darkness', 'bg-dark');
-                } else if (newGrid[i][j] === 5) {
-                    tile.classList.add('key', 'bg-white');
-                } else if (newGrid[i][j] === 6) {
-                    tile.classList.add('exit', 'bg-primary');
-                } else if (newGrid[i][j] === 7) {
-                    tile.classList.add('gold', 'bg-warning');
-                }
-
-                if (filter[i][j] === 1 || filter[i][j] === 5) {
-                    tile.classList.add('bright');
-                } else {
-                    tile.classList.remove('bright');
-                }
-
-                if (filter[i][j] === 5) {
-                    tile.classList.add('clickable-tile');
-                    tile.classList.add('blink-fast');
-                    tile.dataset.x = j;
-                    tile.dataset.y = i;
-                    tile.style.cursor = 'pointer';
-                    tile.addEventListener('click', () => {
-                        handleTileClick(j, i);
-                    });
-                }
-
-                gridContainer.appendChild(tile);
-            }
-        }
+function updateGridDisplay(newGrid, filter) {
+  for (let i = 0; i < newGrid.length; i++) {
+    for (let j = 0; j < newGrid[i].length; j++) {
+      if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
+        setTileType(tileElements[i][j], newGrid[i][j]);
+      }
+      if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
+        setTileFilter(tileElements[i][j], filter[i][j]);
+      }
     }
+  }
+  previousGrid = newGrid.map(row => [...row]);
+  previousFilter = filter.map(row => [...row]);
+}
+
+function setTileType(tile, value) {
+    const newClass = TILE_CLASS[value] || 'floor';
+
+    if (tile.dataset.tileType === newClass) {
+        return;
+    }
+
+    if (tile.dataset.tileType) {
+        tile.classList.remove(tile.dataset.tileType);
+    }
+
+    tile.classList.add(newClass);
+    tile.dataset.tileType = newClass;
+}
+
+function setTileFilter(tile, filterValue) {
+    tile.classList.remove(
+        "bright",
+        "clickable-tile",
+        "blink-fast"
+    );
+
+    if (filterValue === 1 || filterValue === 5) {
+        tile.classList.add("bright");
+    }
+
+    if (filterValue === 5) {
+        tile.classList.add(
+            "clickable-tile",
+            "blink-fast"
+        );
+    }
+}
 
     function handleTileClick(x, y) {
          move({ type: 'tile_click', x: x, y: y });
@@ -226,6 +264,8 @@ function loadGameState() {
                 console.error('Game state error:', data.error);
                 return;
             }
+            createGridTiles(data.grid);
+            console.log("Loading state")
             updateGridDisplay(data.grid, data.filter);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
             if (data.cards) {
@@ -238,35 +278,36 @@ function loadGameState() {
         .catch((error) => console.error('Error loading game state:', error));
 }
 
-function resetGame() {
-    fetch('/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(response => {
-        if (response.ok) {
-            window.location.href = '/game';
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+    function resetGame() {
+        fetch('/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/game';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
 
-function startGame() {
-    const difficulty =
-        document.getElementById("difficulty").value;
+    function startGame() {
+        const difficulty = document.getElementById("difficulty").value;
 
-    fetch('/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ difficulty })
-    })
-    .then(response => {
-        if (response.ok) {
-            window.location.href = '/game';
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+        fetch('/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ difficulty })
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/game';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+window.startGame = startGame;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('game-container')) {

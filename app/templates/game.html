@@ -2,89 +2,89 @@
 
 {% block title %}Game{% endblock %}
 
-{% block content %}
+{% block extra_links %}
+<link rel="stylesheet" href="{{ url_for('static', filename='game.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
-<style>
-/* temporary style header */
-    #grid {
-    display: grid;
-    grid-template-columns: repeat(33, 24px);
-    }
-    .grid-tile {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        }
+{% endblock %}
 
-    .bright {
-        filter: brightness(125%);
-    }
+{% block content %}
+    <div class="container-fluid game-layout p-1">
+        <div class="row h-100 g-2">
+            <div class="left-panel col-lg-9 d-flex flex-column">
+                <div class="bg-secondary bg-game" id="game-container">
+                    <div id="grid">
+                       
+                    </div>
+                </div>
+                <div id="card-display" class="right-panel bg-dark rounded-4 p-3 d-flex align-items-start gap-4">
+                    <div class="deck-info text-light px-3 py-2 rounded-3">
+                        <div class="small text-uppercase text-secondary">
+                            Deck
+                        </div>
 
-    /* Game page specific card styles */
-    #hand-cards .game-card {
-        min-width: 140px;
-    }
+                        <div class="fs-3 fw-bold">
+                            <span id="deck-size">35</span>/<span id="deck-max">40</span>
+                        </div>
 
-    #hand-cards .card-body {
-        padding: 5%;
-        font-size: 90%;
-    }
+                        <div class="small text-secondary">
+                            Cards Remaining
+                        </div>
+                        <button id="reset" onclick="resetGame()">Reset Game</button>
+                    </div>
 
-    #hand-cards .card-footer {
-        font-size: 0.8rem;
-    }
-
-    #hand-cards .card-title-box {
-        font-size: 0.8rem;
-    }
-
-    #hand-cards .rarity-master .card-title-box {
-        font-size: 0.7rem;
-    }
-
-    #hand-cards .card-uses {
-        font-size: 1rem;
-    }
-
-    #discard {
-        width: 70%;
-    }
-</style>
-    <div class="container-fluid row">
-
-        <div class="col-md-9">
-            <div class="bg-secondary vh-40 bg-game" id="game-container">
-                <div id="grid">
+                    <div id="hand-cards" class="d-flex flex-wrap gap-3 flex-grow-1">
+                    </div>
                 </div>
             </div>
-            <div class="d-flex bg-dark" id="card-display">
-                <div>
-                <h2 class="text-light">Deck</h2>
-                <p class="text-light">Cards Left: <span id="deck-size">35</span>/<span id="deck-max">40</span></p>
-                </div>
-                <div id="hand-cards" class="d-flex flex-wrap gap-2">
+            <div class="col-lg-3">
+                <div id="game-info" class="bg-dark rounded-4 p-3">
+                    <h2 class="text-light mb-0">
+                        Game Info
+                    </h2>
+                    <div class="info-section">
+                        <div class="stat-card">
+                            <span class="stat-label">Turn</span>
+                            <span class="stat-value" id="turn-value">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Health</span>
+                            <span class="stat-value" id="health-value">3</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Stealth</span>
+                            <span class="stat-value" id="stealth-value">7</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Treasure</span>
+                            <span class="stat-value" id="treasure-value">5</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Keys</span>
+                            <span class="stat-value" id="keys-value">0</span>
+                        </div>
+                    </div>
+                    <div class="info-divider"></div>
+                    <div class="info-section">
+                        <div class="stat-card">
+                            <span class="stat-label">Difficulty</span>
+                            <span class="stat-value" id="difficulty-value">
+                                Normal
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Floor</span>
+                            <span class="stat-value" id="floor-value">1</span>
+                        </div>
+                    </div>
+                    <div class="info-divider"></div>
+                    <div>
+                        <div class="small text-uppercase text-secondary mb-2">
+                            Last Used Card
+                        </div>
+                        <div id="discard" class="discard-slot"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div id="game-info" class="col-md-3 bg-dark ">
-            <h2 class="text-light">Game Info</h2>
-            <h3 class="text-light">Turn: <span id="turn-value">0</span></h3>
-            <p class="text-light">Health: <span id="health-value">3</span></p>
-            <p class="text-light">Stealth: <span id="stealth-value">7</span></p>
-            <p class="text-light">Treasure: <span id="treasure-value">5</span></p>
-            <p class="text-light">Keys: <span id="keys-value">0</span></p>
-
-            <p class="text-light">Dificulty: <span id="difficulty-value">Normal</span></p>
-            <p class="text-light">Floor: <span id="floor-value">1</span></p>
-            
-            <p class="text-light">Active Cards</p>
-            <p class="text-light">Last Used Card</p>
-
-            <div id="discard"></div>
-            <button id="reset" onclick="resetGame()">Reset Game</button>
         </div>
     </div>
 <script src="{{ url_for('static', filename='game.js') }}"></script>
