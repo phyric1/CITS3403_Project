@@ -134,11 +134,6 @@ def buy_card(card_id):
 
     today=date.today().isoformat()
 
-    existing_purchase=DailyShopCard.query.filter_by(user_id=user.id,card_id=card.id,date=today).first()
-    if existing_purchase:
-        flash("You have already bought this card today.", "warning")
-        return redirect(url_for("shop.shop"))
-
     price=get_card_price(card)
     if user.gold<price:
         flash("You don't have enough money.", "warning")
@@ -148,7 +143,6 @@ def buy_card(card_id):
     user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
     
     db.session.add(user_card)
-    db.session.add(DailyShopCard(user_id=user.id,card_id=card.id,date=today))
     db.session.commit()
 
     flash("Card purchased successfully.", "success")

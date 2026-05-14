@@ -4,15 +4,21 @@ from app.models import User,Card
 from app.enums import CardRarity, CardType
 
 @pytest.fixture()
-def app(monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-    monkeypatch.setenv("SECRET_KEY", "test_secret_key")
-    flask_app=create_app()
-    flask_app.config.update(
-        TESTING=True,
-        WTF_CSRF_ENABLED=False,
-    )
+def app(tmp_path):
+    test_db = tmp_path / "test.db"
+    test_db_uri = "sqlite:///" + str(test_db).replace("\\", "/")
+    flask_app = create_app({
+        "TESTING": True,
+        "WTF_CSRF_ENABLED": False,
+        "SQLALCHEMY_DATABASE_URI": test_db_uri,
+        "SECRET_KEY": "test_secret_key"
+    })
+    database_uri = flask_app.config["SQLALCHEMY_DATABASE_URI"]
+    assert "test.db" in database_uri
+    assert "app.db" not in database_uri
     with flask_app.app_context():
+        db.session.remove()
+        db.drop_all()
         db.create_all()
         seed_test_cards()
         yield flask_app
