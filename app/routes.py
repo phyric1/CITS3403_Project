@@ -117,8 +117,7 @@ def game():
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
         return render_template("game.html")
-    else:
-        return render_template("start_game.html")
+    return render_template("start_game.html")
 
 @bp.route("/game/state")
 @login_required
@@ -135,9 +134,10 @@ def move():
     if not current_user.id:
         return redirect(url_for("main.login"))
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    if not existingGame:
+        return jsonify({"error": "No active game"}), 404
     dungeon_game = existingGame.game
     input = request.json.get("input")
-     #change to input data
     output = dungeon_game.advance_game(input)
     existingGame.game = dungeon_game
     flag_modified(existingGame, "game")
