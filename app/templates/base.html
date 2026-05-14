@@ -40,32 +40,43 @@
                                 Market
                             </span>
                             <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><a class="dropdown-item {% if request.endpoint == 'main.profile' %}active{% endif %}" href="{{ url_for('shop.shop') }}">Card Shop</a></li>
+                                <li><a class="dropdown-item {% if request.endpoint == 'shop.shop' %}active{% endif %}" href="{{ url_for('shop.shop') }}">Card Shop</a></li>
                                 <li><a class="dropdown-item {% if request.endpoint == 'inventory.inventory' %}active{% endif %}" href="{{ url_for('trading.trade_market') }}">Trade Market</a></li>
                             </ul>  
                         </li>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                        <li class="nav-item dropdown position-relative">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 pe-4"
                                 href="#"
                                 role="button"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
-
-                            <img
-                                src="{{ url_for('static', filename='profile_photo/' ~ (current_user.profile_photo or 'default.png')) }}"
-                                alt="Profile photo"
-                                class="rounded-circle border"
-                                style="width: 36px; height: 36px; object-fit: cover;">
-
-                            {{ current_user.username }}
+                        
+                                <img
+                                    src="{{ url_for('static', filename='profile_photo/' ~ (current_user.profile_photo or 'default.png')) }}"
+                                    alt="Profile photo"
+                                    class="rounded-circle border"
+                                    style="width: 36px; height: 36px; object-fit: cover;">
+                        
+                                {{ current_user.username }}
+                        
+                                {% if has_unseen_trades %}
+                                    <span class="trade-notification-badge">!</span>
+                                {% endif %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark">
                                 <li><a class="dropdown-item {% if request.endpoint == 'profile.profile' %}active{% endif %}" href="{{ url_for('profile.profile', username=current_user.username) }}">Profile</a></li>
                                 <li><a class="dropdown-item {% if request.endpoint == 'inventory.inventory' %}active{% endif %}" href="{{ url_for('inventory.inventory', username=current_user.username) }}">Inventory</a></li>
-                                <li><a class="dropdown-item {% if request.endpoint and request.endpoint.startswith('trading.') %}active{% endif %}" href="{{ url_for('trading.trading') }}">Trades</a></li>
-                            </ul>  
-                        </li>
+                                <li>
+                                    <a class="dropdown-item {% if request.endpoint and request.endpoint.startswith('trading.') %}active{% endif %}" href="{{ url_for('trading.trading') }}">
+                                        Trades
+                                        {% if has_unseen_trades %}
+                                            <span class="badge rounded-pill bg-danger ms-2">!</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>                        
 
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'main.logout' %}active{% endif %}"
