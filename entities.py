@@ -13,13 +13,17 @@ class Enemy():
         self.direction = 0
         self.state = "idle" 
         self.health = 1
+        self.maxHealth = self.health
+
+    def takeDamage(self, damage):
+        self.health -= damage
+        return self.health <= 0
 
     def moveEnemy(self, grid, dist_map, filter):
         if self.state == "idle":
             self.patrol(grid, filter)
         elif self.state == "chase":
             self.chase(grid, dist_map)
-
 
     def patrol(self, grid, filter):
         dir = self.direction #current direction
@@ -64,7 +68,8 @@ class Enemy():
             if d < best_dist and d != -1: 
                 best_dist = dist_map[self.y + dy[i]][self.x + dx[i]]
                 best_dir = i
-
+        if grid[self.y + dy[best_dir]][self.x + dx[best_dir]] == 2:
+            return grid
         grid[self.y][self.x] = 0  # clear old position
         self.x += dx[best_dir]
         self.y += dy[best_dir]
@@ -131,7 +136,6 @@ class Enemy():
                                 filter[y][x] = 1
         return filter
 
-    
     def bounds_check(self, filter, x, y):
         if 0 <= y < len(filter) and 0 <= x < len(filter[0]):
             return True
@@ -156,16 +160,7 @@ class Goblin(Enemy):
 class Keys(Items):
     def __init__(self):
         pass
-    #collision function
-    #delete function
 
 class Gold(Items):
     def __init__(self, x, y):
         super(x, y)
-    #collision function
-    #delete function
-
-class Doors():
-    def __init__(self):
-
-        pass

@@ -3,22 +3,22 @@ document.addEventListener('keydown', (e) => {
             case 'ArrowLeft':
                 e.preventDefault()
                 console.log('left')
-                move('left')
+                move({ type: 'move', direction: 'left' })
                 break
             case 'ArrowRight':
                 e.preventDefault()
                 console.log('right')
-                move('right')
+                move({ type: 'move', direction: 'right' })
                 break
             case 'ArrowUp':
                 e.preventDefault()
                 console.log('up')
-                move('up')
+                move({ type: 'move', direction: 'up' })
                 break
             case 'ArrowDown':
-                e.preventDefault()
-                console.log('down')
-                move('down')
+                e.preventDefault();
+                console.log('down');
+                move({ type: 'move', direction: 'down' });
                 break
         }
     })
@@ -33,7 +33,7 @@ if (handArea) {
         const index = wrappers.indexOf(wrapper);
         if (index === -1) return;
 
-        move(`${index}`);
+        move({ type: 'pick_card', slot: index });
     });
 }
 
@@ -147,9 +147,9 @@ if (handArea) {
                 const tile = document.createElement('div');
                 tile.className = 'grid-tile';
                 if (newGrid[i][j] === 0) {
-                    tile.classList.add('floor');
+                    tile.classList.add('floor', 'bg-secondary');
                 } else if (newGrid[i][j] === 1) {
-                    tile.classList.add('wall');
+                    tile.classList.add('wall', 'bg-dark');
                 } else if (newGrid[i][j] === 2) {
                     tile.classList.add('start', 'bg-success');
                 } else if (newGrid[i][j] === 3) {
@@ -157,9 +157,9 @@ if (handArea) {
                 } else if (newGrid[i][j] === 4) {
                     tile.classList.add('enemy', 'bg-info');
                 } else if (newGrid[i][j] === -1) {
-                    tile.classList.add('darkness');
+                    tile.classList.add('darkness', 'bg-dark');
                 } else if (newGrid[i][j] === 5) {
-                    tile.classList.add('key');
+                    tile.classList.add('key', 'bg-white');
                 } else if (newGrid[i][j] === 6) {
                     tile.classList.add('exit', 'bg-primary');
                 } else if (newGrid[i][j] === 7) {
@@ -179,7 +179,7 @@ if (handArea) {
                     tile.dataset.y = i;
                     tile.style.cursor = 'pointer';
                     tile.addEventListener('click', () => {
-                        handleFilterTileClick(j, i);
+                        handleTileClick(j, i);
                     });
                 }
 
@@ -189,7 +189,7 @@ if (handArea) {
     }
 
     function handleTileClick(x, y) {
-        return { x, y };
+         move({ type: 'tile_click', x: x, y: y });
     }
 
     function updateGameState(turn, hp, keys, gold, stealth, floor, deckMax, deckSize) {
