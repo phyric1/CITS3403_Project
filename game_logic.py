@@ -5,6 +5,7 @@ from cards_logic import PlayerDeck
 import cards_logic
 from collections import deque
 from app.utils import get_user_deck
+import app.enums
 
 class Room():
     def __init__(self, width, height, x, y,):
@@ -17,16 +18,16 @@ class Room():
             centerX = (self.x + (self.x2)) // 2
             centerY = (self.y + (self.y2)) // 2
             return centerX, centerY
-            
+
+#delete strip mine
+#delete dash attack
+#delete gust
 class DungeonGame():
     '''class representing a game instance and all its properties'''
-    #player -> health, attack
-    #dificulty
-    #floors
-#fix floor 2 skipping
     def __init__(self, difficulty):
         #used to start game
         self.level = 0
+        self.maxLevels = 0
         self.difficulty = difficulty
         self.player = Player(0, 0)
         self.generate_floor()
@@ -44,9 +45,15 @@ class DungeonGame():
 
     def dificulty_modifier(self):
         '''Adjusts dungeon based on dificulty'''
-        #easy - 2 floors
-        #medium - 4 floors,
-        #hard - 6 floors, higher health enemies
+        if self.difficulty == "Easy":
+                self.maxLevels = 2
+                self.darknessChance = 0.01
+        if self.difficulty == "Medium":
+                self.maxLevels = 4
+                self.darknessChance = 0.4
+        if self.difficulty == "Hard":
+                self.maxLevels = 6
+                self.darknessChance = 0.7
         #chance of darkness
         #number of enemies
         pass
@@ -173,12 +180,6 @@ class DungeonGame():
                     self.filter[enemy.y][enemy.x] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Meteor"
-            case "Strip Mine": #like sprint, but clears a path through walls until it reaches a non-wall space or boundary
-                x = self.player.x
-                y = self.player.y
-                dx = [-1, 1, 0, 0]
-                dy = [0, 0, -1, 1]
-                pass
             case "Flash": #deaggros all enemies in an area around the player
                 radius = 3
                 x = self.player.x
@@ -218,10 +219,14 @@ class DungeonGame():
             case "Recycle":
                 self.playerDeck.deck.append(self.playerDeck.discard[0])
                 self.playerDeck.deckSize = len(self.playerDeck.deck)
+        if card.card.type == app.enums.CardType.survival and 'Master of Survival' in self.playerDeck.master_cards:
+            self.player.health += 1
+        if card.card.type == app.enums.CardType.movement and 'Master of Movement' in self.playerDeck.master_cards:
+            self.player.stealth += 1
         return card
 
     def generate_floor(self): #generates a new dungeon floor
-        self.grid = Grid()
+        self.grid = Grid(33, 20, 4)
         x, y = self.grid.startRoom.center()
         self.player.x = x
         self.player.y = y
@@ -270,13 +275,12 @@ class DungeonGame():
                     break
         elif self.pending_card == "Strip Mine":
             pass
-        
+
     def advance_game(self, input):
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
         grid = self.getGrid()
         discard_data = None
-
         newFloor = False
         input_type = input.get("type")
         if input_type == "move":
@@ -385,6 +389,7 @@ class Player():
     
     def alert(self): #alerts surrounding enemies
         pass
+
     def movePlayer(self, direction, grid):
         #directions
         dir = None
@@ -434,16 +439,15 @@ class Player():
         
 class Grid():
     '''Class that handles all logic to do with the game grid'''
-    grid = [[]]
-    FOV = 4
-    HEIGHT = int
-    WIDTH = int
     startRoom = Room
     endRoom = Room
-    def __init__(self):
+    def __init__(self, WIDTH, HEIGHT, FOV):
+        self.HEIGHT = HEIGHT
+        self.WIDTH = WIDTH
+        self.FOV = FOV
         self.grid, self.roomsList = self.generate_dungeon()
-        self.isVisible = [[False] * 33 for _ in range(20)]
-        self.fake_grid = [[-1] * 33 for _ in range(20)]
+        self.isVisible = [[False] * self.WIDTH for _ in range(self.HEIGHT)]
+        self.fake_grid = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
     def spawnEnemies(self):
         enemyList = []
@@ -461,16 +465,15 @@ class Grid():
         for i in range(goldCount):
             success = False
             while success == False:
-                x = random.randint(0, 31)
-                y = random.randint(0, 19)
+                x = random.randint(0, self.WIDTH -1 )
+                y = random.randint(0, self.HEIGHT - 1)
                 if self.grid[y][x] == 0:
                     self.grid[y][x] = 7
                     success = True
 
-    def distance_map(self, player: Player) :
-        GRID_HEIGHT = 20
-        GRID_WIDTH = 33
-        dist_map = [[-1] * GRID_WIDTH for _ in range(GRID_HEIGHT)]
+    def distance_map(self, player: Player):
+        '''Returns distance map from player to all tiles, used for enemy pathfinding'''
+        dist_map = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
         queue = deque()
         x, y = player.x, player.y
@@ -505,9 +508,6 @@ class Grid():
         return self.fake_grid
 
     def generate_dungeon(self):    
-        GRID_HEIGHT = 20
-        GRID_WIDTH = 33
-
         #Room constants
         ROOM_COUNT = 8
         MIN_WIDTH = 4
@@ -515,7 +515,7 @@ class Grid():
         MAX_WIDTH = 7
         MAX_HEIGHT = 7
 
-        grid = [[1] * GRID_WIDTH for _ in range(GRID_HEIGHT)]
+        grid = [[1] * self.WIDTH for _ in range(self.HEIGHT)]
 
         def overlap(room1, room2):
             #returns true if rooms overlap
@@ -559,8 +559,8 @@ class Grid():
             while success == False:
                 width = random.randint(MIN_WIDTH, MAX_WIDTH)
                 height = random.randint(MIN_HEIGHT, MAX_HEIGHT)
-                x = random.randint(1, GRID_WIDTH - width - 1)
-                y = random.randint(1, GRID_HEIGHT - height - 1)
+                x = random.randint(1, self.WIDTH - width - 1)
+                y = random.randint(1, self.HEIGHT - height - 1)
                 newRoom = Room(width, height, x, y)
 
                 valid = True
@@ -605,6 +605,7 @@ class Grid():
         rooms.remove(keyRoom)
 
         #block off end room
+        #fix block room bug where door isnt connected to end room
         tempArray = []
         for i in range(endRoom.x, endRoom.x2+1):
             if grid[endRoom.y-1][i] == 0:
