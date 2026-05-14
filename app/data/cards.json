@@ -91,7 +91,7 @@
 
   {
     "name": "Dagger",
-    "effect": "Damage any adjacent squares",
+    "effect": "Attack any adjacent square",
     "rarity": "common",
     "type": "combat",
     "uses": -1,
@@ -107,7 +107,7 @@
   },
   {
     "name": "Dexterity",
-    "effect": "+1 tile range on Acrobatics, Dagger and Dynamite",
+    "effect": "+1 tile range on Dagger and Slingshot",
     "rarity": "uncommon",
     "type": "combat",
     "uses": -1,
@@ -139,7 +139,7 @@
   },
   {
     "name": "Strip Mine",
-    "effect": "For 5 turns, running into walls destroys them and damages enemies",
+    "effect": "Create a tunnel through walls, but only works when next to a wall",
     "rarity": "rare",
     "type": "combat",
     "uses": -1,
@@ -147,7 +147,7 @@
   },
   {
     "name": "Dash Attack",
-    "effect": "Dash forward until you hit a wall, damaging enemies",
+    "effect": "Dash forward until you hit a wall, damaging enemies in your path, -1 Health",
     "rarity": "uncommon",
     "type": "combat",
     "uses": -1,
@@ -155,7 +155,7 @@
   },
   {
     "name": "Meteor",
-    "effect": "Deal large damage to any enemy on the map, -1 stealth",
+    "effect": "Deal large damage to any enemy on the map, -1 Stealth",
     "rarity": "rare",
     "type": "combat",
     "uses": -1,
@@ -163,7 +163,7 @@
   },
   {
     "name": "Flash",
-    "effect": "Enemies in a 3x3 area will lose aggro",
+    "effect": "Enemies in a 3 tile radius area will lose aggresiveness and stop chasing you",
     "rarity": "rare",
     "type": "combat",
     "uses": -1,

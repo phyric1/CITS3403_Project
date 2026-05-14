@@ -67,7 +67,8 @@ class Enemy():
             if d < best_dist and d != -1: 
                 best_dist = dist_map[self.y + dy[i]][self.x + dx[i]]
                 best_dir = i
-
+        if grid[self.y + dy[best_dir]][self.x + dx[best_dir]] == 2:
+            return grid
         grid[self.y][self.x] = 0  # clear old position
         self.x += dx[best_dir]
         self.y += dy[best_dir]
