@@ -1,3 +1,36 @@
+/* Sprites */
+.floor {
+    background-image: url("/static/img/tiles/floor.png");
+}
+
+.wall {
+    background-image: url("/static/img/tiles/wall.png");
+}
+
+.start {
+    background-image: url("/static/img/tiles/start.png");
+}
+
+.end {
+    background-image: url("/static/img/tiles/end.png");
+}
+
+.enemy {
+    background-image: url("/static/img/tiles/enemy.png");
+}
+
+.key {
+    background-image: url("/static/img/tiles/key.png");
+}
+
+.exit {
+    background-image: url("/static/img/tiles/exit.png");
+}
+
+.gold {
+    background-image: url("/static/img/tiles/gold.png");
+}
+
 .game-layout {
     height: 100vh;
     display: flex;
@@ -125,6 +158,10 @@ grid-template-columns: repeat(32, 24px);
     display: flex;
     justify-content: center;
     align-items: center;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .bright {

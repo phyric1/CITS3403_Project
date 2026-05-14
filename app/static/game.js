@@ -1,3 +1,34 @@
+const TILE_CLASS = {
+    "-1": "dark",
+    "0": "floor",
+    "1": "wall",
+    "2": "start",
+    "3": "end",
+    "4": "enemy",
+    "5": "key",
+    "6": "exit",
+    "7": "gold"
+};
+
+let previousGrid = [];
+let previousFilter = [];
+const tileElements = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".grid-tile").forEach(tile => {
+      const rowClass = [...tile.classList].find(c => c.startsWith("row-"));
+      const colClass = [...tile.classList].find(c => c.startsWith("col-"));
+
+      const row = parseInt(rowClass.split("-")[1]);
+      const col = parseInt(colClass.split("-")[1]);
+
+      if (!tileElements[row]) {
+          tileElements[row] = [];
+      }
+      tileElements[row][col] = tile;
+  });
+})
+
 document.addEventListener('keydown', (e) => {
         switch (e.code) {
             case 'ArrowLeft':
@@ -138,55 +169,54 @@ if (handArea) {
         discardSlot.appendChild(cardWrapper);
     };
 
-    function updateGridDisplay(newGrid, filter) {
-        const gridContainer = document.getElementById('grid');
-        gridContainer.innerHTML = '';
-
-        for (let i = 0; i < newGrid.length; i++) {
-            for (let j = 0; j < newGrid[i].length; j++) {
-                const tile = document.createElement('div');
-                tile.className = 'grid-tile';
-                if (newGrid[i][j] === 0) {
-                    tile.classList.add('floor', 'bg-secondary');
-                } else if (newGrid[i][j] === 1) {
-                    tile.classList.add('wall', 'bg-dark');
-                } else if (newGrid[i][j] === 2) {
-                    tile.classList.add('start', 'bg-success');
-                } else if (newGrid[i][j] === 3) {
-                    tile.classList.add('end', 'bg-danger');
-                } else if (newGrid[i][j] === 4) {
-                    tile.classList.add('enemy', 'bg-info');
-                } else if (newGrid[i][j] === -1) {
-                    tile.classList.add('bg-dark');
-                } else if (newGrid[i][j] === 5) {
-                    tile.classList.add('key', 'bg-white');
-                } else if (newGrid[i][j] === 6) {
-                    tile.classList.add('exit', 'bg-primary');
-                } else if (newGrid[i][j] === 7) {
-                    tile.classList.add('gold', 'bg-warning');
-                }
-
-                if (filter[i][j] === 1 || filter[i][j] === 5) {
-                    tile.classList.add('bright');
-                } else {
-                    tile.classList.remove('bright');
-                }
-
-                if (filter[i][j] === 5) {
-                    tile.classList.add('clickable-tile');
-                    tile.classList.add('blink-fast');
-                    tile.dataset.x = j;
-                    tile.dataset.y = i;
-                    tile.style.cursor = 'pointer';
-                    tile.addEventListener('click', () => {
-                        handleFilterTileClick(j, i);
-                    });
-                }
-
-                gridContainer.appendChild(tile);
-            }
-        }
+function updateGridDisplay(newGrid, filter) {
+  for (let i = 0; i < newGrid.length; i++) {
+    for (let j = 0; j < newGrid[i].length; j++) {
+      if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
+        setTileType(tileElements[i][j], newGrid[i][j]);
+      }
+      if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
+        setTileFilter(tileElements[i][j], filter[i][j]);
+      }
     }
+  }
+  previousGrid = newGrid.map(row => [...row]);
+  previousFilter = filter.map(row => [...row]);
+}
+
+function setTileType(tile, value) {
+    const newClass = TILE_CLASS[value];
+
+    if (tile.dataset.tileType === newClass) {
+        return;
+    }
+
+    if (tile.dataset.tileType) {
+        tile.classList.remove(tile.dataset.tileType);
+    }
+
+    tile.classList.add(newClass);
+    tile.dataset.tileType = newClass;
+}
+
+function setTileFilter(tile, filterValue) {
+    tile.classList.remove(
+        "bright",
+        "clickable-tile",
+        "blink-fast"
+    );
+
+    if (filterValue === 1 || filterValue === 5) {
+        tile.classList.add("bright");
+    }
+
+    if (filterValue === 5) {
+        tile.classList.add(
+            "clickable-tile",
+            "blink-fast"
+        );
+    }
+}
 
     function handleTileClick(x, y) {
         return { x, y };

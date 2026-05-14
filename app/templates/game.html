@@ -14,35 +14,16 @@
                 <div class="bg-secondary bg-game" id="game-container">
                     <div id="grid">
                         {% for row in grid %}
+                        {% set row_index = loop.index0 %}
                             {% for tile in row %}
-                                {% if tile == -1 %}
-                                <div class="grid-tile bg-dark"></div>
-                                {% endif %}
-                                {% if tile == 0 %}
-                                <div class="grid-tile floor bg-secondary"></div>
-                                {% endif %}
-                                {% if tile == 1 %}
-                                    <div class="grid-tile wall bg-dark"></div>
-                                {% endif %}
-                                {% if tile == 2 %}
-                                    <div class="grid-tile start bg-success"></div>
-                                {% endif %}
-                                {% if tile == 3 %}
-                                    <div class="grid-tile end bg-danger"></div>
-                                {% endif %}
-                                {% if tile == 4 %}
-                                    <div class="grid-tile enemy bg-info"></div>
-                                {% endif %}
-                                {% if tile == 5 %}
-                                    <div class="grid-tile key bg-white"></div>
-                                {% endif %}
-                                {% if tile == 6 %}
-                                    <div class="grid-tile exit bg-primary"></div>
-                                {% endif %}
-                                {% if tile == 7 %}
-                                    <div class="grid-tile gold bg-warning"></div>
-                                {% endif %}
-                                {% endfor %}
+                                <div class="
+                                        row-{{ row_index }}
+                                        col-{{ loop.index0 }}
+                                        grid-tile
+                                        {{ TILE_CLASSES[tile] }}
+                                    ">
+                                </div>
+                            {% endfor %}
                         {% endfor %}
                     </div>
                 </div>

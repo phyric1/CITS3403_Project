@@ -76,20 +76,32 @@ def register():
 @bp.route("/game")
 @login_required
 def game():
+    TILE_CLASSES = {
+        -1: "dark",
+        0: "floor",
+        1: "wall",
+        2: "start",
+        3: "end",
+        4: "enemy",
+        5: "key",
+        6: "exit",
+        7: "gold",
+    }
+
     if not current_user.id:
         return redirect(url_for("main.login"))
     dungeon_game.playerDeck = PlayerDeck()
     dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
     dungeon_game.playerDeck.loadDeck()
     dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
-    return render_template("game.html", grid=dungeon_game.getFakeGrid())
+    return render_template("game.html", grid=dungeon_game.getFakeGrid(), TILE_CLASSES=TILE_CLASSES)
 
 @bp.route("/move", methods=["POST"])
 @login_required
 def move():
     if not current_user.id:
         return redirect(url_for("main.login"))
-    
+
     input = request.json.get("input") #change to input data
     return dungeon_game.advance_game(input)
 
