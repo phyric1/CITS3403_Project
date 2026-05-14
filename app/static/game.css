@@ -1,0 +1,155 @@
+.game-layout {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.top-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+#card-display {
+    min-height: 180px;
+    max-height: 220px;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.deck-info {
+    min-width: 140px;
+
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+
+    position: sticky;
+    left: 0;
+}
+
+#hand-cards {
+    align-content: flex-start;
+}
+
+#game-container {
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    padding: 1rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.right-panel {
+    display: flex;
+}
+
+#game-info {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.stat-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0.7rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.6rem;
+}
+
+.stat-label {
+    color: #9ca3af;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.info-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+}
+
+.discard-slot {
+    min-height: 120px;
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 2px dashed rgba(255,255,255,0.08);
+}
+
+.stat-value {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+#grid {
+display: grid;
+grid-template-columns: repeat(32, 24px);
+}
+
+.grid-tile {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bright {
+    filter: brightness(125%);
+}
+
+/* Game page specific card styles */
+#hand-cards .game-card {
+    min-width: 140px;
+}
+
+#hand-cards .card-body {
+    padding: 5%;
+    font-size: 90%;
+}
+
+#hand-cards .card-footer {
+    font-size: 0.8rem;
+}
+
+#hand-cards .card-title-box {
+    font-size: 0.8rem;
+}
+
+#hand-cards .rarity-master .card-title-box {
+    font-size: 0.7rem;
+}
+
+#hand-cards .card-uses {
+    font-size: 1rem;
+}
+
+#discard {
+    width: 70%;
+}
+
+.col-lg-9,
+.col-lg-3 {
+    height: 100%;
+}

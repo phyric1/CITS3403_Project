@@ -237,7 +237,7 @@
 }
 
 .game-card:hover {
-    filter: brightness(70%);
+    filter: brightness(80%);
 }
 
 /* Grid for displaying cards */
