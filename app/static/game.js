@@ -159,7 +159,7 @@ if (handArea) {
                 } else if (newGrid[i][j] === -1) {
                     tile.classList.add('darkness', 'bg-dark');
                 } else if (newGrid[i][j] === 5) {
-                    tile.classList.add('key');
+                    tile.classList.add('key', 'bg-white');
                 } else if (newGrid[i][j] === 6) {
                     tile.classList.add('exit', 'bg-primary');
                 } else if (newGrid[i][j] === 7) {

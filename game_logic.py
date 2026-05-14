@@ -23,7 +23,7 @@ class DungeonGame():
     #player -> health, attack
     #dificulty
     #floors
-
+#fix floor 2 skipping
     def __init__(self, difficulty):
         #used to start game
         self.level = 0
@@ -31,7 +31,7 @@ class DungeonGame():
         self.player = Player(0, 0)
         self.generate_floor()
         self.turnNum = 0
-        self.isVisible = False
+        self.isVisible = True
         self.filter = [[0] * 32 for _ in range(20)]
         self.playerDeck: PlayerDeck
         self.hand = []
@@ -94,7 +94,17 @@ class DungeonGame():
                         self.grid.grid[y][x] = 2
                         success = True
             case "Acrobatics":
-                pass
+                radius = 3
+                x = self.player.x
+                y = self.player.y
+                for dy in range(-radius, radius + 1):
+                    for dx in range(-radius, radius + 1):
+                        if abs(dy) + abs(dx) <= radius:
+                            ny, nx = y + dy, x + dx
+                            if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 0:
+                                self.filter[ny][nx] = 5
+                self.waiting_for_tile_click = True
+                self.pending_card = "Acrobatics"
             case "Sprint":
                 x = self.player.x
                 y = self.player.y
@@ -118,13 +128,15 @@ class DungeonGame():
             case "Heal":
                 self.player.health += 2
             case "Guard":
-                self.player.dodgeChance += 0.02
-            case "Parry":
                 self.player.dodgeChance += 0.05
+            case "Parry":
+                self.player.dodgeChance += 0.1
             case "Strength":
                 self.player.attackDamage += 1
+            case "Slingshot":
+                self.player.attackRange += 1
             case "Dexterity":
-                self.player.attackDamage += 1
+                self.player.attackRange += 1
             case "Dagger":
                 x = self.player.x
                 y = self.player.y
@@ -133,12 +145,17 @@ class DungeonGame():
                 for dir in range(4):
                     #if self.grid.grid[y + dy[dir]][x + dx[dir]] == 4: 
                         self.filter[y + dy[dir]][x + dx[dir]] = 5
-            case "Dash Attack":
-                self.player.attackDamage += 1
-            case "Meteor":
-                self.player.attackDamage += 1
-            case "Bear Trap":
-                self.player.attackDamage += 1
+                self.waiting_for_tile_click = True
+                self.pending_card = "Dagger"
+            case "Dash Attack": #like sprint
+                self.waiting_for_tile_click = True
+                self.pending_card = "Dash Attack"
+            case "Meteor": #locate all enemies and rturn their tiles
+                self.waiting_for_tile_click = True
+                self.pending_card = "Meteor"
+            case "Bear Trap": #like dagger but places a trap on an unoccupied tile
+                self.waiting_for_tile_click = True
+                self.pending_card = "Bear Trap"
             case "Silence Falls":
                 self.player.stealth += 1
             case "Shadow Sneak":
@@ -180,6 +197,21 @@ class DungeonGame():
             self.player.x = x
             self.player.y = y
             self.grid.grid[y][x] = 2
+        elif self.pending_card == "Acrobatics":
+            # move player to x, y
+            self.grid.grid[self.player.y][self.player.x] = 0
+            self.player.x = x
+            self.player.y = y
+            self.grid.grid[y][x] = 2
+        elif self.pending_card == "Dagger":
+            # move player to x, y
+            for enemy in self.enemies:
+                if enemy.x == x and enemy.y == y:
+                    enemy.takeDamage(self.player.attackDamage)
+                    if enemy.health <= 0:
+                        self.enemies.remove(enemy)
+                        self.player.gold += 1
+                    break
 
     def advance_game(self, input):
         '''advances the game by one turn'''
@@ -228,10 +260,13 @@ class DungeonGame():
             self.generate_floor()
             self.getGridObject().updateVisibility(self.player)
             self.turnNum += 1
-            self.displayGame()
+            return self.displayGame()
         if not self.timeStopped:
             for enemy in self.enemies: #move enemies
                 enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
+                if enemy.state == "chase" and self.player.stealth > 0:
+                    self.player.stealth -= 1
+                    enemy.state = "idle"
                 enemy.attack(self.player)
                 if self.player.health <= 0:
                     self.gameOver()
@@ -280,6 +315,7 @@ class Player():
         self.gold = 0
         self.stealth = 0
         self.attackDamage = 1
+        self.attackRange = 1
         self.dodgeChance = 0.0
 
     def takeDamage(self, damage):

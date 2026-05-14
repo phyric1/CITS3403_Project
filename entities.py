@@ -14,6 +14,9 @@ class Enemy():
         self.state = "idle" 
         self.health = 1
 
+    def takeDamage(self, damage):
+        self.health -= damage
+
     def moveEnemy(self, grid, dist_map, filter):
         if self.state == "idle":
             self.patrol(grid, filter)

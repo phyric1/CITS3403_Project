@@ -66,7 +66,7 @@
   },
   {
     "name": "Guard",
-    "effect": "+2% chance to not take any damage",
+    "effect": "+5% chance to not take any damage",
     "rarity": "common",
     "type": "survival",
     "uses": -1,
@@ -74,7 +74,7 @@
   },
   {
     "name": "Parry",
-    "effect": "+5% chance to not take any damage",
+    "effect": "+10% chance to not take any damage",
     "rarity": "rare",
     "type": "survival",
     "uses": -1,
@@ -82,7 +82,7 @@
   },
   {
     "name": "Master of Survival",
-    "effect": "Survival cards have 50% chance to be recycled and 50% chance to heal 1 heart",
+    "effect": "Survival cards have 50% chance to heal 1 heart",
     "rarity": "master",
     "type": "survival",
     "uses": -1,
@@ -107,7 +107,7 @@
   },
   {
     "name": "Dexterity",
-    "effect": "+1 attack range",
+    "effect": "+1 tile range on Acrobatics, Dagger and Dynamite",
     "rarity": "uncommon",
     "type": "combat",
     "uses": -1,
@@ -115,7 +115,7 @@
   },
   {
     "name": "Bear Trap",
-    "effect": "Place trap anywhere in 3x3 radius, stuns enemies",
+    "effect": "Place a trap in adjacent tiles that stuns enemies for 5 turns",
     "rarity": "uncommon",
     "type": "combat",
     "uses": -1,
@@ -123,7 +123,7 @@
   },
   {
     "name": "Dynamite",
-    "effect": "Deals damage in a 5x5 radius, -2 stealth",
+    "effect": "Blows up walls and does large damages in a 5x5 area, -2 stealth",
     "rarity": "rare",
     "type": "combat",
     "uses": -1,
@@ -139,7 +139,7 @@
   },
   {
     "name": "Strip Mine",
-    "effect": "For 5 turns, running into walls destroys them and damages enemies, 50% chance for -1 stealth per dig",
+    "effect": "For 5 turns, running into walls destroys them and damages enemies",
     "rarity": "rare",
     "type": "combat",
     "uses": -1,
@@ -162,8 +162,8 @@
     "max_in_deck": 2
   },
   {
-    "name": "Gust",
-    "effect": "Push enemies back in a 3x3 area until they hit a wall",
+    "name": "Flash",
+    "effect": "Enemies in a 3x3 area will lose aggro",
     "rarity": "rare",
     "type": "combat",
     "uses": -1,
@@ -171,7 +171,7 @@
   },
   {
     "name": "Fighting Spirit",
-    "effect": "+50% chance to pull attack cards for the next 5 turns",
+    "effect": "+20% chance to pull attack cards",
     "rarity": "legendary",
     "type": "combat",
     "uses": -1,
@@ -179,7 +179,7 @@
   },
   {
     "name": "Master of Combat",
-    "effect": "+70% chance to pull a combat card per turn, +2 treasure per enemy killed",
+    "effect": "Upon defeating an enemy, gain extra gold equivalent to that enemies max health",
     "rarity": "master",
     "type": "combat",
     "uses": -1,
