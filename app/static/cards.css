@@ -120,7 +120,6 @@
     margin-left: 5%;
     margin-right: 5%;
     margin-bottom: 1%;
-    color: black;
 }
 
 #effect {
@@ -210,7 +209,6 @@
     margin-bottom: 2%;
     padding: 0;
     line-height: 1;
-    colour: grey
 }
 
 .card-wrapper {
@@ -237,7 +235,7 @@
 }
 
 .game-card:hover {
-    filter: brightness(80%);
+    filter: brightness(70%);
 }
 
 /* Grid for displaying cards */

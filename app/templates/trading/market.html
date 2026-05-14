@@ -14,14 +14,14 @@ Trade Market
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Trade Market</h1>
-        <p>Click on a card to see copies that are available to trade</p>
+        <p style="color: rgb(0, 0, 0);">Click on a card to see copies that are available to trade</p>
         <a href="{{ url_for('trading.trading') }}" class="btn btn-primary">Go To Trading</a>
     </div>
 
     <!-- Sort -->
 
 
-
+    
     <div class="mb-3">
         <form method="GET">
             <input type="hidden" name="mode" value="{{ mode }}">
@@ -35,15 +35,15 @@ Trade Market
             </select>
         </form>
     </div>
-
-
+    
+    
     <!-- Card Grid -->
     <div class="card-grid" id="deck">
         {% for market_card in cards %}
         {% set item = namespace(card=market_card.card) %}
         <div class="card-wrapper" data-card-id="{{ market_card.card.id }}">
             {% include "_card.html" %}
-
+    
             {% if market_card.has_tradable %}
                 <a href="{{ url_for('trading.market_card', card_id=market_card.card.id) }}" class="btn btn-sm btn-outline-primary w-100 mt-2">View Cards</a>
             {% else %}
@@ -52,6 +52,6 @@ Trade Market
         </div>
         {% endfor %}
     </div>
-
-
+    
+    
 {% endblock %}
