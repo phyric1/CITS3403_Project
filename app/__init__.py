@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from app.config import Config
 from flask_login import LoginManager
 from werkzeug.exceptions import RequestEntityTooLarge
+from app.context_processors import register_context_processors
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -35,6 +36,7 @@ def create_app():
     app.register_blueprint(shop_bp)
     app.register_blueprint(trading_bp)
     app.register_blueprint(profile_bp)
+    register_context_processors(app)
     register_cli(app)
 
     @app.errorhandler(RequestEntityTooLarge)
