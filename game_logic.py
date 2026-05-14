@@ -22,24 +22,29 @@ class Room():
 #delete strip mine
 #delete dash attack
 #delete gust
+#delete bear trap
 class DungeonGame():
     '''class representing a game instance and all its properties'''
     def __init__(self, difficulty):
         #used to start game
+        self.player = Player(0, 0)
+        self.turnNum = 0
+        self.difficulty = difficulty
         self.level = 0
         self.maxLevels = 0
-        self.difficulty = difficulty
-        self.player = Player(0, 0)
-        self.generate_floor()
+
+        self.generate_floor(self.level)
         self.turnNum = 0
         self.isVisible = True
         self.filter = [[0] * 32 for _ in range(20)]
-        self.playerDeck: PlayerDeck
-        self.hand = []
+
+
         self.timeStopped = False
         self.tailwind = 0
-        self.card_data = None
 
+        self.playerDeck: PlayerDeck
+        self.hand = []
+        self.card_data = None
         self.waiting_for_tile_click = False
         self.pending_card = None
 
@@ -206,8 +211,9 @@ class DungeonGame():
                             grid[i][j] = 0
                 for enemy in self.enemies:
                     if min_x <= enemy.x <= max_x and min_y <= enemy.y <= max_y:
-                        enemy.takeDamage(4)
-                        if enemy.health <= 0:
+                        defeated = enemy.takeDamage(4)
+                        if defeated:
+                            self.grid.grid[enemy.y][enemy.x] = 0
                             self.enemies.remove(enemy)
                             self.player.gold += 1
             case "Eye for Treasure":
@@ -225,12 +231,13 @@ class DungeonGame():
             self.player.stealth += 1
         return card
 
-    def generate_floor(self): #generates a new dungeon floor
+    def generate_floor(self, level): #generates a new dungeon floor
+        if level == 0: #first level is always visible
+            self.isVisible = True
         self.grid = Grid(33, 20, 4)
         x, y = self.grid.startRoom.center()
-        self.player.x = x
-        self.player.y = y
-        self.enemies = []
+        self.player.x, self.player.y = x, y
+        self.enemies = [] #new enemies on each floor
         self.enemies = self.grid.spawnEnemies()
         self.grid.spawnGold(2)
         self.level += 1
@@ -252,29 +259,30 @@ class DungeonGame():
             # move player to x, y
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
-                    enemy.takeDamage(self.player.attackDamage)
-                    if enemy.health <= 0:
+                    defeated = enemy.takeDamage(self.player.attackDamage)
+                    if defeated:
+                        self.grid.grid[enemy.y][enemy.x] = 0
                         self.enemies.remove(enemy)
                         self.player.gold += 1
                     break
         elif self.pending_card == "Meteor":
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
-                    enemy.takeDamage(4)
-                    if enemy.health <= 0:
+                    defeated = enemy.takeDamage(4)
+                    if defeated:
+                        self.grid.grid[enemy.y][enemy.x] = 0
                         self.enemies.remove(enemy)
                         self.player.gold += 1
                     break
         elif self.pending_card == "Slingshot":
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
-                    enemy.takeDamage(self.player.attackDamage)
-                    if enemy.health <= 0:
+                    defeated = enemy.takeDamage(self.player.attackDamage)
+                    if defeated:
+                        self.grid.grid[enemy.y][enemy.x] = 0
                         self.enemies.remove(enemy)
                         self.player.gold += 1
                     break
-        elif self.pending_card == "Strip Mine":
-            pass
 
     def advance_game(self, input):
         '''advances the game by one turn'''
@@ -319,10 +327,11 @@ class DungeonGame():
 
         if newFloor:
             self.timeStopped = False
-            self.generate_floor()
+            self.generate_floor(self.level)
             self.getGridObject().updateVisibility(self.player)
             self.turnNum += 1
             return self.displayGame()
+        
         if not self.timeStopped:
             for enemy in self.enemies: #move enemies
                 enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
@@ -332,30 +341,10 @@ class DungeonGame():
                 enemy.attack(self.player)
                 if self.player.health <= 0:
                     self.gameOver()
-        #apply any map interactions
-        #apply any card passive card effects
-        self.turnNum += 1 #increment turn count unless card effect overrides it
+        self.turnNum += 1
         self.getGridObject().updateVisibility(self.player)
-        if self.isVisible:
-            return_grid = self.grid.grid
-        else:
-            return_grid = self.getGridObject().gridProxy()
-        return jsonify({
-            "grid": return_grid,
-            "filter": self.filter,
-            "turn": self.turnNum,
-            "hp": self.player.health,
-            "keys": self.player.keys,
-            "gold": self.player.gold,
-            "gold": self.player.gold,
-            "stealth": self.player.stealth,
-            "floor": self.level,
-            "cards": self.card_data,
-            "discard": discard_data,
-            "deckMax": self.playerDeck.deckMax,
-            "deckSize": self.playerDeck.deckSize,
-        })
-
+        return self.displayGame()
+    
     def getGridObject(self): #return grid object
         return self.grid
     
@@ -407,35 +396,33 @@ class Player():
         dx = [-1, 1, 0, 0]
         dy = [0, 0, -1, 1]
         
+        move = False
+        newFloor = False
         if grid[self.y + dy[dir]][self.x + dx[dir]] == 0: 
-            grid[self.y][self.x] = 0
-            self.x += dx[dir]
-            self.y += dy[dir]
-            grid[self.y][self.x] = 2
+            move = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
-            #move this to collision function eventually
-            #pickup keys
-            grid[self.y][self.x] = 0
-            self.x += dx[dir]
-            self.y += dy[dir]
-            grid[self.y][self.x] = 2
+            move = True
             self.keys += 1
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 3 and self.keys > 0:
-            #unlock doors
-            grid[self.y][self.x] = 0
-            self.x += dx[dir]
-            self.y += dy[dir]
-            grid[self.y][self.x] = 2 
             self.keys -= 1
+            move = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 7:
+            move = True
+            self.gold += 1
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 6:
+            move = True
+            newFloor = True
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 8:
+            #final chest, end the game
+            move = True
+        if move:
             grid[self.y][self.x] = 0
             self.x += dx[dir]
             self.y += dy[dir]
             grid[self.y][self.x] = 2
-            self.gold += 1
-            print(self.gold)
-        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 6:
+        if newFloor:
             return True
+        
         
 class Grid():
     '''Class that handles all logic to do with the game grid'''

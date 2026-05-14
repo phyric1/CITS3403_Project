@@ -16,14 +16,16 @@ class Enemy():
 
     def takeDamage(self, damage):
         self.health -= damage
+        if self.health <= 0:
+            defeated = True
+        return defeated
 
     def moveEnemy(self, grid, dist_map, filter):
         if self.state == "idle":
             self.patrol(grid, filter)
         elif self.state == "chase":
             self.chase(grid, dist_map)
-
-
+    
     def patrol(self, grid, filter):
         dir = self.direction #current direction
         other_dir = [0, 1, 2, 3] 

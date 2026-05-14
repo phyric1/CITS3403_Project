@@ -52,14 +52,17 @@ class PlayerDeck():
         self.deck = []
         self.hand = []
         self.discard = []
+        self.master_cards = []
 
     def loadDeck(self):
         for card in self.deck:
             if "Master" in card.card.name:
+                self.master_cards.append(card.card.name)
                 print("removed a card")
-        self.deck = [card for card in self.deck if "Master" not in card.card.name]
+        self.deck = [card for card in self.deck if "Master" not in card.card.name] #exclude master cards
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
+        print(self.master_cards)
 
     def shuffle(self, cards):
         hand = random.sample(cards, min(3, len(cards)))
@@ -71,8 +74,10 @@ class PlayerDeck():
         self.deck.remove(self.hand[slot])
         self.discard.append(card)
         self.deckSize = len(self.deck)
+        #for master of movement, survival and cards, apply relevant effect
+        print(self.master_cards)
         return card
-
+    
     def serialize_card(self, user_card):
             if user_card:
                 return {
