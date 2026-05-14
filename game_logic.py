@@ -77,6 +77,10 @@ class DungeonGame():
     def gameOver(self):
         #game over screen and reset button
         print("game over")
+        #display game over
+        #disable inputs
+        #return return stats
+        #gold collected, floors cleared, whether dungeon was cleared, which type of dungeon, enemies killed, number of turns played
 
     def cardProcessor(self, card):
         #check if card type matches active master cards
@@ -134,7 +138,21 @@ class DungeonGame():
             case "Strength":
                 self.player.attackDamage += 1
             case "Slingshot":
-                self.player.attackRange += 1
+                radius = 3
+                x = self.player.x
+                y = self.player.y
+                i = 0
+                for dy in range(-radius, radius + 1):
+                    for dx in range(-radius, radius + 1):
+                        if abs(dy) + abs(dx) <= radius:
+                            ny, nx = y + dy, x + dx
+                            if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 4:
+                                self.filter[ny][nx] = 5
+                                i += 1
+                if i == 0:
+                    return None
+                self.waiting_for_tile_click = True
+                self.pending_card = "Slingshot"
             case "Dexterity":
                 self.player.attackRange += 1
             case "Dagger":
@@ -147,15 +165,27 @@ class DungeonGame():
                         self.filter[y + dy[dir]][x + dx[dir]] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Dagger"
-            case "Dash Attack": #like sprint
+            case "Dash Attack": #like sprint but deals damage to all enemies in path
                 self.waiting_for_tile_click = True
                 self.pending_card = "Dash Attack"
             case "Meteor": #locate all enemies and rturn their tiles
+                for enemy in self.enemies:
+                    self.filter[enemy.y][enemy.x] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Meteor"
-            case "Bear Trap": #like dagger but places a trap on an unoccupied tile
-                self.waiting_for_tile_click = True
-                self.pending_card = "Bear Trap"
+            case "Strip Mine": #like sprint, but clears a path through walls until it reaches a non-wall space or boundary
+                x = self.player.x
+                y = self.player.y
+                dx = [-1, 1, 0, 0]
+                dy = [0, 0, -1, 1]
+                pass
+            case "Flash": #deaggros all enemies in an area around the player
+                radius = 3
+                x = self.player.x
+                y = self.player.y
+                for enemy in self.enemies:
+                    if abs(enemy.y - y) + abs(enemy.x - x) <= radius:
+                        enemy.state = "idle"
             case "Silence Falls":
                 self.player.stealth += 1
             case "Shadow Sneak":
@@ -163,12 +193,22 @@ class DungeonGame():
             case "Dynamite":
                 grid = self.grid.grid
                 radius = 2
-                x  = self.player.x
-                y  = self.player.y
-                for i in range(y - radius, y + radius + 1):
-                    for j in range(x - radius, x + radius + 1):
+                x = self.player.x
+                y = self.player.y
+                min_y = max(0, y - radius)
+                max_y = min(len(grid) - 1, y + radius)
+                min_x = max(0, x - radius)
+                max_x = min(len(grid[0]) - 1, x + radius)
+                for i in range(min_y, max_y + 1):
+                    for j in range(min_x, max_x + 1):
                         if grid[i][j] == 1:
                             grid[i][j] = 0
+                for enemy in self.enemies:
+                    if min_x <= enemy.x <= max_x and min_y <= enemy.y <= max_y:
+                        enemy.takeDamage(4)
+                        if enemy.health <= 0:
+                            self.enemies.remove(enemy)
+                            self.player.gold += 1
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
             case "Light the Way":
@@ -212,7 +252,25 @@ class DungeonGame():
                         self.enemies.remove(enemy)
                         self.player.gold += 1
                     break
-
+        elif self.pending_card == "Meteor":
+            for enemy in self.enemies:
+                if enemy.x == x and enemy.y == y:
+                    enemy.takeDamage(4)
+                    if enemy.health <= 0:
+                        self.enemies.remove(enemy)
+                        self.player.gold += 1
+                    break
+        elif self.pending_card == "Slingshot":
+            for enemy in self.enemies:
+                if enemy.x == x and enemy.y == y:
+                    enemy.takeDamage(self.player.attackDamage)
+                    if enemy.health <= 0:
+                        self.enemies.remove(enemy)
+                        self.player.gold += 1
+                    break
+        elif self.pending_card == "Strip Mine":
+            pass
+        
     def advance_game(self, input):
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
@@ -325,12 +383,8 @@ class Player():
             print("dodge")
         return self.health
     
-    def attack(self, damage):
+    def alert(self): #alerts surrounding enemies
         pass
-
-    def alert(self):
-        pass
-    
     def movePlayer(self, direction, grid):
         #directions
         dir = None
