@@ -190,10 +190,6 @@ class DungeonGame():
                 for enemy in self.enemies:
                     if abs(enemy.y - y) + abs(enemy.x - x) <= radius:
                         enemy.state = "idle"
-            case "Silence Falls":
-                self.player.stealth += 1
-            case "Shadow Sneak":
-                self.player.stealth += 2
             case "Dynamite":
                 grid = self.grid.grid
                 radius = 2
@@ -212,6 +208,12 @@ class DungeonGame():
                         defeated = enemy.takeDamage(4)
                         if defeated:
                             self._handle_enemy_defeat(enemy)
+            case "Fighting Spirit":
+                pass #increase odds for cards of fighting type to appear
+            case "Silence Falls":
+                self.player.stealth += 1
+            case "Shadow Sneak":
+                self.player.stealth += 2
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
             case "Light the Way":
@@ -219,12 +221,19 @@ class DungeonGame():
             case "Key to Victory":
                 self.player.keys += 1
             case "Recycle":
-                self.playerDeck.deck.append(self.playerDeck.discard[0])
-                self.playerDeck.deckSize = len(self.playerDeck.deck)
-        if card.card.type == app.enums.CardType.survival and 'Master of Survival' in self.playerDeck.master_cards:
+                if self.playerDeck.discard:
+                    recycled_card = self.playerDeck.discard.pop(0)
+                    self.playerDeck.deck.append(recycled_card)
+                    self.playerDeck.deckSize = len(self.playerDeck.deck)
+        if card.card.type == app.enums.CardType.survival and "Master of Survival" in self.playerDeck.master_cards:
             self.player.health += 1
-        if card.card.type == app.enums.CardType.movement and 'Master of Movement' in self.playerDeck.master_cards:
+        if card.card.type == app.enums.CardType.movement and "Master of Movement" in self.playerDeck.master_cards:
             self.player.stealth += 1
+        if "Master of Cards" in self.playerDeck.master_cards:
+            if card in self.playerDeck.discard and random.random() < 0.15:
+                self.playerDeck.discard.remove(card)
+                self.playerDeck.deck.append(card)
+                self.playerDeck.deckSize = len(self.playerDeck.deck)
         return card
 
     def generate_floor(self, level): #generates a new dungeon floor
