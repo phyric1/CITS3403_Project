@@ -4,13 +4,13 @@ from app.models import User,Card
 from app.enums import CardRarity, CardType
 
 @pytest.fixture()
-def app():
+def app(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+    monkeypatch.setenv("SECRET_KEY", "test_secret_key")
     flask_app=create_app()
     flask_app.config.update(
         TESTING=True,
         WTF_CSRF_ENABLED=False,
-        SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
-        SECRET_KEY="test_secret_key"
     )
     with flask_app.app_context():
         db.create_all()
@@ -90,7 +90,10 @@ def seed_test_cards():
             max_in_deck=3
         ),
     ]
-    db.session.add_all(cards)
+    for card in cards:
+        existing_card = Card.query.filter_by(name=card.name).first()
+        if existing_card is None:
+            db.session.add(card)
     db.session.commit()
 
 
