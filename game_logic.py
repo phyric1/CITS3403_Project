@@ -211,10 +211,7 @@ class DungeonGame():
                     if min_x <= enemy.x <= max_x and min_y <= enemy.y <= max_y:
                         defeated = enemy.takeDamage(4)
                         if defeated:
-                            self.grid.grid[enemy.y][enemy.x] = 0
-                            self.enemies.remove(enemy)
-                            self.player.gold += 1
-                            self.player.enemies_defeated += 1
+                            self._handle_enemy_defeat(enemy)
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
             case "Light the Way":
@@ -263,37 +260,37 @@ class DungeonGame():
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(self.player.attackDamage)
                     if defeated:
-                        self.grid.grid[enemy.y][enemy.x] = 0
-                        self.enemies.remove(enemy)
-                        self.player.gold += 1
-                        self.player.enemies_defeated += 1
+                        self.enemy_defeat(enemy)
                     break
         elif self.pending_card == "Meteor":
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(4)
                     if defeated:
-                        self.grid.grid[enemy.y][enemy.x] = 0
-                        self.enemies.remove(enemy)
-                        self.player.gold += 1
-                        self.player.enemies_defeated += 1
+                        self.enemy_defeat(enemy)
                     break
         elif self.pending_card == "Slingshot":
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(self.player.attackDamage)
                     if defeated:
-                        self.grid.grid[enemy.y][enemy.x] = 0
-                        self.enemies.remove(enemy)
-                        self.player.gold += 1
-                        self.player.enemies_defeated += 1
+                        self.enemy_defeat(enemy)
                     break
+
+    def enemy_defeat(self, enemy):
+        self.grid.grid[enemy.y][enemy.x] = 0
+        if enemy in self.enemies:
+            self.enemies.remove(enemy)
+        self.player.enemies_defeated += 1
+        reward = 1
+        if "Master of Combat" in self.playerDeck.master_cards:
+            reward += enemy.maxHealth
+        self.player.gold += reward
 
     def advance_game(self, input):
         '''advances the game by one turn'''
         self.filter = [[0] * 32 for _ in range(20)]
         grid = self.getGrid()
-        discard_data = None
         newFloor = False
         input_type = input.get("type")
         if input_type == "move":
@@ -301,12 +298,7 @@ class DungeonGame():
         elif input_type == "pick_card" and self.tailwind == 0:
             if self.hand:
                 card = self.cardProcessor(self.playerDeck.useSlot(int(input.get("slot"))))
-                discard_data = self.playerDeck.serialize_card(card)
                 #all cards flip over
-                #card is already sent to discard slot
-                #load new grid data
-                #activate new event listeners
-                #upon new input, increment turn and continue advancing the game
         elif input_type == "tile_click":
             x = input.get("x")
             y = input.get("y")
@@ -373,6 +365,7 @@ class Player():
         self.attackDamage = 1
         self.attackRange = 1
         self.dodgeChance = 0.0
+        self.enemies_defeated = 0
 
     def takeDamage(self, damage):
         if self.dodgeChance < random.random():
