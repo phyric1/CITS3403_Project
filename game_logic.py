@@ -45,6 +45,9 @@ class DungeonGame():
         self.card_data = None
         self.waiting_for_tile_click = False
         self.pending_card = None
+        self.isGameOver = False
+        self.isWin = False
+        self.gameOverStats = {}
 
     def dificulty_modifier(self, difficulty):
         '''Adjusts dungeon based on dificulty'''
@@ -85,18 +88,42 @@ class DungeonGame():
                     "deckSize": self.playerDeck.deckSize,
                     "waitingForTileClick": self.waiting_for_tile_click,
                     "pendingCard": self.pending_card,
+                    "isGameOver": self.isGameOver,
+                    "isWin": self.isWin,
+                    "gameOverStats": self.gameOverStats,
                 })
 
     def won(self):
-        pass
+        self.isGameOver = True
+        self.isWin = True
+        if self.difficulty == "Easy":
+            reward = "Common"
+        elif self.difficulty == "Normal":
+            reward = "Uncommon"
+        elif self.difficulty == "Hard":
+            reward = "Rare"
+        self.gameOverStats = {
+            "status": "win",
+            "reward": reward,
+            "floorsCleared": self.level,
+            "goldCollected": self.player.gold,
+            "enemiesDefeated": self.player.enemies_defeated,
+            "turnsPlayed": self.turnNum,
+            "difficulty": self.difficulty,
+        }
 
     def gameOver(self):
-        #game over screen and reset button
-        print("game over")
-        #display game over
-        #disable inputs
-        #return return stats
-        #gold collected, floors cleared, whether dungeon was cleared, which type of dungeon, enemies killed, number of turns played
+        self.isGameOver = True
+        self.isWin = False
+        self.gameOverStats = {
+            "status": "lose",
+            "reward": 0,
+            "floorsCleared": self.level,
+            "goldCollected": self.player.gold,
+            "enemiesDefeated": self.player.enemies_defeated,
+            "turnsPlayed": self.turnNum,
+            "difficulty": self.difficulty,
+        }
 
     def cardProcessor(self, card):
         match card.card.name:
@@ -321,6 +348,9 @@ class DungeonGame():
         input_type = input.get("type")
         if input_type == "move":
             newFloor = self.player.movePlayer(input.get("direction"), grid)  #move player
+            if newFloor == "win":
+                self.won()
+                return self.displayGame()
         elif input_type == "pick_card" and self.tailwind == 0:
             if self.hand:
                 card = self.cardProcessor(self.playerDeck.useSlot(int(input.get("slot"))))
@@ -365,6 +395,7 @@ class DungeonGame():
                 enemy.attack(self.player)
                 if self.player.health <= 0:
                     self.gameOver()
+                    return self.displayGame()
         self.turnNum += 1
         self.getGridObject().updateVisibility(self.player)
         return self.displayGame()
@@ -423,6 +454,7 @@ class Player():
         
         move = False
         newFloor = False
+        won = False
         if grid[self.y + dy[dir]][self.x + dx[dir]] == 0: 
             move = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
@@ -438,8 +470,9 @@ class Player():
             move = True
             newFloor = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 8:
-            #final chest, end the game
+            #final tile, win the game
             move = True
+            won = True
         if move:
             grid[self.y][self.x] = 0
             self.x += dx[dir]
@@ -447,6 +480,9 @@ class Player():
             grid[self.y][self.x] = 2
         if newFloor:
             return True
+        if won:
+            return "win"
+        return False
         
 
 class Grid():
