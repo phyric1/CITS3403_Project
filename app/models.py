@@ -73,7 +73,7 @@ class LifeTimeStats(db.Model):
     combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
     utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
 
-    score = db.Column(db.Integer, default=0, nullable=False)
+    score = db.Column(db.Integer, default=0, nullable=False, index=True)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)

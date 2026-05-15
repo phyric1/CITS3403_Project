@@ -1,20 +1,14 @@
-from flask import render_template, abort, request, url_for, session, redirect, flash, jsonify, Blueprint, current_app as app
+from flask import render_template, request, url_for, redirect, flash, jsonify, Blueprint, current_app as app
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
-from sqlalchemy import case
-from app.models import LifeTimeStats, User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
-from app.forms import LoginForm, RegisterForm
-from sqlalchemy import case, func, or_
-from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
+from app.models import LifeTimeStats, User, Card, Game, GameStats
 from app.forms import LoginForm, RegisterForm, ResetPasswordForm
-from app.enums import TradeStatus, CardRarity, CardType
-from game_logic import DungeonGame, Player, Grid
-from app.utils import get_user_deck, get_deck_cards
+from sqlalchemy import desc, case
+from app.enums import CardType
+from game_logic import DungeonGame
+from app.utils import get_deck_cards
 from app.utils import add_user_cards
 from cards_logic import PlayerDeck
-import random
-from datetime import date
-from types import SimpleNamespace
 from sqlalchemy.orm.attributes import flag_modified
 
 bp = Blueprint("main", __name__)
@@ -184,7 +178,14 @@ def move():
         lifetime_stats.survival_cards_played += getattr(dungeon_game.playerDeck, 'survival_counter', 0)
         lifetime_stats.combat_cards_played += getattr(dungeon_game.playerDeck, 'combat_counter', 0)
         lifetime_stats.utility_cards_played += getattr(dungeon_game.playerDeck, 'utility_counter', 0)
-        # lifetime_stats.score = # equation
+        lifetime_stats.score = (
+            (lifetime_stats.wins * 500)
+            + (lifetime_stats.gold_collected * 2)
+            + (lifetime_stats.enemies_defeated * 25)
+            + lifetime_stats.turns
+            + (lifetime_stats.games_played * 50)
+            - (lifetime_stats.losses * 100)
+        )
 
         db.session.add(game_stats)
         db.session.delete(existingGame)
@@ -202,31 +203,70 @@ def reset():
 
 @bp.route("/leaderboard")
 def leaderboard():
-    players = [
-        {"ranking": 1, "player": "player1", "stat1": 70, "stat2": 20},
-        {"ranking": 2, "player": "player2", "stat1": 31, "stat2": 30},
-        {"ranking": 3, "player": "player3", "stat1": 35, "stat2": 10},
-        {"ranking": 4, "player": "player4", "stat1": 35, "stat2": 10},       # ranking will probably be determined by combination of stats in the future
-        {"ranking": 5, "player": "player5", "stat1": 21, "stat2": 40},
-        {"ranking": 6, "player": "player6", "stat1": 65, "stat2": 60},
-    ]
+    page = request.args.get("page", 1, type=int)
+    per_page = 25
+    sort = request.args.get("sort", "score")
 
-    sort = request.args.get("sort")
+    win_rate = (
+        LifeTimeStats.wins /
+        case(
+            (LifeTimeStats.games_played == 0, 1),
+            else_=LifeTimeStats.games_played
+        )
+    )
 
-    if sort == "ranking":
-        players = sorted(players, key=lambda x: x["ranking"])
-    elif sort == "player":
-        players = sorted(players, key=lambda x: x["player"].lower())
-    elif sort == "stat1":
-        players = sorted(players, key=lambda x: x["stat1"], reverse=True)
-    elif sort == "stat2":
-        players = sorted(players, key=lambda x: x["stat2"], reverse=True)
-    else:
-        sort = "ranking"
-        players = sorted(players, key=lambda x: x["ranking"])
+    sort_options = {
+        "score": desc(LifeTimeStats.score),
+        "wins": desc(LifeTimeStats.wins),
+        "losses": desc(LifeTimeStats.losses),
+        "win_rate": desc(win_rate),
+        "games_played": desc(LifeTimeStats.games_played),
+        "turns": desc(LifeTimeStats.turns),
+        "gold_collected": desc(LifeTimeStats.gold_collected),
+        "enemies_defeated": desc(LifeTimeStats.enemies_defeated),
+        "fastest_win_turns": LifeTimeStats.fastest_win_turns,
+        "movement_cards_played": desc(LifeTimeStats.movement_cards_played),
+        "survival_cards_played": desc(LifeTimeStats.survival_cards_played),
+        "combat_cards_played": desc(LifeTimeStats.combat_cards_played),
+        "utility_cards_played": desc(LifeTimeStats.utility_cards_played),
+        "username": User.username
+    }
 
+    if sort not in sort_options:
+        sort = "score"
 
-    return render_template("leaderboard.html", players = players, sort=sort)
+    pagination = (
+        LifeTimeStats.query
+        .join(User, User.id == LifeTimeStats.user_id)
+        .add_columns(win_rate.label("win_rate"))
+        .order_by(sort_options[sort])
+        .paginate(page=page, per_page=25, error_out=False)
+    )
+
+    entries = []
+    for index, stats in enumerate(pagination.items, start=((page - 1) * per_page) + 1):
+        entries.append({
+            "ranking": index,
+            "username": stats.user.username,
+            "score": stats.score,
+            "wins": stats.wins,
+            "losses": stats.losses,
+            "win_rate": (
+                stats.wins / stats.games_played
+                if stats.games_played else 0
+            ),
+            "games_played": stats.games_played,
+            "turns": stats.turns,
+            "gold_collected": stats.gold_collected,
+            "enemies_defeated": stats.enemies_defeated,
+            "fastest_win_turns": stats.fastest_win_turns,
+            "movement_cards_played": stats.movement_cards_played,
+            "survival_cards_played": stats.survival_cards_played,
+            "combat_cards_played": stats.combat_cards_played,
+            "utility_cards_played": stats.utility_cards_played,
+        })
+
+    return render_template("leaderboard.html", entries = entries, sort=sort)
 
 
 @bp.route("/cards")

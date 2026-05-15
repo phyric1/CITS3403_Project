@@ -62,6 +62,12 @@ def upgrade():
             )
         )
 
+        batch_op.create_index(
+            'ix_life_time_stats_score',
+            ['score'],
+            unique=False
+        )
+
         batch_op.drop_index(batch_op.f('ix_life_time_stats_user_id'))
         batch_op.create_index(
             batch_op.f('ix_life_time_stats_user_id'),
@@ -132,6 +138,7 @@ def downgrade():
             )
         )
 
+        batch_op.drop_index('ix_life_time_stats_score')
         batch_op.drop_index(batch_op.f('ix_life_time_stats_user_id'))
         batch_op.create_index(
             batch_op.f('ix_life_time_stats_user_id'),
