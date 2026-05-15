@@ -49,8 +49,12 @@ class Stats(db.Model):
     turns = db.Column(db.Integer, default=0, nullable=False)
     gold_collected = db.Column(db.Integer, default=0, nullable=False)
     enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True
-    )
+    movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
