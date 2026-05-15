@@ -1,3 +1,43 @@
+const TILE_CLASS = {
+    "-1": "dark",
+    "0": "floor",
+    "1": "wall",
+    "2": "start",
+    "3": "end",
+    "4": "enemy",
+    "5": "key",
+    "6": "exit",
+    "7": "gold",
+    "8": "finish"
+};
+
+let previousGrid = [];
+let previousFilter = [];
+const tileElements = [];
+let gameEnded = false;
+
+function createGridTiles(grid) {
+    console.log('Creating grid tiles');
+    const gridElement = document.getElementById('grid');
+    if (!gridElement || !Array.isArray(grid)) return;
+
+    gridElement.innerHTML = '';
+    tileElements.length = 0;
+    gridElement.style.gridTemplateColumns = `repeat(${grid[0].length}, 24px)`;
+
+    for (let row = 0; row < grid.length; row++) {
+        tileElements[row] = [];
+        for (let col = 0; col < grid[row].length; col++) {
+            const tile = document.createElement('div');
+            tile.className = `grid-tile row-${row} col-${col}`;
+            tile.dataset.tileType = '';
+            tile.addEventListener('click', () => handleTileClick(col, row));
+            tileElements[row][col] = tile;
+            gridElement.appendChild(tile);
+        }
+    }
+}
+
 document.addEventListener('keydown', (e) => {
         switch (e.code) {
             case 'ArrowLeft':
@@ -38,6 +78,9 @@ if (handArea) {
 }
 
     function move(input) {
+        if (gameEnded) {
+            return;
+        }
         fetch('/move', {
             method: 'POST',
             headers: {
@@ -49,10 +92,13 @@ if (handArea) {
         .then(data => {
             console.log('Success:', data);
             updateGridDisplay(data.grid, data.filter);
-            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
-            if (data.cards) {
-                updateCards(data.cards);
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
+            if (data.isGameOver) {
+                renderHand([], false, null);
+                showGameEnd(data);
+                return;
             }
+            renderHand(data.cards, data.waitingForTileClick, data.pendingCard);
             if (data.discard) {
                 updateDiscard(data.discard);
             }
@@ -138,61 +184,157 @@ if (handArea) {
         discardSlot.appendChild(cardWrapper);
     };
 
-    function updateGridDisplay(newGrid, filter) {
-        const gridContainer = document.getElementById('grid');
-        gridContainer.innerHTML = '';
-
-        for (let i = 0; i < newGrid.length; i++) {
-            for (let j = 0; j < newGrid[i].length; j++) {
-                const tile = document.createElement('div');
-                tile.className = 'grid-tile';
-                if (newGrid[i][j] === 0) {
-                    tile.classList.add('floor', 'bg-secondary');
-                } else if (newGrid[i][j] === 1) {
-                    tile.classList.add('wall', 'bg-dark');
-                } else if (newGrid[i][j] === 2) {
-                    tile.classList.add('start', 'bg-success');
-                } else if (newGrid[i][j] === 3) {
-                    tile.classList.add('end', 'bg-danger');
-                } else if (newGrid[i][j] === 4) {
-                    tile.classList.add('enemy', 'bg-info');
-                } else if (newGrid[i][j] === -1) {
-                    tile.classList.add('darkness', 'bg-dark');
-                } else if (newGrid[i][j] === 5) {
-                    tile.classList.add('key', 'bg-white');
-                } else if (newGrid[i][j] === 6) {
-                    tile.classList.add('exit', 'bg-primary');
-                } else if (newGrid[i][j] === 7) {
-                    tile.classList.add('gold', 'bg-warning');
-                }
-
-                if (filter[i][j] === 1 || filter[i][j] === 5) {
-                    tile.classList.add('bright');
-                } else {
-                    tile.classList.remove('bright');
-                }
-
-                if (filter[i][j] === 5) {
-                    tile.classList.add('clickable-tile');
-                    tile.classList.add('blink-fast');
-                    tile.dataset.x = j;
-                    tile.dataset.y = i;
-                    tile.style.cursor = 'pointer';
-                    tile.addEventListener('click', () => {
-                        handleTileClick(j, i);
-                    });
-                }
-
-                gridContainer.appendChild(tile);
-            }
-        }
+function updateGridDisplay(newGrid, filter) {
+  for (let i = 0; i < newGrid.length; i++) {
+    for (let j = 0; j < newGrid[i].length; j++) {
+      if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
+        setTileType(tileElements[i][j], newGrid[i][j]);
+      }
+      if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
+        setTileFilter(tileElements[i][j], filter[i][j]);
+      }
     }
+  }
+  previousGrid = newGrid.map(row => [...row]);
+  previousFilter = filter.map(row => [...row]);
+}
+
+function setTileType(tile, value) {
+    const newClass = TILE_CLASS[value] || 'floor';
+
+    if (tile.dataset.tileType === newClass) {
+        return;
+    }
+
+    if (tile.dataset.tileType) {
+        tile.classList.remove(tile.dataset.tileType);
+    }
+
+    tile.classList.add(newClass);
+    tile.dataset.tileType = newClass;
+}
+
+function setTileFilter(tile, filterValue) {
+    tile.classList.remove(
+        "bright",
+        "clickable-tile",
+        "blink-fast"
+    );
+
+    if (filterValue === 1 || filterValue === 5) {
+        tile.classList.add("bright");
+    }
+
+    if (filterValue === 5) {
+        tile.classList.add(
+            "clickable-tile",
+            "blink-fast"
+        );
+    }
+}
 
     function handleTileClick(x, y) {
-         move({ type: 'tile_click', x: x, y: y });
+        if (gameEnded) {
+            return;
+        }
+        const tile = tileElements[y]?.[x];
+        if (!tile || !tile.classList.contains('clickable-tile')) {
+            return;
+        }
+        move({ type: 'tile_click', x: x, y: y });
     }
 
-    function updateGameState(turn, hp, keys, gold, stealth, floor, deckMax, deckSize) {
+    function showGameEnd(data) {
+        gameEnded = true;
+        const overlay = document.getElementById('game-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('d-none');
+        overlay.classList.add('active');
+
+        const title = document.getElementById('game-overlay-title');
+        const message = document.getElementById('game-overlay-text');
+        const stats = document.getElementById('game-overlay-stats');
+        const button = document.getElementById('game-overlay-button');
+
+        title.textContent = data.isWin ? 'Victory!' : 'Game Over';
+        message.textContent = data.isWin
+            ? `You reached the finish and earned a ${data.gameOverStats.reward} token.`
+            : `You died :(`;
+
+        stats.innerHTML = `
+            <div>Floor: ${data.floor} / ${data.maxFloors}</div>
+            <div>Turns: ${data.gameOverStats.turnsPlayed}</div>
+            <div>Gold: ${data.gameOverStats.goldCollected}</div>
+            <div>Enemies defeated: ${data.gameOverStats.enemiesDefeated}</div>
+            <div>Difficulty: ${data.gameOverStats.difficulty}</div>
+        `;
+
+        button.textContent = data.isWin ? 'Claim Reward' : 'Play Again';
+        button.onclick = resetGame;
+    }
+
+    function renderHand(cards, waitingForTileClick, pendingCard) {
+        const handArea = document.getElementById('hand-cards');
+        if (!handArea) return;
+
+        handArea.classList.toggle('waiting', Boolean(waitingForTileClick));
+        handArea.innerHTML = '';
+
+        if (waitingForTileClick) {
+            const cardName = pendingCard ? ` ${pendingCard}` : '';
+            const message = `Select a tile to continue.`;
+            handArea.innerHTML = `<div class="game-message">${message}</div>`;
+            return;
+        }
+
+        if (!cards || cards.length === 0) {
+            return;
+        }
+
+        updateCards(cards);
+    }
+
+    function updateCards(cards) {
+        const handArea = document.getElementById('hand-cards');
+        if (!handArea) return;
+
+        handArea.innerHTML = '';
+        cards.forEach(card => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'card-wrapper';
+
+            const usesHtml = card.uses_remaining !== undefined && card.uses_remaining !== null ?
+                `<div class="card-uses">${card.uses_remaining === -1 ? '∞' : `${card.uses_remaining}/${card.uses}`}</div>` : '';
+
+            const maxInDeck = card.max_in_deck === -1 ? '∞' : card.max_in_deck;
+            const cardHtml = `
+                <div class="game-card rarity-${card.rarity}">
+                    ${usesHtml}
+                    <div class="card-image type-${card.type}">
+                        <img src="/static/img/${card.type}.png" alt="${card.type}">
+                    </div>
+                    <div class="card-title-box" title="${card.name}">
+                        <p>${card.name}</p>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="card-body" title="${card.effect}">
+                        <div class="effect-wrapper">
+                            <p id="effect">${card.effect}</p>
+                        </div>
+                        <div class="card-footer">
+                            <p id="footer">${card.type.charAt(0).toUpperCase() + card.type.slice(1)} - Max ${maxInDeck}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            cardWrapper.innerHTML = cardHtml;
+            handArea.appendChild(cardWrapper);
+        });
+    }
+
+    function updateGameState(turn, hp, keys, gold, stealth, floor, floorMax, deckMax, deckSize) {
         const turnCount = document.getElementById('turn-value');
         turnCount.textContent = turn;
 
@@ -211,11 +353,14 @@ if (handArea) {
         const levelCount = document.getElementById('floor-value');
         levelCount.textContent = floor;
 
-        const deckMaxSize = document.getElementById('deck-max');
-        deckMaxSize.textContent = deckMax;
+        const maxLevel = document.getElementById('floor-max');
+        maxLevel.textContent = floorMax;
 
         const deckSizeCount = document.getElementById('deck-size');
         deckSizeCount.textContent = deckSize;
+
+        const deckMaxSize = document.getElementById('deck-max');
+        deckMaxSize.textContent = deckMax;
     }
 
 function loadGameState() {
@@ -226,11 +371,16 @@ function loadGameState() {
                 console.error('Game state error:', data.error);
                 return;
             }
+            createGridTiles(data.grid);
+            console.log("Loading state")
             updateGridDisplay(data.grid, data.filter);
-            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
-            if (data.cards) {
-                updateCards(data.cards);
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
+            if (data.isGameOver) {
+                renderHand([], false, null);
+                showGameEnd(data);
+                return;
             }
+            renderHand(data.cards, data.waitingForTileClick, data.pendingCard);
             if (data.discard) {
                 updateDiscard(data.discard);
             }
@@ -238,37 +388,55 @@ function loadGameState() {
         .catch((error) => console.error('Error loading game state:', error));
 }
 
-function resetGame() {
-    fetch('/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(response => {
-        if (response.ok) {
-            window.location.href = '/game';
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+    function resetGame() {
+        fetch('/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/game';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
 
-function startGame() {
-    const difficulty =
-        document.getElementById("difficulty").value;
+    function startGame() {
+        const difficulty = document.getElementById("difficulty").value;
 
-    fetch('/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ difficulty })
-    })
-    .then(response => {
-        if (response.ok) {
-            window.location.href = '/game';
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+        fetch('/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ difficulty })
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/game';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+window.startGame = startGame;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // If on the start page, update the displayed max floor count when difficulty changes
+    const difficultySelect = document.getElementById('difficulty');
+    function getMaxFloors(difficulty) {
+        if (difficulty === 'Easy') return 2;
+        if (difficulty === 'Normal') return 4;
+        if (difficulty === 'Hard') return 6;
+        return 0;
+    }
+    if (difficultySelect) {
+        const floorCountElem = document.getElementById('floor-count');
+        const updateFloorCount = () => {
+            if (floorCountElem) floorCountElem.textContent = getMaxFloors(difficultySelect.value);
+        };
+        difficultySelect.addEventListener('change', updateFloorCount);
+        updateFloorCount();
+    }
+
     if (document.getElementById('game-container')) {
         loadGameState();
     }

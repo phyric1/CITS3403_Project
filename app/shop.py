@@ -10,15 +10,29 @@ from types import SimpleNamespace
 bp = Blueprint("shop", __name__)
 
 def get_daily_shop_cards(user_id):
-    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).order_by(Card.id).all()
     today=date.today().isoformat()
-    #Different daily shops for each user
+    existing_cards=DailyShopCard.query.filter_by(user_id=user_id,date=today).all()
+    if existing_cards:
+        cards=[]
+        for a in existing_cards:
+            card=db.session.get(Card,a.card_id)
+            if card is not None:
+                cards.append(card)
+        return cards
+    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).order_by(Card.id).all()
     shop_seed=random.Random(f"{today}-{user_id}")
 
     if len(all_cards) <= 4:
-        return all_cards
+        daily_cards=all_cards
+    else:
+        daily_cards=shop_seed.sample(all_cards, 4)
+    
+    for card in daily_cards:
+        daily_shop_card=DailyShopCard(user_id=user_id,card_id=card.id,date=today,purchased=False)
+        db.session.add(daily_shop_card)
+    db.session.commit()
 
-    return shop_seed.sample(all_cards, 4)
+    return daily_cards
 
 def get_card_price(card):
     rarity=card.rarity.value
@@ -33,9 +47,9 @@ def get_card_price(card):
 
 def card_pack_probability(token_type):
     probabilities={
-        "easy": {"common": 0.7, "uncommon": 0.2, "rare": 0.09, "legendary": 0.009, "master": 0.001},
-        "medium": {"common": 0.5, "uncommon": 0.3, "rare": 0.15, "legendary": 0.045, "master": 0.005},
-        "hard": {"common": 0.25, "uncommon": 0.4, "rare": 0.2, "legendary": 0.1, "master": 0.05}
+        "common": {"common": 0.7, "uncommon": 0.2, "rare": 0.09, "legendary": 0.009, "master": 0.001},
+        "uncommon": {"common": 0.5, "uncommon": 0.3, "rare": 0.15, "legendary": 0.045, "master": 0.005},
+        "rare": {"common": 0.25, "uncommon": 0.4, "rare": 0.2, "legendary": 0.1, "master": 0.05}
     }
     if token_type not in probabilities:
         raise ValueError("Invalid token type.")
@@ -93,7 +107,7 @@ def shop():
     user=current_user
     daily_cards=get_daily_shop_cards(user.id)
     today=date.today().isoformat()
-    purchase_card_ids=[purchase.card_id for purchase in DailyShopCard.query.filter_by(user_id=user.id,date=today).all()]
+    purchase_card_ids=[purchase.card_id for purchase in DailyShopCard.query.filter_by(user_id=user.id,date=today,purchased=True).all()]
 
     shop_items=[]
     for card in daily_cards:
@@ -126,19 +140,23 @@ def buy_card(card_id):
     if card is None:
         abort(404)
 
+    today=date.today().isoformat()
+
     daily_cards=get_daily_shop_cards(user.id)
     daily_cards_ids=[daily_card.id for daily_card in daily_cards]
     if card.id not in daily_cards_ids:
         flash("This card is not available in Daily Shop.", "warning")
         return redirect(url_for("shop.shop"))
 
-    today=date.today().isoformat()
-
-    existing_purchase=DailyShopCard.query.filter_by(user_id=user.id,card_id=card.id,date=today).first()
-    if existing_purchase:
-        flash("You have already bought this card today.", "warning")
+    daily_shop_card=DailyShopCard.query.filter_by(user_id=user.id,card_id=card.id,date=today).first()
+    if daily_shop_card is None:
+        flash("This card is not available in Daily Shop.", "warning")
         return redirect(url_for("shop.shop"))
-
+    
+    if daily_shop_card.purchased:
+        flash("You have already bought this card today.","warning")
+        return redirect(url_for("shop.shop"))
+    
     price=get_card_price(card)
     if user.gold<price:
         flash("You don't have enough money.", "warning")
@@ -148,7 +166,7 @@ def buy_card(card_id):
     user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
     
     db.session.add(user_card)
-    db.session.add(DailyShopCard(user_id=user.id,card_id=card.id,date=today))
+    daily_shop_card.purchased=True
     db.session.commit()
 
     flash("Card purchased successfully.", "success")
@@ -158,19 +176,19 @@ def buy_card(card_id):
 @login_required
 def open_pack(token_type):
     user=current_user
-    if token_type not in ["easy","medium","hard"]:
+    if token_type not in ["common","uncommon","rare"]:
         abort(404)
-    if token_type=="easy":
-        if user.easy_tokens<=0:
-            flash("You don't have enough easy tokens.", "warning")
+    if token_type=="common":
+        if user.common_tokens<=0:
+            flash("You don't have enough common tokens.", "warning")
             return redirect(url_for("shop.shop"))
-    elif token_type=="medium":
-        if user.medium_tokens<=0:
-            flash("You don't have enough medium tokens.", "warning")
+    elif token_type=="uncommon":
+        if user.uncommon_tokens<=0:
+            flash("You don't have enough uncommon tokens.", "warning")
             return redirect(url_for("shop.shop"))
-    elif token_type=="hard":
-        if user.hard_tokens<=0:
-            flash("You don't have enough hard tokens.", "warning")
+    elif token_type=="rare":
+        if user.rare_tokens<=0:
+            flash("You don't have enough rare tokens.", "warning")
             return redirect(url_for("shop.shop"))
     
     cards=random_cards(token_type)
@@ -178,12 +196,12 @@ def open_pack(token_type):
         flash("No cards available to open in this pack.", "warning")
         return redirect(url_for("shop.shop"))
     
-    if token_type=="easy":
-        user.easy_tokens-=1
-    elif token_type=="medium":
-        user.medium_tokens-=1
-    elif token_type=="hard":
-        user.hard_tokens-=1
+    if token_type=="common":
+        user.common_tokens-=1
+    elif token_type=="uncommon":
+        user.uncommon_tokens-=1
+    elif token_type=="rare":
+        user.rare_tokens-=1
     
     for card in cards:
         user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)

@@ -32,9 +32,9 @@ def profile(username):
     player={
         "username":user.username,
         "gold":user.gold,
-        "easy_tokens":user.easy_tokens,
-        "medium_tokens":user.medium_tokens,
-        "hard_tokens":user.hard_tokens,
+        "common_tokens":user.common_tokens,
+        "uncommon_tokens":user.uncommon_tokens,
+        "rare_tokens":user.rare_tokens,
         "fastest_time":"N/A", #placeholder
         "total_runs":"N/A", #placeholder
         "dungeons_cleared":"N/A", #placeholder

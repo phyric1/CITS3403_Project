@@ -2,7 +2,7 @@ from flask import render_template, abort, request, url_for, session, redirect, f
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from sqlalchemy import case
-from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game
+from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
 from app.forms import LoginForm, RegisterForm
 from sqlalchemy import case, func, or_
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
@@ -117,8 +117,7 @@ def game():
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
         return render_template("game.html")
-    else:
-        return render_template("start_game.html")
+    return render_template("start_game.html")
 
 @bp.route("/game/state")
 @login_required
@@ -135,12 +134,37 @@ def move():
     if not current_user.id:
         return redirect(url_for("main.login"))
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
+    if not existingGame:
+        return jsonify({"error": "No active game"}), 404
     dungeon_game = existingGame.game
     input = request.json.get("input")
-     #change to input data
     output = dungeon_game.advance_game(input)
     existingGame.game = dungeon_game
     flag_modified(existingGame, "game")
+    if dungeon_game.isGameOver:
+        user = db.session.query(User).filter_by(id=current_user.id).first()
+        if dungeon_game.isWin:
+            user.gold += dungeon_game.player.gold
+            if dungeon_game.difficulty == "Easy":
+                user.common_tokens += 1
+            elif dungeon_game.difficulty == "Normal":
+                user.uncommon_tokens += 1
+            elif dungeon_game.difficulty == "Hard":
+                user.rare_tokens += 1
+        game_stats = GameStats(
+            user_id=current_user.id,
+            difficulty=dungeon_game.difficulty,
+            success=dungeon_game.isWin,
+            turns=dungeon_game.gameOverStats["turnsPlayed"],
+            gold_collected=dungeon_game.gameOverStats["goldCollected"],
+            enemies_defeated=dungeon_game.gameOverStats["enemiesDefeated"],
+            movement_cards_played=getattr(dungeon_game.playerDeck, 'movement_counter', 0),
+            survival_cards_played=getattr(dungeon_game.playerDeck, 'survival_counter', 0),
+            combat_cards_played=getattr(dungeon_game.playerDeck, 'combat_counter', 0),
+            utility_cards_played=getattr(dungeon_game.playerDeck, 'utility_counter', 0),
+        )
+        db.session.add(game_stats)
+        db.session.delete(existingGame)
     db.session.commit()
     return output
 
