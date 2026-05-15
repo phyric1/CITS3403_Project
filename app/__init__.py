@@ -14,10 +14,12 @@ login_manager.login_message="Please log in to access this page."
 login_manager.login_message_category="warning"
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
 
     app.config.from_object(Config)
+    if test_config is not None:
+        app.config.update(test_config)
 
     db.init_app(app)
     migrate.init_app(app, db)
