@@ -157,7 +157,11 @@ def move():
             success=dungeon_game.isWin,
             turns=dungeon_game.gameOverStats["turnsPlayed"],
             gold_collected=dungeon_game.gameOverStats["goldCollected"],
-            enemies_defeated=dungeon_game.gameOverStats["enemiesDefeated"]
+            enemies_defeated=dungeon_game.gameOverStats["enemiesDefeated"],
+            movement_cards_played=getattr(dungeon_game.playerDeck, 'movement_counter', 0),
+            survival_cards_played=getattr(dungeon_game.playerDeck, 'survival_counter', 0),
+            combat_cards_played=getattr(dungeon_game.playerDeck, 'combat_counter', 0),
+            utility_cards_played=getattr(dungeon_game.playerDeck, 'utility_counter', 0),
         )
         db.session.add(game_stats)
         db.session.delete(existingGame)

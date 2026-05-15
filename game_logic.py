@@ -355,6 +355,20 @@ class DungeonGame():
             if self.hand:
                 card = self.cardProcessor(self.playerDeck.useSlot(int(input.get("slot"))))
                 #all cards flip over
+                # Track card-type usage counters so they can be persisted at game end
+                try:
+                    if card and getattr(card, 'card', None):
+                        ctype = card.card.type
+                        if ctype == app.enums.CardType.combat:
+                            self.playerDeck.combat_counter += 1
+                        elif ctype == app.enums.CardType.movement:
+                            self.playerDeck.movement_counter += 1
+                        elif ctype == app.enums.CardType.survival:
+                            self.playerDeck.survival_counter += 1
+                        elif ctype == app.enums.CardType.utility:
+                            self.playerDeck.utility_counter += 1
+                except Exception:
+                    pass
         elif input_type == "tile_click":
             x = input.get("x")
             y = input.get("y")

@@ -29,9 +29,7 @@ def temp_add_cards(): #temporary function to add cards
             ])'''
     db.session.commit()
 
-#global deck array
-#shuffle 3 cards into hand, remove them from deck array
-#Any non chosen cards go back into the deck array, chosen card gets placed in discard slot, decrement used count
+
 def get_deck():
     user_id, err = app.utils.get_current_user_id()
     if err:
@@ -54,12 +52,15 @@ class PlayerDeck():
         self.discard = []
         self.master_cards = []
         self.combat_bonus = 0.0
+        self.combat_counter = 0
+        self.movement_counter = 0
+        self.utility_counter = 0
+        self.survival_counter = 0
 
     def loadDeck(self):
         for card in self.deck:
             if "Master" in card.card.name:
                 self.master_cards.append(card.card.name)
-                print("removed a card")
         self.deck = [card for card in self.deck if "Master" not in card.card.name] #exclude master cards
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
