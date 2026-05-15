@@ -32,7 +32,7 @@
 }
 
 .finish {
-    background-image: url("/static/img/tiles/gold.png");
+    background-image: url("/static/img/tiles/finish.png");
 }
 
 .game-layout {
