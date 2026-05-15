@@ -12,8 +12,14 @@
         <div class="row h-100 g-2">
             <div class="left-panel col-lg-9 d-flex flex-column">
                 <div class="bg-secondary bg-game" id="game-container">
-                    <div id="grid">
-
+                    <div id="grid"></div>
+                    <div id="game-overlay" class="game-overlay d-none">
+                        <div class="game-overlay-content">
+                            <h2 id="game-overlay-title"></h2>
+                            <p id="game-overlay-text"></p>
+                            <div id="game-overlay-stats" class="game-overlay-stats"></div>
+                            <button id="game-overlay-button" class="btn btn-primary mt-3">Continue</button>
+                        </div>
                     </div>
                 </div>
                 <div id="card-display" class="right-panel bg-dark rounded-4 p-3 d-flex align-items-start gap-4">

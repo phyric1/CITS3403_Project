@@ -14,6 +14,7 @@ const TILE_CLASS = {
 let previousGrid = [];
 let previousFilter = [];
 const tileElements = [];
+let gameEnded = false;
 
 function createGridTiles(grid) {
     console.log('Creating grid tiles');
@@ -77,6 +78,9 @@ if (handArea) {
 }
 
     function move(input) {
+        if (gameEnded) {
+            return;
+        }
         fetch('/move', {
             method: 'POST',
             headers: {
@@ -89,6 +93,11 @@ if (handArea) {
             console.log('Success:', data);
             updateGridDisplay(data.grid, data.filter);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
+            if (data.isGameOver) {
+                renderHand([], false, null);
+                showGameEnd(data);
+                return;
+            }
             renderHand(data.cards, data.waitingForTileClick, data.pendingCard);
             if (data.discard) {
                 updateDiscard(data.discard);
@@ -225,11 +234,44 @@ function setTileFilter(tile, filterValue) {
 }
 
     function handleTileClick(x, y) {
+        if (gameEnded) {
+            return;
+        }
         const tile = tileElements[y]?.[x];
         if (!tile || !tile.classList.contains('clickable-tile')) {
             return;
         }
         move({ type: 'tile_click', x: x, y: y });
+    }
+
+    function showGameEnd(data) {
+        gameEnded = true;
+        const overlay = document.getElementById('game-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('d-none');
+        overlay.classList.add('active');
+
+        const title = document.getElementById('game-overlay-title');
+        const message = document.getElementById('game-overlay-text');
+        const stats = document.getElementById('game-overlay-stats');
+        const button = document.getElementById('game-overlay-button');
+
+        title.textContent = data.isWin ? 'Victory!' : 'Game Over';
+        message.textContent = data.isWin
+            ? `You reached the finish and earned a ${data.gameOverStats.reward} token.`
+            : `You died :(`;
+
+        stats.innerHTML = `
+            <div>Floor: ${data.floor} / ${data.maxFloors}</div>
+            <div>Turns: ${data.gameOverStats.turnsPlayed}</div>
+            <div>Gold: ${data.gameOverStats.goldCollected}</div>
+            <div>Enemies defeated: ${data.gameOverStats.enemiesDefeated}</div>
+            <div>Difficulty: ${data.gameOverStats.difficulty}</div>
+        `;
+
+        button.textContent = data.isWin ? 'Claim Reward' : 'Play Again';
+        button.onclick = resetGame;
     }
 
     function renderHand(cards, waitingForTileClick, pendingCard) {
@@ -333,6 +375,11 @@ function loadGameState() {
             console.log("Loading state")
             updateGridDisplay(data.grid, data.filter);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
+            if (data.isGameOver) {
+                renderHand([], false, null);
+                showGameEnd(data);
+                return;
+            }
             renderHand(data.cards, data.waitingForTileClick, data.pendingCard);
             if (data.discard) {
                 updateDiscard(data.discard);
