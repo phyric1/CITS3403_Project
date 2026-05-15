@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import event
 # Use the built-in hash function in Flask to protect passwords
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -38,38 +40,17 @@ class Game(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False, index=True)
     game = db.Column(db.PickleType, nullable=False, index=True)
-    #per game stats
-    #boolean for is active
-    #all games are canon
 
-class Stats(db.Model): #lifetime
+class Stats(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #current gold
-    #gold collected
-    #Fastest Run
-    #Longest Run
-    #easy dungeons cleared
-    #mid dungeons cleared
-    #hard dungeons cleared
-    #total
-    #most used card
-    #over runs
-
-#class Stats(db.Model): #lifetime
-    #id=db.Column(db.Integer,primary_key=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #current gold
-    #gold collected
-    #Fastest Run
-    #Longest Run
-    #easy dungeons cleared
-    #mid dungeons cleared
-    #hard dungeons cleared
-    #total
-    #most used card
-    #over runs
+    difficulty = db.Column(db.String(20), nullable=False)
+    success = db.Column(db.Boolean, default=False, nullable=False)
+    turns = db.Column(db.Integer, default=0, nullable=False)
+    gold_collected = db.Column(db.Integer, default=0, nullable=False)
+    enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True
+    )
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
