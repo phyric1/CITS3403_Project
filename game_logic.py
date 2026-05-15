@@ -53,13 +53,13 @@ class DungeonGame():
         '''Adjusts dungeon based on dificulty'''
         maxLevels = 0
         darknessChance = 0
-        if difficulty == "Easy":
+        if difficulty == "Common":
             maxLevels = 2
             darknessChance = 0.01
-        if difficulty == "Normal":
+        if difficulty == "Uncommon":
             maxLevels = 4
             darknessChance = 0.4
-        if difficulty == "Hard":
+        if difficulty == "Rare":
             maxLevels = 6
             darknessChance = 0.7
         return darknessChance, maxLevels
@@ -96,11 +96,11 @@ class DungeonGame():
     def won(self):
         self.isGameOver = True
         self.isWin = True
-        if self.difficulty == "Easy":
+        if self.difficulty == "Common":
             reward = "Common"
-        elif self.difficulty == "Normal":
+        elif self.difficulty == "Uncommon":
             reward = "Uncommon"
-        elif self.difficulty == "Hard":
+        elif self.difficulty == "Rare":
             reward = "Rare"
         self.gameOverStats = {
             "status": "win",
@@ -281,9 +281,9 @@ class DungeonGame():
         x, y = self.grid.startRoom.center()
         self.player.x, self.player.y = x, y
         self.enemies = [] #new enemies on each floor
-        if self.difficulty == "Normal":
+        if self.difficulty == "Uncommon":
             self.enemies = self.grid.spawnEnemies(3)
-        if self.difficulty == "Hard":
+        if self.difficulty == "Rare":
             self.enemies = self.grid.spawnEnemies(4)
         self.grid.spawnGold(2)
         self.level += 1
