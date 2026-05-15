@@ -178,6 +178,7 @@ class DailyShopCard(db.Model):
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     card_id=db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
     date=db.Column(db.String(10), nullable=False)  # Format: YYYY-MM-DD
+    purchased=db.Column(db.Boolean, default=False, nullable=False)
     user=db.relationship('User')
     card=db.relationship('Card')
     __table_args__ = (

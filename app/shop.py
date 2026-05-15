@@ -10,15 +10,29 @@ from types import SimpleNamespace
 bp = Blueprint("shop", __name__)
 
 def get_daily_shop_cards(user_id):
-    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).order_by(Card.id).all()
     today=date.today().isoformat()
-    #Different daily shops for each user
+    existing_cards=DailyShopCard.query.filter_by(user_id=user_id,date=today).all()
+    if existing_cards:
+        cards=[]
+        for a in existing_cards:
+            card=db.session.get(Card,a.card_id)
+            if card is not None:
+                cards.append(card)
+        return cards
+    all_cards=db.session.query(Card).filter(Card.type != CardType.debuff).order_by(Card.id).all()
     shop_seed=random.Random(f"{today}-{user_id}")
 
     if len(all_cards) <= 4:
-        return all_cards
+        daily_cards=all_cards
+    else:
+        daily_cards=shop_seed.sample(all_cards, 4)
+    
+    for card in daily_cards:
+        daily_shop_card=DailyShopCard(user_id=user_id,card_id=card.id,date=today,purchased=False)
+        db.session.add(daily_shop_card)
+    db.session.commit()
 
-    return shop_seed.sample(all_cards, 4)
+    return daily_cards
 
 def get_card_price(card):
     rarity=card.rarity.value
@@ -93,7 +107,7 @@ def shop():
     user=current_user
     daily_cards=get_daily_shop_cards(user.id)
     today=date.today().isoformat()
-    purchase_card_ids=[purchase.card_id for purchase in DailyShopCard.query.filter_by(user_id=user.id,date=today).all()]
+    purchase_card_ids=[purchase.card_id for purchase in DailyShopCard.query.filter_by(user_id=user.id,date=today,purchased=True).all()]
 
     shop_items=[]
     for card in daily_cards:
@@ -126,14 +140,23 @@ def buy_card(card_id):
     if card is None:
         abort(404)
 
+    today=date.today().isoformat()
+
     daily_cards=get_daily_shop_cards(user.id)
     daily_cards_ids=[daily_card.id for daily_card in daily_cards]
     if card.id not in daily_cards_ids:
         flash("This card is not available in Daily Shop.", "warning")
         return redirect(url_for("shop.shop"))
 
-    today=date.today().isoformat()
-
+    daily_shop_card=DailyShopCard.query.filter_by(user_id=user.id,card_id=card.id,date=today).first()
+    if daily_shop_card is None:
+        flash("This card is not available in Daily Shop.", "warning")
+        return redirect(url_for("shop.shop"))
+    
+    if daily_shop_card.purchased:
+        flash("You have already bought this card today.","warning")
+        return redirect(url_for("shop.shop"))
+    
     price=get_card_price(card)
     if user.gold<price:
         flash("You don't have enough money.", "warning")
@@ -143,6 +166,7 @@ def buy_card(card_id):
     user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)
     
     db.session.add(user_card)
+    daily_shop_card.purchased=True
     db.session.commit()
 
     flash("Card purchased successfully.", "success")
