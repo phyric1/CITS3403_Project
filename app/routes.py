@@ -137,7 +137,8 @@ def move():
     if not existingGame:
         return jsonify({"error": "No active game"}), 404
     dungeon_game = existingGame.game
-    input = request.json.get("input")
+    data = request.get_json(silent=True) or {}
+    input = data.get("input")
     output = dungeon_game.advance_game(input)
     existingGame.game = dungeon_game
     flag_modified(existingGame, "game")
@@ -183,6 +184,7 @@ def move():
         lifetime_stats.survival_cards_played += getattr(dungeon_game.playerDeck, 'survival_counter', 0)
         lifetime_stats.combat_cards_played += getattr(dungeon_game.playerDeck, 'combat_counter', 0)
         lifetime_stats.utility_cards_played += getattr(dungeon_game.playerDeck, 'utility_counter', 0)
+        # lifetime_stats.score = # equation
 
         db.session.add(game_stats)
         db.session.delete(existingGame)
