@@ -2,7 +2,7 @@ from flask import render_template, abort, request, url_for, session, redirect, f
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from sqlalchemy import case
-from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
+from app.models import LifeTimeStats, User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
 from app.forms import LoginForm, RegisterForm
 from sqlalchemy import case, func, or_
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
@@ -142,7 +142,7 @@ def move():
     existingGame.game = dungeon_game
     flag_modified(existingGame, "game")
     if dungeon_game.isGameOver:
-        user = db.session.query(User).filter_by(id=current_user.id).first()
+        user = current_user
         if dungeon_game.isWin:
             user.gold += dungeon_game.player.gold
             if dungeon_game.difficulty == "Easy":
@@ -163,6 +163,27 @@ def move():
             combat_cards_played=getattr(dungeon_game.playerDeck, 'combat_counter', 0),
             utility_cards_played=getattr(dungeon_game.playerDeck, 'utility_counter', 0),
         )
+
+        lifetime_stats = current_user.lifetime_stats
+        if not lifetime_stats:
+            flash("Lifetime stats table could not be found.", "danger")
+            return jsonify({"error": "Stats missing"}), 500
+
+        lifetime_stats.games_played += 1
+        if dungeon_game.isWin:
+            lifetime_stats.wins += 1
+            if (lifetime_stats.fastest_win_turns is None) or (lifetime_stats.fastest_win_turns > dungeon_game.gameOverStats["turnsPlayed"]):
+                lifetime_stats.fastest_win_turns = dungeon_game.gameOverStats["turnsPlayed"]
+        else:
+            lifetime_stats.losses += 1
+        lifetime_stats.turns += dungeon_game.gameOverStats["turnsPlayed"]
+        lifetime_stats.gold_collected += dungeon_game.gameOverStats["goldCollected"]
+        lifetime_stats.enemies_defeated  += dungeon_game.gameOverStats["enemiesDefeated"]
+        lifetime_stats.movement_cards_played += getattr(dungeon_game.playerDeck, 'movement_counter', 0)
+        lifetime_stats.survival_cards_played += getattr(dungeon_game.playerDeck, 'survival_counter', 0)
+        lifetime_stats.combat_cards_played += getattr(dungeon_game.playerDeck, 'combat_counter', 0)
+        lifetime_stats.utility_cards_played += getattr(dungeon_game.playerDeck, 'utility_counter', 0)
+
         db.session.add(game_stats)
         db.session.delete(existingGame)
     db.session.commit()

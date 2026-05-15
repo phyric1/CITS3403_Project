@@ -171,8 +171,23 @@ class TradeCard(db.Model):
 
 
 @event.listens_for(User, "after_insert")
-def create_deck(mapper, connection, target):
+def create_user_adjacent_tables(mapper, connection, target):
     connection.execute(Deck.__table__.insert().values(user_id=target.id, name=f"{target.username}'s Deck"))
+    connection.execute(LifeTimeStats.__table__.insert().values(
+        user_id=target.id,
+        games_played=0,
+        wins=0,
+        losses=0,
+        turns=0,
+        fastest_win_turns=None,
+        gold_collected=0,
+        enemies_defeated=0,
+        movement_cards_played=0,
+        survival_cards_played=0,
+        combat_cards_played=0,
+        utility_cards_played=0,
+    ))
+
 
 class DailyShopCard(db.Model):
     id=db.Column(db.Integer, primary_key=True)
