@@ -1,7 +1,7 @@
 """update life_time_stats
 
 Revision ID: 70eb614c4840
-Revises: 0b74f35ca467
+Revises: fb1e318a05ad
 Create Date: 2026-05-15 21:35:51.646947
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '70eb614c4840'
-down_revision = '0b74f35ca467'
+down_revision = 'fb1e318a05ad'
 branch_labels = None
 depends_on = None
 
