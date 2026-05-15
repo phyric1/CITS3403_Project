@@ -33,9 +33,9 @@ def get_card_price(card):
 
 def card_pack_probability(token_type):
     probabilities={
-        "easy": {"common": 0.7, "uncommon": 0.2, "rare": 0.09, "legendary": 0.009, "master": 0.001},
-        "medium": {"common": 0.5, "uncommon": 0.3, "rare": 0.15, "legendary": 0.045, "master": 0.005},
-        "hard": {"common": 0.25, "uncommon": 0.4, "rare": 0.2, "legendary": 0.1, "master": 0.05}
+        "common": {"common": 0.7, "uncommon": 0.2, "rare": 0.09, "legendary": 0.009, "master": 0.001},
+        "uncommon": {"common": 0.5, "uncommon": 0.3, "rare": 0.15, "legendary": 0.045, "master": 0.005},
+        "rare": {"common": 0.25, "uncommon": 0.4, "rare": 0.2, "legendary": 0.1, "master": 0.05}
     }
     if token_type not in probabilities:
         raise ValueError("Invalid token type.")
@@ -158,19 +158,19 @@ def buy_card(card_id):
 @login_required
 def open_pack(token_type):
     user=current_user
-    if token_type not in ["easy","medium","hard"]:
+    if token_type not in ["common","uncommon","rare"]:
         abort(404)
-    if token_type=="easy":
-        if user.easy_tokens<=0:
-            flash("You don't have enough easy tokens.", "warning")
+    if token_type=="common":
+        if user.common_tokens<=0:
+            flash("You don't have enough common tokens.", "warning")
             return redirect(url_for("shop.shop"))
-    elif token_type=="medium":
-        if user.medium_tokens<=0:
-            flash("You don't have enough medium tokens.", "warning")
+    elif token_type=="uncommon":
+        if user.uncommon_tokens<=0:
+            flash("You don't have enough uncommon tokens.", "warning")
             return redirect(url_for("shop.shop"))
-    elif token_type=="hard":
-        if user.hard_tokens<=0:
-            flash("You don't have enough hard tokens.", "warning")
+    elif token_type=="rare":
+        if user.rare_tokens<=0:
+            flash("You don't have enough rare tokens.", "warning")
             return redirect(url_for("shop.shop"))
     
     cards=random_cards(token_type)
@@ -178,12 +178,12 @@ def open_pack(token_type):
         flash("No cards available to open in this pack.", "warning")
         return redirect(url_for("shop.shop"))
     
-    if token_type=="easy":
-        user.easy_tokens-=1
-    elif token_type=="medium":
-        user.medium_tokens-=1
-    elif token_type=="hard":
-        user.hard_tokens-=1
+    if token_type=="common":
+        user.common_tokens-=1
+    elif token_type=="uncommon":
+        user.uncommon_tokens-=1
+    elif token_type=="rare":
+        user.rare_tokens-=1
     
     for card in cards:
         user_card=UserCard(user_id=user.id,card_id=card.id,uses_remaining=card.uses)

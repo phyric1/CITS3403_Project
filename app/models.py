@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.enums import TradeStatus, CardRarity, CardType
 from flask_login import UserMixin
+from datetime import datetime
 
 MAX_DECK_SIZE = 40
 
@@ -13,9 +14,9 @@ class User(UserMixin,db.Model):
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)
     password_hash=db.Column(db.String(256),nullable=False)
     gold=db.Column(db.Integer,default=20,nullable=False)
-    easy_tokens=db.Column(db.Integer,default=0)
-    medium_tokens=db.Column(db.Integer,default=0)
-    hard_tokens=db.Column(db.Integer,default=0)
+    common_tokens=db.Column(db.Integer,default=0)
+    uncommon_tokens=db.Column(db.Integer,default=0)
+    rare_tokens=db.Column(db.Integer,default=0)
     profile_photo=db.Column(db.String(256),default="default.png",nullable=False)
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
@@ -38,38 +39,33 @@ class Game(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False, index=True)
     game = db.Column(db.PickleType, nullable=False, index=True)
-    #per game stats
-    #boolean for is active
-    #all games are canon
 
-class Stats(db.Model): #lifetime
+class GameStats(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #current gold
-    #gold collected
-    #Fastest Run
-    #Longest Run
-    #easy dungeons cleared
-    #mid dungeons cleared
-    #hard dungeons cleared
-    #total
-    #most used card
-    #over runs
+    difficulty = db.Column(db.String(20), nullable=False)
+    success = db.Column(db.Boolean, default=False, nullable=False)
+    turns = db.Column(db.Integer, default=0, nullable=False)
+    gold_collected = db.Column(db.Integer, default=0, nullable=False)
+    enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
+    movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    init_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
-#class Stats(db.Model): #lifetime
-    #id=db.Column(db.Integer,primary_key=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #current gold
-    #gold collected
-    #Fastest Run
-    #Longest Run
-    #easy dungeons cleared
-    #mid dungeons cleared
-    #hard dungeons cleared
-    #total
-    #most used card
-    #over runs
+class LifeTimeStats(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    difficulty = db.Column(db.String(20), nullable=False)
+    success = db.Column(db.Boolean, default=False, nullable=False)
+    turns = db.Column(db.Integer, default=0, nullable=False)
+    gold_collected = db.Column(db.Integer, default=0, nullable=False)
+    enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
+    movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,7 +94,6 @@ class UserCard(db.Model):
     card_id = db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
     uses_remaining = db.Column(db.Integer, nullable=False) # -1 for infinite uses
     tradable = db.Column(db.Boolean, nullable=False, default=False)
-    protected = db.Column(db.Boolean, nullable=False, default=False)
     locked = db.Column(db.Boolean, nullable=False, default=False)
 
     user = db.relationship('User', back_populates='cards')
