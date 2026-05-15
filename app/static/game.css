@@ -31,6 +31,10 @@
     background-image: url("/static/img/tiles/gold.png");
 }
 
+.finish {
+    background-image: url("/static/img/tiles/gold.png");
+}
+
 .game-layout {
     height: 100vh;
     display: flex;
@@ -67,6 +71,21 @@
 
 #hand-cards {
     align-content: flex-start;
+}
+
+#hand-cards.waiting {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#hand-cards .game-message {
+    width: 100%;
+    color: #f8fafc;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
 }
 
 #game-container {

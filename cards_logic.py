@@ -53,6 +53,7 @@ class PlayerDeck():
         self.hand = []
         self.discard = []
         self.master_cards = []
+        self.combat_bonus = 0.0
 
     def loadDeck(self):
         for card in self.deck:
@@ -65,17 +66,27 @@ class PlayerDeck():
         print(self.master_cards)
 
     def shuffle(self, cards):
-        hand = random.sample(cards, min(3, len(cards)))
+        if len(cards) <= 3:
+            hand = list(cards)
+            return hand
+
+        remaining = list(cards)
+        hand = []
+        for _ in range(min(3, len(remaining))):
+            weights = [
+                1 + self.combat_bonus if card.card.type == app.enums.CardType.combat else 1
+                for card in remaining
+            ]
+            choice = random.choices(remaining, weights=weights, k=1)[0]
+            hand.append(choice)
+            remaining.remove(choice)
         return hand
 
     def useSlot(self, slot):
-        #print(self.hand[slot].card.name)
         card = self.hand[slot]
         self.deck.remove(self.hand[slot])
         self.discard.append(card)
         self.deckSize = len(self.deck)
-        #for master of movement, survival and cards, apply relevant effect
-        print(self.master_cards)
         return card
     
     def serialize_card(self, user_card):

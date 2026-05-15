@@ -8,7 +8,7 @@ const TILE_CLASS = {
     "5": "key",
     "6": "exit",
     "7": "gold",
-    "8": "exit"
+    "8": "finish"
 };
 
 let previousGrid = [];
@@ -88,10 +88,8 @@ if (handArea) {
         .then(data => {
             console.log('Success:', data);
             updateGridDisplay(data.grid, data.filter);
-            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
-            if (data.cards) {
-                updateCards(data.cards);
-            }
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
+            renderHand(data.cards, data.waitingForTileClick, data.pendingCard);
             if (data.discard) {
                 updateDiscard(data.discard);
             }
@@ -227,10 +225,74 @@ function setTileFilter(tile, filterValue) {
 }
 
     function handleTileClick(x, y) {
-         move({ type: 'tile_click', x: x, y: y });
+        const tile = tileElements[y]?.[x];
+        if (!tile || !tile.classList.contains('clickable-tile')) {
+            return;
+        }
+        move({ type: 'tile_click', x: x, y: y });
     }
 
-    function updateGameState(turn, hp, keys, gold, stealth, floor, deckMax, deckSize) {
+    function renderHand(cards, waitingForTileClick, pendingCard) {
+        const handArea = document.getElementById('hand-cards');
+        if (!handArea) return;
+
+        handArea.classList.toggle('waiting', Boolean(waitingForTileClick));
+        handArea.innerHTML = '';
+
+        if (waitingForTileClick) {
+            const cardName = pendingCard ? ` ${pendingCard}` : '';
+            const message = `Select a tile to continue.`;
+            handArea.innerHTML = `<div class="game-message">${message}</div>`;
+            return;
+        }
+
+        if (!cards || cards.length === 0) {
+            return;
+        }
+
+        updateCards(cards);
+    }
+
+    function updateCards(cards) {
+        const handArea = document.getElementById('hand-cards');
+        if (!handArea) return;
+
+        handArea.innerHTML = '';
+        cards.forEach(card => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'card-wrapper';
+
+            const usesHtml = card.uses_remaining !== undefined && card.uses_remaining !== null ?
+                `<div class="card-uses">${card.uses_remaining === -1 ? '∞' : `${card.uses_remaining}/${card.uses}`}</div>` : '';
+
+            const maxInDeck = card.max_in_deck === -1 ? '∞' : card.max_in_deck;
+            const cardHtml = `
+                <div class="game-card rarity-${card.rarity}">
+                    ${usesHtml}
+                    <div class="card-image type-${card.type}">
+                        <img src="/static/img/${card.type}.png" alt="${card.type}">
+                    </div>
+                    <div class="card-title-box" title="${card.name}">
+                        <p>${card.name}</p>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="card-body" title="${card.effect}">
+                        <div class="effect-wrapper">
+                            <p id="effect">${card.effect}</p>
+                        </div>
+                        <div class="card-footer">
+                            <p id="footer">${card.type.charAt(0).toUpperCase() + card.type.slice(1)} - Max ${maxInDeck}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            cardWrapper.innerHTML = cardHtml;
+            handArea.appendChild(cardWrapper);
+        });
+    }
+
+    function updateGameState(turn, hp, keys, gold, stealth, floor, floorMax, deckMax, deckSize) {
         const turnCount = document.getElementById('turn-value');
         turnCount.textContent = turn;
 
@@ -249,11 +311,14 @@ function setTileFilter(tile, filterValue) {
         const levelCount = document.getElementById('floor-value');
         levelCount.textContent = floor;
 
-        const deckMaxSize = document.getElementById('deck-max');
-        deckMaxSize.textContent = deckMax;
+        const maxLevel = document.getElementById('floor-max');
+        maxLevel.textContent = floorMax;
 
         const deckSizeCount = document.getElementById('deck-size');
         deckSizeCount.textContent = deckSize;
+
+        const deckMaxSize = document.getElementById('deck-max');
+        deckMaxSize.textContent = deckMax;
     }
 
 function loadGameState() {
@@ -267,10 +332,8 @@ function loadGameState() {
             createGridTiles(data.grid);
             console.log("Loading state")
             updateGridDisplay(data.grid, data.filter);
-            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.deckMax, data.deckSize);
-            if (data.cards) {
-                updateCards(data.cards);
-            }
+            updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
+            renderHand(data.cards, data.waitingForTileClick, data.pendingCard);
             if (data.discard) {
                 updateDiscard(data.discard);
             }
