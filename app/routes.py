@@ -2,7 +2,7 @@ from flask import render_template, abort, request, url_for, session, redirect, f
 from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from sqlalchemy import case
-from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game
+from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
 from app.forms import LoginForm, RegisterForm
 from sqlalchemy import case, func, or_
 from app.models import User, Card, UserCard, Deck, DeckCard, Trade, TradeCard
@@ -141,6 +141,26 @@ def move():
     output = dungeon_game.advance_game(input)
     existingGame.game = dungeon_game
     flag_modified(existingGame, "game")
+    if dungeon_game.isGameOver:
+        user = db.session.query(User).filter_by(id=current_user.id).first()
+        user.gold += dungeon_game.player.gold
+        if dungeon_game.isWin:
+            if dungeon_game.difficulty == "Easy":
+                user.common_tokens += 1
+            elif dungeon_game.difficulty == "Normal":
+                user.uncommon_tokens += 1
+            elif dungeon_game.difficulty == "Hard":
+                user.rare_tokens += 1
+        game_stats = GameStats(
+            user_id=current_user.id,
+            difficulty=dungeon_game.difficulty,
+            success=dungeon_game.isWin,
+            turns=dungeon_game.gameOverStats["turnsPlayed"],
+            gold_collected=dungeon_game.gameOverStats["goldCollected"],
+            enemies_defeated=dungeon_game.gameOverStats["enemiesDefeated"]
+        )
+        db.session.add(game_stats)
+        db.session.delete(existingGame)
     db.session.commit()
     return output
 

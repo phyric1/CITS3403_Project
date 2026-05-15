@@ -87,6 +87,11 @@ class PlayerDeck():
         self.deck.remove(self.hand[slot])
         self.discard.append(card)
         self.deckSize = len(self.deck)
+        if card.uses_remaining != -1:
+            card.uses_remaining -= 1
+            if card.uses_remaining == 0:
+                db.session.delete(card)
+                db.session.commit()
         return card
     
     def serialize_card(self, user_card):
