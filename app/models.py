@@ -1,11 +1,10 @@
-
-
 from sqlalchemy import event
 # Use the built-in hash function in Flask to protect passwords
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.enums import TradeStatus, CardRarity, CardType
 from flask_login import UserMixin
+from datetime import datetime
 
 MAX_DECK_SIZE = 40
 
@@ -41,7 +40,7 @@ class Game(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False, index=True)
     game = db.Column(db.PickleType, nullable=False, index=True)
 
-class Stats(db.Model):
+class GameStats(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     difficulty = db.Column(db.String(20), nullable=False)
@@ -53,7 +52,20 @@ class Stats(db.Model):
     survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
     combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
     utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    init_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
+class LifeTimeStats(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    difficulty = db.Column(db.String(20), nullable=False)
+    success = db.Column(db.Boolean, default=False, nullable=False)
+    turns = db.Column(db.Integer, default=0, nullable=False)
+    gold_collected = db.Column(db.Integer, default=0, nullable=False)
+    enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
+    movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
