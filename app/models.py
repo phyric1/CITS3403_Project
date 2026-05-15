@@ -1,4 +1,4 @@
-import datetime
+
 
 from sqlalchemy import event
 # Use the built-in hash function in Flask to protect passwords
@@ -53,7 +53,6 @@ class Stats(db.Model):
     survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
     combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
     utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
 
 class Card(db.Model):
@@ -83,7 +82,6 @@ class UserCard(db.Model):
     card_id = db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
     uses_remaining = db.Column(db.Integer, nullable=False) # -1 for infinite uses
     tradable = db.Column(db.Boolean, nullable=False, default=False)
-    protected = db.Column(db.Boolean, nullable=False, default=False)
     locked = db.Column(db.Boolean, nullable=False, default=False)
 
     user = db.relationship('User', back_populates='cards')
