@@ -143,8 +143,8 @@ def move():
     flag_modified(existingGame, "game")
     if dungeon_game.isGameOver:
         user = db.session.query(User).filter_by(id=current_user.id).first()
-        user.gold += dungeon_game.player.gold
         if dungeon_game.isWin:
+            user.gold += dungeon_game.player.gold
             if dungeon_game.difficulty == "Easy":
                 user.common_tokens += 1
             elif dungeon_game.difficulty == "Normal":

@@ -420,6 +420,23 @@ function loadGameState() {
 window.startGame = startGame;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // If on the start page, update the displayed max floor count when difficulty changes
+    const difficultySelect = document.getElementById('difficulty');
+    function getMaxFloors(difficulty) {
+        if (difficulty === 'Easy') return 2;
+        if (difficulty === 'Normal') return 4;
+        if (difficulty === 'Hard') return 6;
+        return 0;
+    }
+    if (difficultySelect) {
+        const floorCountElem = document.getElementById('floor-count');
+        const updateFloorCount = () => {
+            if (floorCountElem) floorCountElem.textContent = getMaxFloors(difficultySelect.value);
+        };
+        difficultySelect.addEventListener('change', updateFloorCount);
+        updateFloorCount();
+    }
+
     if (document.getElementById('game-container')) {
         loadGameState();
     }
