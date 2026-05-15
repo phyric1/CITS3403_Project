@@ -1,0 +1,225 @@
+/* Sprites */
+.floor {
+    background-image: url("/static/img/tiles/floor.png");
+}
+
+.wall {
+    background-image: url("/static/img/tiles/wall.png");
+}
+
+.start {
+    background-image: url("/static/img/tiles/start.png");
+}
+
+.end {
+    background-image: url("/static/img/tiles/end.png");
+}
+
+.enemy {
+    background-image: url("/static/img/tiles/enemy.png");
+}
+
+.key {
+    background-image: url("/static/img/tiles/key.png");
+}
+
+.exit {
+    background-image: url("/static/img/tiles/exit.png");
+}
+
+.gold {
+    background-image: url("/static/img/tiles/gold.png");
+}
+
+.game-layout {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.top-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+#card-display {
+    height: 15rem;
+    flex-shrink: 0;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.deck-info {
+    min-width: 140px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    position: sticky;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+
+#hand-cards {
+    align-content: flex-start;
+}
+
+#game-container {
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    padding: 1rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    background: radial-gradient(
+        circle at center,
+        rgba(255,255,255,0.04),
+        rgba(0,0,0,0.25)
+    );
+}
+
+.right-panel {
+    display: flex;
+}
+
+.left-panel,
+.right-panel {
+    min-height: 0;
+    height: 100%;
+}
+
+#game-info {
+    gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: 100%;
+    align-self: flex-start;
+}
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.stat-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0.7rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.6rem;
+}
+
+.stat-label {
+    color: #9ca3af;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.info-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 0.3rem 0;
+}
+
+.discard-slot {
+    min-height: 120px;
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 2px dashed rgba(255,255,255,0.08);
+}
+
+.stat-value {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+#grid {
+display: grid;
+grid-template-columns: repeat(33, 24px);
+}
+
+.grid-tile {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.bright {
+    filter: brightness(125%) !important;
+}
+
+.blink-fast {
+    animation: blink 0.5s infinite !important;
+}
+
+@keyframes blink {
+    50% {
+        filter: brightness(250%) !important;
+    }
+}
+
+.clickable-tile {
+    cursor: pointer;
+}
+
+.clickable-tile:hover {
+    outline: 2px solid rgba(255,255,255,0.5);
+    transform: scale(1.05);
+}
+
+/* Game page specific card styles */
+#hand-cards .game-card {
+    min-width: 140px;
+}
+
+#hand-cards .card-body {
+    padding: 5%;
+    font-size: 90%;
+}
+
+#hand-cards .card-footer {
+    font-size: 0.8rem;
+}
+
+#hand-cards .card-title-box {
+    font-size: 0.8rem;
+}
+
+#hand-cards .rarity-master .card-title-box {
+    font-size: 0.7rem;
+}
+
+#hand-cards .card-uses {
+    font-size: 1rem;
+}
+
+#discard {
+    width: 70%;
+}
+
+.col-lg-9,
+.col-lg-3 {
+    height: 100%;
+}
