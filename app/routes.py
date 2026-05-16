@@ -3,7 +3,7 @@ from flask_login import login_user,logout_user,login_required,current_user
 from app import db
 from app.models import LifeTimeStats, User, Card, Game, GameStats
 from app.forms import LoginForm, RegisterForm, ResetPasswordForm
-from sqlalchemy import desc, case
+from sqlalchemy import desc, asc, case, func
 from app.enums import CardType
 from game_logic import DungeonGame
 from app.utils import get_deck_cards
@@ -237,7 +237,7 @@ def leaderboard():
                 ("gold_collected", "Gold")
             ]
         },
-        "cards": {
+        "cards played": {
             "default_sort": "combat_cards_played",
             "columns": [
                 ("combat_cards_played", "Combat"),
@@ -266,7 +266,7 @@ def leaderboard():
         "turns": desc(LifeTimeStats.turns),
         "gold_collected": desc(LifeTimeStats.gold_collected),
         "enemies_defeated": desc(LifeTimeStats.enemies_defeated),
-        "fastest_win_turns": LifeTimeStats.fastest_win_turns,
+        "fastest_win_turns": (asc(func.coalesce(LifeTimeStats.fastest_win_turns, 999999))),
         "movement_cards_played": desc(LifeTimeStats.movement_cards_played),
         "survival_cards_played": desc(LifeTimeStats.survival_cards_played),
         "combat_cards_played": desc(LifeTimeStats.combat_cards_played),
