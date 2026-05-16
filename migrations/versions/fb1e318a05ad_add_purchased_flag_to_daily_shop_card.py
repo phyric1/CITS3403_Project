@@ -1,7 +1,7 @@
 """add purchased flag to daily shop card
 
 Revision ID: fb1e318a05ad
-Revises: f15bb47f3a5a
+Revises: 0b74f35ca467
 Create Date: 2026-05-15 18:51:36.365407
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'fb1e318a05ad'
-down_revision = 'f15bb47f3a5a'
+down_revision = '0b74f35ca467'
 branch_labels = None
 depends_on = None
 

@@ -582,6 +582,8 @@ class Grid():
             dy = [0, -1, 1, 0]
             for i in range(4):
                 zx, zy = x + dx[i], y + dy[i]
+                if not (0 <= zx < self.WIDTH and 0 <= zy < self.HEIGHT):
+                    continue
                 if self.grid[zy][zx] == 0 and dist_map[zy][zx] == -1:
                     dist_map[zy][zx] = dist_map[y][x] + 1
                     queue.append((zx, zy))
