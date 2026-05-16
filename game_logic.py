@@ -1,12 +1,11 @@
 import random
 from flask import request, jsonify
-from entities import Enemy, Gold, Goblin
+from entities import Enemy, Goblin
 from cards_logic import PlayerDeck
 import cards_logic
 from collections import deque
 from app.utils import get_user_deck
 import app.enums
-
 class Room():
     def __init__(self, width, height, x, y,):
             self.x = x
@@ -19,19 +18,14 @@ class Room():
             centerY = (self.y + (self.y2)) // 2
             return centerX, centerY
 
-#delete strip mine
-#delete dash attack
-#delete gust
-#delete bear trap
 class DungeonGame():
     '''class representing a game instance and all its properties'''
     def __init__(self, difficulty):
-        #used to start game
         self.player = Player(0, 0)
         self.turnNum = 0
         self.difficulty = difficulty
         self.level = 0
-
+        
         self.darknessChance, self.maxLevels = self.dificulty_modifier(difficulty)
         self.isVisible = True
         self.filter = [[0] * 32 for _ in range(20)]
@@ -48,6 +42,7 @@ class DungeonGame():
         self.isGameOver = False
         self.isWin = False
         self.gameOverStats = {}
+        self.sound_events = []
 
     def dificulty_modifier(self, difficulty):
         '''Adjusts dungeon based on dificulty'''
@@ -72,9 +67,27 @@ class DungeonGame():
         else:
             grid = self.grid.gridProxy()
         discard_data = self.playerDeck.serialize_card(self.playerDeck.discard[-1]) if self.playerDeck.discard else None
+        soundEvents = self.sound_events
+        self.sound_events = []
+        visible_entities = [
+            {"type": "player", "x": self.player.x, "y": self.player.y, "direction": self.player.direction}
+        ]
+        if self.isVisible:
+            visible_entities.extend(
+                {"type": "enemy", "x": enemy.x, "y": enemy.y, "direction": enemy.direction}
+                for enemy in self.enemies
+            )
+        else:
+            visible_entities.extend(
+                {"type": "enemy", "x": enemy.x, "y": enemy.y, "direction": enemy.direction}
+                for enemy in self.enemies
+                if self.grid.isVisible[enemy.y][enemy.x]
+            )
         return jsonify({
                     "grid": grid,
                     "filter": self.filter,
+                    "entities": visible_entities,
+                    "events": soundEvents,
                     "turn": self.turnNum,
                     "hp": self.player.health,
                     "keys": self.player.keys,
@@ -111,6 +124,11 @@ class DungeonGame():
             "turnsPlayed": self.turnNum,
             "difficulty": self.difficulty,
         }
+        self.emitSoundEvent("game_win")
+
+    def emitSoundEvent(self, event):
+        if event not in self.sound_events:
+            self.sound_events.append(event)
 
     def gameOver(self):
         self.isGameOver = True
@@ -124,6 +142,7 @@ class DungeonGame():
             "turnsPlayed": self.turnNum,
             "difficulty": self.difficulty,
         }
+        self.emitSoundEvent("game_lose")
 
     def cardProcessor(self, card):
         match card.card.name:
@@ -147,8 +166,8 @@ class DungeonGame():
                     for dx in range(-radius, radius + 1):
                         if abs(dy) + abs(dx) <= radius:
                             ny, nx = y + dy, x + dx
-                            if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 0:
-                                self.filter[ny][nx] = 5
+                        if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 0:
+                            self.filter[ny][nx] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Acrobatics"
             case "Sprint":
@@ -170,8 +189,10 @@ class DungeonGame():
             case "Timestop":
                 self.timeStopped = True
             case "Rest":
+                self.emitSoundEvent("buff")
                 self.player.health += 1
             case "Heal":
+                self.emitSoundEvent("buff")
                 self.player.health += 2
             case "Guard":
                 self.player.dodgeChance += 0.05
@@ -202,20 +223,18 @@ class DungeonGame():
                 y = self.player.y
                 dx = [-1, 1, 0, 0]
                 dy = [0, 0, -1, 1]
+                i = 0
                 for dir in range(4):
-                    #if self.grid.grid[y + dy[dir]][x + dx[dir]] == 4: 
                         self.filter[y + dy[dir]][x + dx[dir]] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Dagger"
-            case "Dash Attack": #like sprint but deals damage to all enemies in path
-                self.waiting_for_tile_click = True
-                self.pending_card = "Dash Attack"
-            case "Meteor": #locate all enemies and rturn their tiles
+            case "Meteor":
                 for enemy in self.enemies:
                     self.filter[enemy.y][enemy.x] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Meteor"
-            case "Flash": #deaggros all enemies in an area around the player
+            case "Flash": #de-aggros all enemies in an area around the player
+                self.emitSoundEvent("flash")
                 radius = 3
                 x = self.player.x
                 y = self.player.y
@@ -236,6 +255,7 @@ class DungeonGame():
                         if grid[i][j] == 1:
                             grid[i][j] = 0
                 for enemy in self.enemies:
+                    self.emitSoundEvent("explosion")
                     if min_x <= enemy.x <= max_x and min_y <= enemy.y <= max_y:
                         defeated = enemy.takeDamage(4)
                         if defeated:
@@ -249,6 +269,7 @@ class DungeonGame():
             case "Eye for Treasure":
                 self.grid.spawnGold(1)
             case "Light the Way":
+                self.emitSoundEvent("flash")
                 self.isVisible = True
             case "Key to Victory":
                 self.player.keys += 1
@@ -264,6 +285,7 @@ class DungeonGame():
         if "Master of Cards" in self.playerDeck.master_cards:
             if card in self.playerDeck.discard and random.random() < 0.15:
                 self.playerDeck.discard.remove(card)
+                self.emitSoundEvent("card_play")
                 self.playerDeck.deck.append(card)
                 self.playerDeck.deckSize = len(self.playerDeck.deck)
         return card
@@ -272,7 +294,7 @@ class DungeonGame():
         if level == 0: #first level is always visible
             self.isVisible = True
         else:
-            if self.darknessChance < random.random():
+            if self.darknessChance > random.random():
                 self.isVisible = False
         if level == self.maxLevels - 1:
             self.grid = Grid(33, 20, 4, True)
@@ -291,14 +313,12 @@ class DungeonGame():
     def process_tile_click(self, x, y):
         action_performed = False
         if self.pending_card == "Sprint":
-            # move player to x, y
             self.grid.grid[self.player.y][self.player.x] = 0
             self.player.x = x
             self.player.y = y
             self.grid.grid[y][x] = 2
             action_performed = True
         elif self.pending_card == "Acrobatics":
-            # move player to x, y
             self.grid.grid[self.player.y][self.player.x] = 0
             self.player.x = x
             self.player.y = y
@@ -308,6 +328,7 @@ class DungeonGame():
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(self.player.attackDamage)
+                    self.emitSoundEvent("attack")
                     if defeated:
                         self.enemy_defeat(enemy)
                     action_performed = True
@@ -316,6 +337,7 @@ class DungeonGame():
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(4)
+                    self.emitSoundEvent("explosion")
                     if defeated:
                         self.enemy_defeat(enemy)
                     action_performed = True
@@ -324,6 +346,7 @@ class DungeonGame():
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(self.player.attackDamage)
+                    self.emitSoundEvent("attack")
                     if defeated:
                         self.enemy_defeat(enemy)
                     action_performed = True
@@ -339,6 +362,7 @@ class DungeonGame():
         if "Master of Combat" in self.playerDeck.master_cards:
             reward += enemy.maxHealth
         self.player.gold += reward
+        self.emitSoundEvent("enemy_defeat")
 
     def advance_game(self, input):
         '''advances the game by one turn'''
@@ -347,25 +371,31 @@ class DungeonGame():
         newFloor = False
         input_type = input.get("type")
         if input_type == "move":
-            newFloor = self.player.movePlayer(input.get("direction"), grid)  #move player
-            if newFloor == "win":
+            newFloor, won, moved, tile = self.player.movePlayer(input.get("direction"), grid)  #move player
+            if moved:
+                if tile == 0 or tile == 3:
+                    self.emitSoundEvent("player_move")
+                elif tile == 7 or tile == 5:
+                    self.emitSoundEvent("pickup")
+                elif tile == 6:
+                    self.emitSoundEvent("floor_cleared")
+            if won:
                 self.won()
                 return self.displayGame()
         elif input_type == "pick_card" and self.tailwind == 0:
+            self.emitSoundEvent("play_card")
             if self.hand:
                 card = self.cardProcessor(self.playerDeck.useSlot(int(input.get("slot"))))
-                #all cards flip over
-                # Track card-type usage counters so they can be persisted at game end
                 try:
                     if card and getattr(card, 'card', None):
-                        ctype = card.card.type
-                        if ctype == app.enums.CardType.combat:
+                        type = card.card.type
+                        if type == app.enums.CardType.combat:
                             self.playerDeck.combat_counter += 1
-                        elif ctype == app.enums.CardType.movement:
+                        elif type == app.enums.CardType.movement:
                             self.playerDeck.movement_counter += 1
-                        elif ctype == app.enums.CardType.survival:
+                        elif type == app.enums.CardType.survival:
                             self.playerDeck.survival_counter += 1
-                        elif ctype == app.enums.CardType.utility:
+                        elif type == app.enums.CardType.utility:
                             self.playerDeck.utility_counter += 1
                 except Exception:
                     pass
@@ -402,11 +432,13 @@ class DungeonGame():
         
         if not self.timeStopped:
             for enemy in self.enemies: #move enemies
-                enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter)
+                if enemy.moveEnemy(grid, self.grid.distance_map(self.player), self.filter):
+                    self.emitSoundEvent("alert")
                 if enemy.state == "chase" and self.player.stealth > 0:
                     self.player.stealth -= 1
                     enemy.state = "idle"
-                enemy.attack(self.player)
+                if enemy.attack(self.player):
+                    self.emitSoundEvent("player_hurt")
                 if self.player.health <= 0:
                     self.gameOver()
                     return self.displayGame()
@@ -438,13 +470,14 @@ class Player():
         self.attackRange = 1
         self.dodgeChance = 0.0
         self.enemies_defeated = 0
+        self.direction = 3
 
     def takeDamage(self, damage):
         if self.dodgeChance < random.random():
             self.health -= damage
         else:
-            print("dodge")
-        return self.health
+            return False
+        return True
     
     def alert(self): #alerts surrounding enemies
         pass
@@ -453,7 +486,7 @@ class Player():
         #directions
         dir = None
         if direction == "None":
-            return
+            return False, False, False, None
         if direction == "left":
             dir = 0
         elif direction == "right":
@@ -463,12 +496,15 @@ class Player():
         elif direction == "down":
             dir = 3
 
+        self.direction = dir
+
         dx = [-1, 1, 0, 0]
         dy = [0, 0, -1, 1]
         
         move = False
         newFloor = False
         won = False
+        tile = grid[self.y + dy[dir]][self.x + dx[dir]] 
         if grid[self.y + dy[dir]][self.x + dx[dir]] == 0: 
             move = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
@@ -483,8 +519,7 @@ class Player():
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 6:
             move = True
             newFloor = True
-        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 8:
-            #final tile, win the game
+        elif grid[self.y + dy[dir]][self.x + dx[dir]] == 8: #final tile, win the game
             move = True
             won = True
         if move:
@@ -492,13 +527,12 @@ class Player():
             self.x += dx[dir]
             self.y += dy[dir]
             grid[self.y][self.x] = 2
-        if newFloor:
-            return True
+        if newFloor: #return format: newFloor, won, move_succesful, tile_type
+            return True, False, move, tile
         if won:
-            return "win"
-        return False
+            return False, True, move, tile
+        return False, False, move, tile
         
-
 class Grid():
     '''Class that handles all logic to do with the game grid'''
     startRoom = Room
@@ -512,7 +546,6 @@ class Grid():
         self.fake_grid = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
     def spawnEnemies(self, enemyCount):
-        #change types of enemies
         enemyList = []
         for i in range(enemyCount):
             enemySpawn = self.roomsList[random.randint(0, len(self.roomsList)-1)]
@@ -561,8 +594,8 @@ class Grid():
                     self.isVisible[i][j] = True
     
     def gridProxy(self): #returns proxy grid with limited FOV
-        for i in range(0,20):
-            for j in range(0,32):
+        for i in range(self.HEIGHT):
+            for j in range(self.WIDTH):
                 if self.isVisible[i][j]:
                     self.fake_grid[i][j] = self.grid[i][j]
                 else:
