@@ -4,61 +4,98 @@
 
 {% block content %}
 <div class="container py-4 min-vh-100">
+
   <div class="text-center mb-4">
     <h1 class="fw-bold">Leaderboard</h1>
     <p class="text-muted mb-0">Top players ranked by performance</p>
   </div>
 
-  <div class="text-white rounded shadow">
+  <div class="d-flex gap-2 justify-content-center flex-wrap mb-3">
+    {% for cat in ["overall", "game", "cards"] %}
+      <a href="{{ url_for('main.leaderboard', category=cat, sort=sort, direction=direction) }}"
+         class="btn {% if category == cat %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        {{ display_names[cat] }}
+      </a>
+    {% endfor %}
+  </div>
 
+  <div class="text-white rounded shadow">
     <div class="table-responsive">
       <table class="table table-dark table-striped table-hover align-middle mb-0">
-
         <thead class="table-light text-dark">
           <tr>
-            <th class="text-center" style="width: 80px;">
-              <a class="text-decoration-none {% if sort == 'ranking' %}fw-bold text-decoration-underline{% endif %}"
-                 href="{{ url_for('main.leaderboard', sort='ranking') }}">
-                Rank
+            <th class="text-center" style="width: 80px;">Rank</th>
+
+            {% set next_direction = "asc" if sort != 'username' or direction == 'desc' else 'desc' %}
+            <th class="text-center">
+              <a class="text-decoration-none {% if sort == 'username' %}fw-bold text-decoration-underline{% endif %}"
+                 href="{{ url_for('main.leaderboard', sort='username', category=category, direction=next_direction) }}">
+                Player {% if sort == 'username' %}{{ "▲" if direction == "asc" else "▼" }}{% endif %}
               </a>
             </th>
 
-            <th class="text-center">
-              <a class="text-decoration-none {% if sort == 'player' %}fw-bold text-decoration-underline{% endif %}"
-                 href="{{ url_for('main.leaderboard', sort='player') }}">
-                Player
-              </a>
-            </th>
+            {% for key, label in columns %}
+              {% set next_direction = "asc" if sort != key or direction == "desc" else "desc" %}
+              <th class="text-center">
+                <a class="text-decoration-none {% if sort == key %}fw-bold text-decoration-underline{% endif %}"
+                   href="{{ url_for('main.leaderboard', sort=key, category=category, direction=next_direction) }}">
+                  {{ label }} {% if sort == key %}{{ "▲" if direction == "asc" else "▼" }}{% endif %}
+                </a>
+              </th>
+            {% endfor %}
 
-            <th class="text-center">
-              <a class="text-decoration-none {% if sort == 'stat1' %}fw-bold text-decoration-underline{% endif %}"
-                 href="{{ url_for('main.leaderboard', sort='stat1') }}">
-                Stat 1
-              </a>
-            </th>
-
-            <th class="text-center">
-              <a class="text-decoration-none {% if sort == 'stat2' %}fw-bold text-decoration-underline{% endif %}"
-                 href="{{ url_for('main.leaderboard', sort='stat2') }}">
-                Stat 2
-              </a>
-            </th>
           </tr>
         </thead>
 
         <tbody>
-          {% for row in players %}
+          {% for row in entries %}
           <tr>
-            <th class="text-center">{{ row.ranking }}</th>
-            <td class="text-center">{{ row.player }}</td>
-            <td class="text-center">{{ row.stat1 }}</td>
-            <td class="text-center">{{ row.stat2 }}</td>
+            <th class="text-center">
+                {{ row.ranking }}
+            </th>
+
+            <td class="text-center">
+              {{ row.username }}
+            </td>
+
+            {% for key, label in columns %}
+              <td class="text-center">
+                {% if key == "win_rate" %}
+                  {{ "%.1f"|format(row[key] * 100) }}%
+                {% else %}
+                  {{ row[key] }}
+                {% endif %}
+              </td>
+            {% endfor %}
+
           </tr>
           {% endfor %}
         </tbody>
 
       </table>
     </div>
+
+  </div>
+
+  <div class="d-flex justify-content-center mt-4">
+
+    {% if pagination.has_prev %}
+      <a href="?page={{ pagination.prev_num }}&sort={{ sort }}&category={{ category }}&direction={{ direction }}"
+         class="btn btn-outline-primary me-2">
+        Previous
+      </a>
+    {% endif %}
+
+    <span class="align-self-center">
+      Page {{ pagination.page }} of {{ pagination.pages }}
+    </span>
+
+    {% if pagination.has_next %}
+      <a href="?page={{ pagination.next_num }}&sort={{ sort }}&category={{ category }}&direction={{ direction }}"
+         class="btn btn-outline-primary ms-2">
+        Next
+      </a>
+    {% endif %}
 
   </div>
 

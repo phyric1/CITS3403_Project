@@ -2,11 +2,23 @@
 
 {% block title %}{{ player.username }}'s Profile{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
+{% block extra_links %}
+<script>
+window.gameData = {{ game_data | tojson }};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='profile.js') }}"></script>
+{% endblock %}
 
+{% block content %}
+<div class="container py-4">
+
+    <!-- Profile header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ player.username }}'s Profile</h2>
+        <div>
+            <h2 class="mb-1">{{ player.username }}</h2>
+            <div class="text-muted">Player Profile Overview</div>
+        </div>
         <div class="text-end">
             {% if is_owner %}
             <form
@@ -18,10 +30,9 @@
                 <label for="profile-photo-input" style="cursor: pointer;">
                     <img
                         src="{{ url_for('static', filename='profile_photo/' ~ player.profile_photo) }}"
-                        alt="{{ player.username }}'s profile photo"
-                        class="rounded-circle border"
-                        style="width: 90px; height: 90px; object-fit: cover;"
-                        title="Click to change profile photo">
+                        alt="Profile photo"
+                        class="rounded-circle border shadow-sm"
+                        style="width: 96px; height: 96px; object-fit: cover;">
                 </label>
 
                 <input
@@ -32,69 +43,184 @@
                     class="d-none"
                     onchange="document.getElementById('profile-photo').submit();">
             </form>
-
-            <div class="small text-muted mt-1">Click the profile photo to change</div>
-        {% else %}
+            <div class="small text-muted mt-1">Click photo to change</div>
+            {% else %}
             <img
                 src="{{ url_for('static', filename='profile_photo/' ~ player.profile_photo) }}"
-                alt="{{ player.username }}'s profile photo"
-                class="rounded-circle border"
-                style="width: 90px; height: 90px; object-fit: cover;">
-        {% endif %}
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header">
-            Player Overview
-        </div>
-
-        <div class="card-body">
-            <p><strong>Username:</strong> {{ player.username }}</p>
-            <p><strong>Gold:</strong> {{ player.gold }}</p>
-            <p><strong>Common Tokens:</strong> {{ player.common_tokens }}</p>
-            <p><strong>Uncommon Tokens:</strong> {{ player.uncommon_tokens }}</p>
-            <p><strong>Rare Tokens:</strong> {{ player.rare_tokens }}</p>
-            <p><strong>Fastest Time:</strong> {{ player.fastest_time }} minutes</p>
-            <p><strong>Total Runs:</strong> {{ player.total_runs }}</p>
-            <p><strong>Dungeons Cleared:</strong> {{ player.dungeons_cleared }}</p>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header">
-            Cards and Deck
-        </div>
-
-        <div class="card-body">
-            <p><strong>Cards Collected:</strong> {{ player.cards_collected }}</p>
-            <p><strong>Deck Size:</strong> {{ player.deck_size }}</p>
-
-            <a href="{{ url_for('inventory.inventory', username=player.username) }}" class="btn btn-outline-primary">
-                {% if is_owner %}Manage Inventory{% else %}View Inventory{% endif %}
-            </a>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header">
-            Trading
-        </div>
-
-        <div class="card-body">
-            {% if is_owner %}
-                <p><strong>Active Trades:</strong> {{ player.active_trades }}</p>
-
-                <a href="{{ url_for('trading.trading') }}" class="btn btn-success">
-                    Manage Trades
-                </a>
-            {% else %}
-                <a href="{{ url_for('trading.new_trade', target_username=player.username) }}" class="btn btn-success">
-                    Start Trade with {{ player.username }}
-                </a>
+                class="rounded-circle border shadow-sm"
+                style="width: 96px; height: 96px; object-fit: cover;">
             {% endif %}
         </div>
     </div>
 
+    <!-- Stats strip -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h4 mb-0 text-white">{{ player.score }}</div>
+                    <div class="text-muted small">Score</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h4 mb-0 text-white">{{ player.gold }}</div>
+                    <div class="text-muted small">Gold</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h4 mb-0 text-white">{{ player.enemies_defeated }}</div>
+                    <div class="text-muted small">Enemies Slain</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body text-white">
+                    <div class="h4 mb-0">{{ player.wins }}</div>
+                    <div class="text-muted small">Wins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body text-white">
+                    <div class="h4 mb-0">{{ player.win_rate }}%</div>
+                    <div class="text-muted small">Win Rate</div>
+                </div>
+            </div>
+        </div><div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body text-white">
+                    <div class="h4 mb-0">{{ player.fastest_win_turns }} {% if player.fastest_win_turns %} Turns{% endif %}</div>
+                    <div class="text-muted small">Fastest Run</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Main grid -->
+    <div class="row g-4 align-items-stretch">
+        <!-- Left: Player details -->
+        <div class="col-lg-8 d-flex">
+            <div class="card h-100">
+                <div class="card-header">
+                    Player Stats
+                </div>
+                <div class="card-body text-white">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Common Tokens</strong>
+                            <div>{{ player.common_tokens }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Uncommon Tokens</strong>
+                            <div>{{ player.uncommon_tokens }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Rare Tokens</strong>
+                            <div>{{ player.rare_tokens }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Games Played</strong>
+                            <div>{{ player.games_played }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Losses</strong>
+                            <div>{{ player.losses }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Total Turns</strong>
+                            <div>{{ player.turns }}</div>
+                        </div>
+                        <!-- CARD USAGE -->
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Movement Cards Used</strong>
+                            <div>{{ player.movement_cards_played }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Survival Cards Used</strong>
+                            <div>{{ player.survival_cards_played }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Combat Cards Used</strong>
+                            <div>{{ player.combat_cards_played }}</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <strong class="text-muted">Utility Cards Used</strong>
+                            <div>{{ player.utility_cards_played }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Deck and trading -->
+        <div class="col-lg-4 flex-column">
+
+            <!-- Cards & Deck -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Cards & Deck
+                </div>
+                <div class="card-body">
+                    <p><strong>Cards Collected:</strong> {{ player.cards_collected }}</p>
+                    <p><strong>Deck Size:</strong> {{ player.deck_size }}</p>
+                    <a href="{{ url_for('inventory.inventory', username=player.username) }}"
+                       class="btn btn-outline-primary">
+                        {% if is_owner %}Manage Inventory{% else %}View Inventory{% endif %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Trading -->
+            <div class="card">
+                <div class="card-header">
+                    Trading
+                </div>
+                <div class="card-body">
+                    {% if is_owner %}
+                        <p><strong>Active Trades:</strong> {{ player.active_trades }}</p>
+
+                        <a href="{{ url_for('trading.trading') }}"
+                           class="btn btn-success">
+                            Manage Trades
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('trading.new_trade', target_username=player.username) }}"
+                           class="btn btn-success">
+                            Start Trade with {{ player.username }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graph -->
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            Performance Analytics
+            <select id="statSelect" class="form-select form-select-sm w-auto">
+                <option value="score">Score</option>
+                <option value="turns">Turns</option>
+                <option value="gold">Gold</option>
+                <option value="enemies">Enemies</option>
+                <option value="movement">Movement Cards</option>
+                <option value="survival">Survival Cards</option>
+                <option value="combat">Combat Cards</option>
+                <option value="utility">Utility Cards</option>
+            </select>
+        </div>
+        <div class="card-body">
+            <div style="height: 350px;">
+                <canvas id="gameChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
