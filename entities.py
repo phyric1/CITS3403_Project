@@ -143,10 +143,9 @@ class Enemy():
             return False
     
     def attack(self, player):
-         #directions
+        #directions
         dx = [-1, 1, 0, 0]
-        dy = [0, 0, -1, 1]
-
+        dy = [0, 0, -1, 1]        
         for i in range(4):
             if self.x + dx[i] == player.x and self.y + dy[i] == player.y:
                 player.takeDamage(1)
@@ -156,11 +155,3 @@ class Enemy():
 class Goblin(Enemy):
     def __init__(self, x, y):
         super().__init__(x, y)
-
-class Keys(Items):
-    def __init__(self):
-        pass
-
-class Gold(Items):
-    def __init__(self, x, y):
-        super(x, y)
