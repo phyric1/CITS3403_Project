@@ -1,14 +1,21 @@
-from flask import render_template, request, url_for, redirect, flash, jsonify, Blueprint, current_app as app
-from flask_login import login_user,logout_user,login_required,current_user
+from flask import render_template, abort, request, url_for, session, redirect, flash, jsonify, Blueprint, current_app as app
+from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import LifeTimeStats, User, Card, Game, GameStats
-from app.forms import LoginForm, RegisterForm, ResetPasswordForm
-from sqlalchemy import desc, asc, case, func
-from app.enums import CardType
-from game_logic import DungeonGame
-from app.utils import get_deck_cards, add_user_cards, compute_game_score
-from cards_logic import PlayerDeck
+from sqlalchemy import desc, asc, case, func, or_
 from sqlalchemy.orm.attributes import flag_modified
+
+from app.models import LifeTimeStats, User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
+from app.forms import LoginForm, RegisterForm, ResetPasswordForm
+from app.enums import TradeStatus, CardRarity, CardType
+
+from game_logic import DungeonGame, Player, Grid
+from app.utils import get_user_deck, get_deck_cards, add_user_cards, compute_game_score
+from cards_logic import PlayerDeck
+
+import random
+from datetime import date
+from types import SimpleNamespace
+
 
 bp = Blueprint("main", __name__)
 @bp.route("/")
@@ -110,7 +117,17 @@ def game():
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
         return render_template("game.html")
-    return render_template("start_game.html")
+    
+    deck=Deck.query.filter_by(user_id=current_user.id).first()
+    deck_cards=[]
+    if deck:
+        deck_entries=db.session.query(DeckCard,UserCard,Card).join(UserCard,DeckCard.user_card_id==UserCard.id).join(Card,UserCard.card_id==Card.id).filter(DeckCard.deck_id==deck.id).all()
+        for deck_card,user_card,card in deck_entries:
+            deck_cards.append(SimpleNamespace(
+                card=card,
+                uses_remaining=user_card.uses_remaining
+            ))
+    return render_template("start_game.html",deck_cards=deck_cards,deck_count=len(deck_cards))
 
 @bp.route("/game/state")
 @login_required
