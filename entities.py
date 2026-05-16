@@ -1,10 +1,5 @@
 import random
 
-#line of sight function
-class Items():
-    def __init__(self):
-        pass
-
 class Enemy():
     def __init__(self, x, y):
         self.x = x
