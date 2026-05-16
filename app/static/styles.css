@@ -545,3 +545,21 @@ li {
 .card-wrapper button:active {
     transform: scale(0.96);
 }
+
+.trade-notification-badge {
+    position: absolute;
+    top: 0px;
+    right: 30px;
+    width: 18px;
+    height: 18px;
+    border-radius: 40%;
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 2px solid white;
+}
