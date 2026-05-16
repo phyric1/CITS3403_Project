@@ -208,6 +208,7 @@ def leaderboard():
     per_page = 25
     category = request.args.get("category", "overall")
     sort = request.args.get("sort", "score")
+    direction = request.args.get("direction", "desc")
 
     win_rate = (
         LifeTimeStats.wins /
@@ -231,13 +232,13 @@ def leaderboard():
         "game": {
             "default_sort": "fastest_win_turns",
             "columns": [
-                ("fastest_win_turns", "Fastest Win"),
+                ("fastest_win_turns", "Fastest Win (Turns)"),
                 ("turns", "Turns"),
                 ("enemies_defeated", "Enemies"),
                 ("gold_collected", "Gold")
             ]
         },
-        "cards played": {
+        "cards": {
             "default_sort": "combat_cards_played",
             "columns": [
                 ("combat_cards_played", "Combat"),
@@ -246,6 +247,12 @@ def leaderboard():
                 ("utility_cards_played", "Utility")
             ]
         }
+    }
+
+    display_names = {
+        "overall": "Overall",
+        "game": "Game",
+        "cards": "Cards Played"
     }
 
     if category not in category_config:
@@ -257,27 +264,36 @@ def leaderboard():
     if sort not in valid_sorts:
         sort = config["default_sort"]
 
-    sort_options = {
-        "score": desc(LifeTimeStats.score),
-        "wins": desc(LifeTimeStats.wins),
-        "losses": desc(LifeTimeStats.losses),
-        "win_rate": desc(win_rate),
-        "games_played": desc(LifeTimeStats.games_played),
-        "turns": desc(LifeTimeStats.turns),
-        "gold_collected": desc(LifeTimeStats.gold_collected),
-        "enemies_defeated": desc(LifeTimeStats.enemies_defeated),
-        "fastest_win_turns": (asc(func.coalesce(LifeTimeStats.fastest_win_turns, 999999))),
-        "movement_cards_played": desc(LifeTimeStats.movement_cards_played),
-        "survival_cards_played": desc(LifeTimeStats.survival_cards_played),
-        "combat_cards_played": desc(LifeTimeStats.combat_cards_played),
-        "utility_cards_played": desc(LifeTimeStats.utility_cards_played),
+    sort_map = {
+        "score": LifeTimeStats.score,
+        "wins": LifeTimeStats.wins,
+        "losses": LifeTimeStats.losses,
+        "win_rate": win_rate,
+        "games_played": LifeTimeStats.games_played,
+        "turns": LifeTimeStats.turns,
+        "gold_collected": LifeTimeStats.gold_collected,
+        "enemies_defeated": LifeTimeStats.enemies_defeated,
+        "fastest_win_turns": func.coalesce(
+            LifeTimeStats.fastest_win_turns,
+            999999
+        ),
+        "movement_cards_played": LifeTimeStats.movement_cards_played,
+        "survival_cards_played": LifeTimeStats.survival_cards_played,
+        "combat_cards_played": LifeTimeStats.combat_cards_played,
+        "utility_cards_played": LifeTimeStats.utility_cards_played,
         "username": User.username
     }
+
+    col = sort_map[sort]
+    if sort == "fastest_win_turns":
+        order_by_clause = asc(col)  # lower is better
+    else:
+        order_by_clause = asc(col) if direction == "asc" else desc(col)
 
     pagination = (
         LifeTimeStats.query
         .join(User, User.id == LifeTimeStats.user_id)
-        .order_by(sort_options[sort])
+        .order_by(order_by_clause)
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
@@ -305,7 +321,9 @@ def leaderboard():
         category=category,
         entries=entries,
         columns=columns,
+        display_names=display_names,
         sort=sort,
+        direction=direction,
         pagination=pagination
     )
 

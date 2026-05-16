@@ -10,12 +10,11 @@
     <p class="text-muted mb-0">Top players ranked by performance</p>
   </div>
 
-  <!-- Category buttons -->
   <div class="d-flex gap-2 justify-content-center flex-wrap mb-3">
-    {% for cat in ["overall", "game", "cards played"] %}
-      <a href="{{ url_for('main.leaderboard', category=cat) }}"
+    {% for cat in ["overall", "game", "cards"] %}
+      <a href="{{ url_for('main.leaderboard', category=cat, sort=sort, direction=direction) }}"
          class="btn {% if category == cat %}btn-primary{% else %}btn-outline-primary{% endif %}">
-        {{ cat.title() }}
+        {{ display_names[cat] }}
       </a>
     {% endfor %}
   </div>
@@ -26,18 +25,21 @@
         <thead class="table-light text-dark">
           <tr>
             <th class="text-center" style="width: 80px;">Rank</th>
+
+            {% set next_direction = "asc" if sort != 'username' or direction == 'desc' else 'desc' %}
             <th class="text-center">
               <a class="text-decoration-none {% if sort == 'username' %}fw-bold text-decoration-underline{% endif %}"
-                 href="{{ url_for('main.leaderboard', sort='username', category=category) }}">
-                Player
+                 href="{{ url_for('main.leaderboard', sort='username', category=category, direction=next_direction) }}">
+                Player {% if sort == 'username' %}{{ "▲" if direction == "asc" else "▼" }}{% endif %}
               </a>
             </th>
 
             {% for key, label in columns %}
+              {% set next_direction = "asc" if sort != key or direction == "desc" else "desc" %}
               <th class="text-center">
                 <a class="text-decoration-none {% if sort == key %}fw-bold text-decoration-underline{% endif %}"
-                   href="{{ url_for('main.leaderboard', sort=key, category=category) }}">
-                  {{ label }}
+                   href="{{ url_for('main.leaderboard', sort=key, category=category, direction=next_direction) }}">
+                  {{ label }} {% if sort == key %}{{ "▲" if direction == "asc" else "▼" }}{% endif %}
                 </a>
               </th>
             {% endfor %}
@@ -75,11 +77,10 @@
 
   </div>
 
-  <!-- Pagination -->
   <div class="d-flex justify-content-center mt-4">
 
     {% if pagination.has_prev %}
-      <a href="?page={{ pagination.prev_num }}&sort={{ sort }}&category={{ cat }}"
+      <a href="?page={{ pagination.prev_num }}&sort={{ sort }}&category={{ category }}&direction={{ direction }}"
          class="btn btn-outline-primary me-2">
         Previous
       </a>
@@ -90,7 +91,7 @@
     </span>
 
     {% if pagination.has_next %}
-      <a href="?page={{ pagination.next_num }}&sort={{ sort }}&category={{ cat }}"
+      <a href="?page={{ pagination.next_num }}&sort={{ sort }}&category={{ category }}&direction={{ direction }}"
          class="btn btn-outline-primary ms-2">
         Next
       </a>
