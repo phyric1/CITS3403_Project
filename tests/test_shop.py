@@ -13,22 +13,22 @@ def test_shop_page_loads(client,user,login):
     assert response.status_code==200
     assert b"Daily Shop" in response.data
 
-def test_open_easy_pack_without_token(client,user,login):
+def test_open_common_pack_without_token(client,user,login):
     login()
-    response=client.post("/shop/open_pack/easy", follow_redirects=True)
+    response=client.post("/shop/open_pack/common", follow_redirects=True)
     assert response.status_code==200
     page_text=response.get_data(as_text=True).lower()
-    assert "easy" in page_text
+    assert "common" in page_text
     assert "token" in page_text
 
-def test_open_easy_pack_then_decrease_token(client,app,user,login):
+def test_open_common_pack_then_decrease_token(client,app,user,login):
     with app.app_context():
         test=db.session.get(User,user)
-        test.easy_tokens=1
+        test.common_tokens=1
         db.session.commit()
     login()
-    response=client.post("/shop/open_pack/easy", follow_redirects=True)
+    response=client.post("/shop/open_pack/common", follow_redirects=True)
     assert response.status_code==200
     with app.app_context():
         test=db.session.get(User,user)
-        assert test.easy_tokens==0
+        assert test.common_tokens==0

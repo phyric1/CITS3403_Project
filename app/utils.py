@@ -151,3 +151,15 @@ def get_deck_cards(user_id: int):
     )
     cards = deck_query.all()
     return cards
+
+def compute_game_score(game):
+    """
+    Calclate and return game score of game object
+    """
+    return (
+        (1 if game.isWin else 0) * 500 +
+        (game.gameOverStats["goldCollected"] * 2) +
+        (game.gameOverStats["enemiesDefeated"] * 25) +
+        game.gameOverStats["turnsPlayed"] +
+        (50 if game.isWin else 0)
+    )

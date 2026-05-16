@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.enums import TradeStatus, CardRarity, CardType
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, UTC
 
 MAX_DECK_SIZE = 40
 
@@ -23,6 +23,8 @@ class User(UserMixin,db.Model):
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')
     sender_trades = db.relationship('Trade', foreign_keys='Trade.sender_id', back_populates='sender')
     receiver_trades = db.relationship('Trade', foreign_keys='Trade.receiver_id', back_populates='receiver')
+    game_stats = db.relationship("GameStats", backref="user", lazy=True, cascade="all, delete-orphan")
+    lifetime_stats = db.relationship("LifeTimeStats", backref="user", uselist=False, cascade="all, delete-orphan")
 
     #Store the encrypted hash password
     def set_password(self,password):
@@ -41,7 +43,7 @@ class Game(db.Model):
     game = db.Column(db.PickleType, nullable=False, index=True)
 
 class GameStats(db.Model):
-    id=db.Column(db.Integer,primary_key=True)
+    id=db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     difficulty = db.Column(db.String(20), nullable=False)
     success = db.Column(db.Boolean, default=False, nullable=False)
@@ -52,20 +54,27 @@ class GameStats(db.Model):
     survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
     combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
     utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
-    init_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    score = db.Column(db.Integer, default=0, nullable=False)
+    init_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False, index=True)
 
 class LifeTimeStats(db.Model):
-    id=db.Column(db.Integer,primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    difficulty = db.Column(db.String(20), nullable=False)
-    success = db.Column(db.Boolean, default=False, nullable=False)
+    id=db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True, index=True)
+
+    games_played = db.Column(db.Integer, default=0, nullable=False)
+    wins = db.Column(db.Integer, default=0, nullable=False)
+    losses = db.Column(db.Integer, default=0, nullable=False)
     turns = db.Column(db.Integer, default=0, nullable=False)
+    fastest_win_turns = db.Column(db.Integer, nullable=True)
+
     gold_collected = db.Column(db.Integer, default=0, nullable=False)
     enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
     movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
     survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
     combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
     utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+
+    score = db.Column(db.Integer, default=0, nullable=False, index=True)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -165,8 +174,23 @@ class TradeCard(db.Model):
 
 
 @event.listens_for(User, "after_insert")
-def create_deck(mapper, connection, target):
+def create_user_adjacent_tables(mapper, connection, target):
     connection.execute(Deck.__table__.insert().values(user_id=target.id, name=f"{target.username}'s Deck"))
+    connection.execute(LifeTimeStats.__table__.insert().values(
+        user_id=target.id,
+        games_played=0,
+        wins=0,
+        losses=0,
+        turns=0,
+        fastest_win_turns=None,
+        gold_collected=0,
+        enemies_defeated=0,
+        movement_cards_played=0,
+        survival_cards_played=0,
+        combat_cards_played=0,
+        utility_cards_played=0,
+    ))
+
 
 class DailyShopCard(db.Model):
     id=db.Column(db.Integer, primary_key=True)
