@@ -9,7 +9,7 @@
   },
   {
     "name": "Sprint",
-    "effect": "Dash forward until you hit a wall, -1 stealth",
+    "effect": "Dash forward until you hit a wall",
     "rarity": "uncommon",
     "type": "movement",
     "uses": 10,
@@ -17,7 +17,7 @@
   },
   {
     "name": "Acrobatics",
-    "effect": "Move anywhere in a 5x5 radius, -1 stealth",
+    "effect": "Move anywhere in a 5x5 radius",
     "rarity": "rare",
     "type": "movement",
     "uses": 10,
@@ -25,7 +25,7 @@
   },
   {
     "name": "Teleport",
-    "effect": "Teleport to a random location on the current map, -1 stealth",
+    "effect": "Teleport to a random location on the current map",
     "rarity": "rare",
     "type": "movement",
     "uses": 7,
@@ -33,7 +33,7 @@
   },
   {
     "name": "Timestop",
-    "effect": "Stop time until you pick another card or interact with the dungeon",
+    "effect": "Stop time until you you enter a new floor",
     "rarity": "legendary",
     "type": "movement",
     "uses": 5,
@@ -81,7 +81,7 @@
   },
   {
     "name": "Master of Survival",
-    "effect": "Survival cards have 50% chance to heal 1 heart",
+    "effect": "Effect Active During Whole Game: Upon defeating an enemy, gain extra gold equivalent to that enemies max health",
     "rarity": "master",
     "type": "survival",
     "uses": 7,
@@ -153,7 +153,7 @@
   },
   {
     "name": "Master of Combat",
-    "effect": "Upon defeating an enemy, gain extra gold equivalent to that enemies max health",
+    "effect": "Effect Active During Whole Game: Upon defeating an enemy, gain extra gold equivalent to that enemies max health",
     "rarity": "master",
     "type": "combat",
     "uses": 7,
@@ -210,7 +210,7 @@
   },
   {
     "name": "Master of Cards",
-    "effect": "Every card played has a 15% chance to be recycled",
+    "effect": "Effect Active During Whole Game: Every card played has a 15% chance to be recycled",
     "rarity": "master",
     "type": "utility",
     "uses": 7,
