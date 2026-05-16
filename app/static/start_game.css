@@ -2,21 +2,12 @@ body {
     background-color: #05070c;
 }
 
-/* Page layout */
-
 .start-dashboard-vertical {
     width: min(1180px, 94vw);
     margin: 0 auto;
     padding: 1.5rem 0 3rem;
     color: #f3f6ff;
 }
-
-.start-dashboard-vertical,
-.start-dashboard-vertical * {
-    box-sizing: border-box;
-}
-
-/* Main panels */
 
 .start-panel {
     background: rgba(10, 14, 20, 0.96) !important;
@@ -34,8 +25,6 @@ body {
     transform: none !important;
     animation: none !important;
 }
-
-/* Header */
 
 .start-panel-header {
     display: flex;
@@ -86,8 +75,6 @@ body {
     font-size: 1.8rem;
 }
 
-/* Difficulty */
-
 .start-section .form-label {
     color: #f3f6ff;
     font-weight: 700;
@@ -134,19 +121,13 @@ body {
     line-height: 1.5;
 }
 
-.difficulty-active {
-    background: rgba(110, 231, 255, 0.08);
-    border-color: rgba(110, 231, 255, 0.22);
-}
-
-/* Buttons */
-
 .start-game-button,
 .deck-link-button {
     border-radius: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     padding: 0.9rem 1rem;
+    transform: none !important;
 }
 
 .start-game-button {
@@ -160,38 +141,44 @@ body {
 .start-game-button:active {
     background: linear-gradient(90deg, #2788ff, #4ba3ff);
     color: #fff;
-    transform: none !important;
     box-shadow: none !important;
 }
 
-.deck-link-button {
-    color: #f6c66e !important;
-    border-color: rgba(246, 198, 110, 0.45) !important;
-    background: rgba(8, 10, 14, 0.75) !important;
+.status-pill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    color: #8affb4;
+    background: rgba(138, 255, 180, 0.08);
+    border: 1px solid rgba(138, 255, 180, 0.18);
+    font-size: 0.75rem;
+    font-weight: 700;
 }
-
-.deck-link-button:hover,
-.deck-link-button:focus,
-.deck-link-button:active {
-    color: #ffffff !important;
-    background: rgba(246, 198, 110, 0.16) !important;
-    border-color: #f6c66e !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-/* Deck preview */
 
 .start-deck-preview {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     align-items: flex-start;
     gap: 1.4rem;
     width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.75rem 0.75rem 1rem;
 }
 
-/* Static card shown only on start page */
+.start-deck-preview::-webkit-scrollbar {
+    height: 10px;
+}
+
+.start-deck-preview::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+}
+
+.start-deck-preview::-webkit-scrollbar-thumb {
+    background: rgba(246, 198, 110, 0.55);
+    border-radius: 999px;
+}
 
 .start-static-card {
     width: 175px;
@@ -204,21 +191,15 @@ body {
     border: 9px solid #6c757d;
     color: #111;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-    pointer-events: none !important;
+    pointer-events: none;
 }
 
 .start-static-card,
-.start-static-card:hover,
-.start-static-card *,
-.start-static-card *:hover,
-.start-static-card::before,
-.start-static-card::after {
+.start-static-card * {
     transform: none !important;
     transition: none !important;
     animation: none !important;
 }
-
-/* Rarity borders */
 
 .start-static-card.rarity-common {
     border-color: #6c757d;
@@ -240,8 +221,6 @@ body {
     border-color: #212529;
 }
 
-/* Card uses */
-
 .start-static-uses {
     position: absolute;
     top: 0;
@@ -260,8 +239,6 @@ body {
     font-weight: 700;
 }
 
-/* Card image */
-
 .start-static-image {
     height: 120px;
     width: 100%;
@@ -274,8 +251,6 @@ body {
     object-fit: cover;
     display: block;
 }
-
-/* Type background */
 
 .start-static-image.type-utility {
     background: #854ef5;
@@ -297,8 +272,6 @@ body {
     background: #6c757d;
 }
 
-/* Card title */
-
 .start-static-title {
     position: absolute;
     top: 111px;
@@ -317,10 +290,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     z-index: 4;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
 }
-
-/* Card effect */
 
 .start-static-effect {
     height: 82px;
@@ -335,8 +305,6 @@ body {
     justify-content: center;
 }
 
-/* Card footer */
-
 .start-static-footer {
     height: 32px;
     background: #ffffff;
@@ -346,8 +314,6 @@ body {
     align-items: center;
     justify-content: center;
 }
-
-/* Empty deck */
 
 .deck-empty-box {
     padding: 1.2rem;
@@ -366,25 +332,30 @@ body {
     color: #aeb7c8;
 }
 
-/* Responsive */
+.deck-link-button {
+    color: #f6c66e !important;
+    border-color: rgba(246, 198, 110, 0.45) !important;
+    background: rgba(8, 10, 14, 0.75) !important;
+}
+
+.deck-link-button:hover,
+.deck-link-button:focus,
+.deck-link-button:active {
+    color: #ffffff !important;
+    background: rgba(246, 198, 110, 0.16) !important;
+    border-color: #f6c66e !important;
+    box-shadow: none !important;
+}
 
 @media (max-width: 992px) {
     .difficulty-list {
         grid-template-columns: 1fr;
-    }
-
-    .progress-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 576px) {
     .start-panel-header {
         flex-direction: column;
-    }
-
-    .progress-grid {
-        grid-template-columns: 1fr;
     }
 
     .start-static-card {
