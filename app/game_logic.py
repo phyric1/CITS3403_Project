@@ -153,8 +153,8 @@ class DungeonGame():
                     for dx in range(-radius, radius + 1):
                         if abs(dy) + abs(dx) <= radius:
                             ny, nx = y + dy, x + dx
-                        if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 0:
-                            self.filter[ny][nx] = 5
+                            if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 0:
+                                self.filter[ny][nx] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Acrobatics"
             case "Sprint":
@@ -188,7 +188,7 @@ class DungeonGame():
             case "Strength":
                 self.player.attackDamage += 1
             case "Slingshot":
-                radius = 3
+                radius = 2 + self.player.attackRange
                 x = self.player.x
                 y = self.player.y
                 i = 0
@@ -212,7 +212,15 @@ class DungeonGame():
                 dy = [0, 0, -1, 1]
                 i = 0
                 for dir in range(4):
-                        self.filter[y + dy[dir]][x + dx[dir]] = 5
+                    for dist in range(1, self.player.attackRange + 1):
+                        ny = y + dy[dir] * dist
+                        nx = x + dx[dir] * dist
+                        if self.grid.grid[ny][nx] != 4:
+                            break
+                        self.filter[ny][nx] = 5
+                        i += 1
+                if i == 0:
+                    return None
                 self.waiting_for_tile_click = True
                 self.pending_card = "Dagger"
             case "Meteor":
@@ -230,7 +238,7 @@ class DungeonGame():
                         enemy.state = "idle"
             case "Dynamite":
                 grid = self.grid.grid
-                radius = 2
+                radius = 2 + self.player.attackRange
                 x = self.player.x
                 y = self.player.y
                 min_y = max(0, y - radius)
@@ -277,7 +285,8 @@ class DungeonGame():
                 self.playerDeck.deckSize = len(self.playerDeck.deck)
         return card
 
-    def generate_floor(self, level): #generates a new dungeon floor
+    def generate_floor(self, level):
+        '''generates a new dungeon floor'''
         if level == 0: #first level is always visible
             self.isVisible = True
         else:

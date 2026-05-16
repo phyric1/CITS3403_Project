@@ -469,7 +469,7 @@ function loadGameState() {
         .catch((error) => console.error('Error loading game state:', error));
 }
 
-    function resetGame() {
+function resetGame() {
         fetch('/reset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

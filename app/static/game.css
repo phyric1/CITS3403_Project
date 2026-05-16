@@ -60,7 +60,7 @@
 }
 
 .finish {
-    background-image: url("/static/img/tiles/finish.png");
+    background-image: url("/static/img/tiles/chest.png");
 }
 
 .game-layout {
@@ -241,6 +241,7 @@
 #grid {
 display: grid;
 grid-template-columns: repeat(33, 24px);
+background-color: black;
 }
 
 .grid-tile {
@@ -263,10 +264,17 @@ grid-template-columns: repeat(33, 24px);
     animation: blink 0.5s infinite !important;
 }
 
-@keyframes blink {
-    50% {
-        filter: brightness(250%) !important;
+@keyframes blink_fast {
+    0%, 100% {
+        opacity: 1 !important;
     }
+    50% {
+        opacity: 0 !important;
+    }
+}
+
+.dark {
+    background-color: black;
 }
 
 .clickable-tile {
