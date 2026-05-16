@@ -1,14 +1,21 @@
-from flask import render_template, request, url_for, redirect, flash, jsonify, Blueprint, current_app as app
-from flask_login import login_user,logout_user,login_required,current_user
+from flask import render_template, abort, request, url_for, session, redirect, flash, jsonify, Blueprint, current_app as app
+from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import LifeTimeStats, User, Card, Game, GameStats
-from app.forms import LoginForm, RegisterForm, ResetPasswordForm
-from sqlalchemy import desc, asc, case, func
-from app.enums import CardType
-from game_logic import DungeonGame
-from app.utils import get_deck_cards, add_user_cards, compute_game_score
-from cards_logic import PlayerDeck
+from sqlalchemy import desc, asc, case, func, or_
 from sqlalchemy.orm.attributes import flag_modified
+
+from app.models import LifeTimeStats, User, Card, UserCard, Deck, DeckCard, Trade, TradeCard, Game, GameStats
+from app.forms import LoginForm, RegisterForm, ResetPasswordForm
+from app.enums import TradeStatus, CardRarity, CardType
+
+from game_logic import DungeonGame, Player, Grid
+from app.utils import get_user_deck, get_deck_cards, add_user_cards, compute_game_score
+from cards_logic import PlayerDeck
+
+import random
+from datetime import date
+from types import SimpleNamespace
+
 
 bp = Blueprint("main", __name__)
 @bp.route("/")
