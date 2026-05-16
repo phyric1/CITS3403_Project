@@ -39,6 +39,7 @@ def profile(username):
         .limit(10)
         .all()
     )
+    difficulty_map = {"easy": 0, "normal": 1, "hard": 2}
 
     game_data = {
         "labels": [f"Game {i+1}" for i in range(len(games))],
@@ -51,12 +52,7 @@ def profile(username):
         "combat": [g.combat_cards_played for g in games],
         "utility": [g.utility_cards_played for g in games],
         "wins": [1 if g.success else 0 for g in games],
-        "difficulty": [
-            0 if g.difficulty == "easy"
-            else 1 if g.difficulty == "medium"
-            else 2
-            for g in games
-        ]
+        "difficulty": [difficulty_map.get(g.difficulty.lower(), 0) for g in games]
     }
 
     win_rate = 0 if lifetime_stats.games_played == 0 else round(

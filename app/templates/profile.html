@@ -2,6 +2,14 @@
 
 {% block title %}{{ player.username }}'s Profile{% endblock %}
 
+{% block extra_links %}
+<script>
+window.gameData = {{ game_data | tojson }};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='profile.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
 
@@ -96,9 +104,9 @@
         </div>
     </div>
     <!-- Main grid -->
-    <div class="row g-4">
+    <div class="row g-4 align-items-stretch">
         <!-- Left: Player details -->
-        <div class="col-lg-8">
+        <div class="col-lg-8 d-flex">
             <div class="card h-100">
                 <div class="card-header">
                     Player Stats
@@ -152,7 +160,7 @@
         </div>
 
         <!-- Right: Deck and trading -->
-        <div class="col-lg-4">
+        <div class="col-lg-4 flex-column">
 
             <!-- Cards & Deck -->
             <div class="card mb-4">
@@ -195,8 +203,23 @@
 
     <!-- Graph -->
     <div class="card mt-4">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             Performance Analytics
+            <select id="statSelect" class="form-select form-select-sm w-auto">
+                <option value="score">Score</option>
+                <option value="turns">Turns</option>
+                <option value="gold">Gold</option>
+                <option value="enemies">Enemies</option>
+                <option value="movement">Movement Cards</option>
+                <option value="survival">Survival Cards</option>
+                <option value="combat">Combat Cards</option>
+                <option value="utility">Utility Cards</option>
+            </select>
+        </div>
+        <div class="card-body">
+            <div style="height: 350px;">
+                <canvas id="gameChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
