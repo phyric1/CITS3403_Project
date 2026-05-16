@@ -202,9 +202,11 @@ def reset():
     return redirect(url_for("main.game"))
 
 @bp.route("/leaderboard")
+
 def leaderboard():
     page = request.args.get("page", 1, type=int)
     per_page = 25
+    category = request.args.get("category", "overall")
     sort = request.args.get("sort", "score")
 
     win_rate = (
@@ -214,6 +216,46 @@ def leaderboard():
             else_=LifeTimeStats.games_played
         )
     )
+
+    category_config = {
+        "overall": {
+            "default_sort": "score",
+            "columns": [
+                ("score", "Score"),
+                ("win_rate", "Win Rate"),
+                ("wins", "Wins"),
+                ("losses", "Losses"),
+                ("games_played", "Games")
+            ]
+        },
+        "game": {
+            "default_sort": "fastest_win_turns",
+            "columns": [
+                ("fastest_win_turns", "Fastest Win"),
+                ("turns", "Turns"),
+                ("enemies_defeated", "Enemies"),
+                ("gold_collected", "Gold")
+            ]
+        },
+        "cards": {
+            "default_sort": "combat_cards_played",
+            "columns": [
+                ("combat_cards_played", "Combat"),
+                ("movement_cards_played", "Movement"),
+                ("survival_cards_played", "Survival"),
+                ("utility_cards_played", "Utility")
+            ]
+        }
+    }
+
+    if category not in category_config:
+        category = "overall"
+    config = category_config[category]
+    columns = config["columns"]
+
+    valid_sorts = [key for key, _ in columns] + ["username"]
+    if sort not in valid_sorts:
+        sort = config["default_sort"]
 
     sort_options = {
         "score": desc(LifeTimeStats.score),
@@ -232,41 +274,40 @@ def leaderboard():
         "username": User.username
     }
 
-    if sort not in sort_options:
-        sort = "score"
-
     pagination = (
         LifeTimeStats.query
         .join(User, User.id == LifeTimeStats.user_id)
-        .add_columns(win_rate.label("win_rate"))
         .order_by(sort_options[sort])
-        .paginate(page=page, per_page=25, error_out=False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     entries = []
-    for index, stats in enumerate(pagination.items, start=((page - 1) * per_page) + 1):
-        entries.append({
+    for index, stats in enumerate(
+        pagination.items,
+        start=((page - 1) * per_page) + 1
+    ):
+        row = {
             "ranking": index,
-            "username": stats.user.username,
-            "score": stats.score,
-            "wins": stats.wins,
-            "losses": stats.losses,
-            "win_rate": (
-                stats.wins / stats.games_played
-                if stats.games_played else 0
-            ),
-            "games_played": stats.games_played,
-            "turns": stats.turns,
-            "gold_collected": stats.gold_collected,
-            "enemies_defeated": stats.enemies_defeated,
-            "fastest_win_turns": stats.fastest_win_turns,
-            "movement_cards_played": stats.movement_cards_played,
-            "survival_cards_played": stats.survival_cards_played,
-            "combat_cards_played": stats.combat_cards_played,
-            "utility_cards_played": stats.utility_cards_played,
-        })
+            "username": stats.user.username
+        }
+        for key, _ in columns:
+            if key == "win_rate":
+                row[key] = (
+                    stats.wins / stats.games_played
+                    if stats.games_played else 0
+                )
+            else:
+                row[key] = getattr(stats, key)
+        entries.append(row)
 
-    return render_template("leaderboard.html", entries = entries, sort=sort)
+    return render_template(
+        "leaderboard.html",
+        category=category,
+        entries=entries,
+        columns=columns,
+        sort=sort,
+        pagination=pagination
+    )
 
 
 @bp.route("/cards")
