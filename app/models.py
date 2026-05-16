@@ -151,7 +151,7 @@ class Trade(db.Model):
 
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    status = db.Column(db.Enum(TradeStatus, validate_strings=True, native_enum=False), default=TradeStatus.pending, nullable=False)
+    receiver_viewed = db.Column(db.Boolean, nullable=False, default=False)
     creation_date = db.Column(db.DateTime, default=db.func.now(), nullable=False,)
 
     trade_cards = db.relationship('TradeCard', back_populates='trade', cascade='all, delete-orphan')
