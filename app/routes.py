@@ -117,7 +117,7 @@ def game():
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
         return render_template("game.html")
-    
+
     deck=Deck.query.filter_by(user_id=current_user.id).first()
     deck_cards=[]
     if deck:
@@ -339,11 +339,3 @@ def leaderboard():
         direction=direction,
         pagination=pagination
     )
-
-
-@bp.route("/cards")
-@login_required
-def show_cards():
-    cards = db.session.query(Card).filter(Card.type != CardType.debuff).all()
-
-    return render_template("cards.html", cards=cards)
