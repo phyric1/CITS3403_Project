@@ -11,10 +11,57 @@ const TILE_CLASS = {
     "8": "finish"
 };
 
+const DIRECTION_NAMES = {
+    0: 'left',
+    1: 'right',
+    2: 'up',
+    3: 'down'
+};
+const DIRECTION_CLASSES = [
+    'player-left', 'player-right', 'player-up', 'player-down',
+    'enemy-left', 'enemy-right', 'enemy-up', 'enemy-down'
+];
+
+const SOUNDS = {
+    player_move: new Audio("/static/sounds/blip.wav"),
+    pickup: new Audio("/static/sounds/pickup.wav"),
+    floor_cleared: new Audio("/static/sounds/clear.wav"),
+    player_hurt: new Audio("/static/sounds/hurt.wav"),
+    game_win: new Audio("/static/sounds/slash.wav"),
+    game_lose: new Audio("/static/sounds/slash.wav"),
+    play_card: new Audio("/static/sounds/card.wav"),
+    explosion: new Audio("/static/sounds/explosion.wav"),
+    attack: new Audio("/static/sounds/slash.wav"),
+    alert: new Audio("/static/sounds/alert.ogg"),
+    buff: new Audio("/static/sounds/buff.wav"),
+};
+
 let previousGrid = [];
+let previousEntities = [];
 let previousFilter = [];
 const tileElements = [];
 let gameEnded = false;
+
+function playSound(event) {
+    if (Array.isArray(event)) {
+        event.forEach(playSound);
+        return;
+    }
+    const sound = SOUNDS[event];
+    if (!sound) return;
+    sound.currentTime = 0;
+    sound.play();
+}
+
+function setTileEntity(tile, entity) {
+    tile.classList.remove(...DIRECTION_CLASSES);
+    if (!entity) {
+        return;
+    }
+    const direction = DIRECTION_NAMES[entity.direction] || 'down';
+    const className = `${entity.type}-${direction}`;
+    tile.classList.add(className);
+}
 
 function createGridTiles(grid) {
     console.log('Creating grid tiles');
@@ -42,22 +89,18 @@ document.addEventListener('keydown', (e) => {
         switch (e.code) {
             case 'ArrowLeft':
                 e.preventDefault()
-                console.log('left')
                 move({ type: 'move', direction: 'left' })
                 break
             case 'ArrowRight':
                 e.preventDefault()
-                console.log('right')
                 move({ type: 'move', direction: 'right' })
                 break
             case 'ArrowUp':
                 e.preventDefault()
-                console.log('up')
                 move({ type: 'move', direction: 'up' })
                 break
             case 'ArrowDown':
                 e.preventDefault();
-                console.log('down');
                 move({ type: 'move', direction: 'down' });
                 break
         }
@@ -91,7 +134,8 @@ if (handArea) {
         .then(response => response.json())
         .then(data => {
             console.log('Success:', data);
-            updateGridDisplay(data.grid, data.filter);
+                updateGridDisplay(data.grid, data.filter, data.entities);
+                playSound(data.events);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
             if (data.isGameOver) {
                 renderHand([], false, null);
@@ -184,19 +228,38 @@ if (handArea) {
         discardSlot.appendChild(cardWrapper);
     };
 
-function updateGridDisplay(newGrid, filter) {
-  for (let i = 0; i < newGrid.length; i++) {
-    for (let j = 0; j < newGrid[i].length; j++) {
-      if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
-        setTileType(tileElements[i][j], newGrid[i][j]);
-      }
-      if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
-        setTileFilter(tileElements[i][j], filter[i][j]);
-      }
+function updateGridDisplay(newGrid, filter, entities = []) {
+    const entityMap = new Map();
+    entities.forEach(entity => {
+        entityMap.set(`${entity.x},${entity.y}`, entity);
+    });
+
+    for (let i = 0; i < newGrid.length; i++) {
+        for (let j = 0; j < newGrid[i].length; j++) {
+            const tile = tileElements[i][j];
+            if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
+                setTileType(tile, newGrid[i][j]);
+            }
+            if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
+                setTileFilter(tile, filter[i][j]);
+            }
+            const newEntity = entityMap.get(`${j},${i}`);
+            const prevEntity = previousEntities[i]?.[j];
+            if (
+                !prevEntity ||
+                !newEntity ||
+                prevEntity.type !== newEntity.type ||
+                prevEntity.direction !== newEntity.direction
+            ) {
+                setTileEntity(tile, newEntity);
+            }
+        }
     }
-  }
-  previousGrid = newGrid.map(row => [...row]);
-  previousFilter = filter.map(row => [...row]);
+    previousGrid = newGrid.map(row => [...row]);
+    previousFilter = filter.map(row => [...row]);
+    previousEntities = entities.map(e => ({
+        ...e
+    }));
 }
 
 function setTileType(tile, value) {
@@ -220,11 +283,9 @@ function setTileFilter(tile, filterValue) {
         "clickable-tile",
         "blink-fast"
     );
-
     if (filterValue === 1 || filterValue === 5) {
         tile.classList.add("bright");
     }
-
     if (filterValue === 5) {
         tile.classList.add(
             "clickable-tile",
@@ -259,7 +320,7 @@ function setTileFilter(tile, filterValue) {
 
         title.textContent = data.isWin ? 'Victory!' : 'Game Over';
         message.textContent = data.isWin
-            ? `You reached the finish and earned a ${data.gameOverStats.reward} token.`
+            ? `You reached the end and found a ${data.gameOverStats.reward} token.`
             : `You died :(`;
 
         stats.innerHTML = `
@@ -373,7 +434,7 @@ function loadGameState() {
             }
             createGridTiles(data.grid);
             console.log("Loading state")
-            updateGridDisplay(data.grid, data.filter);
+            updateGridDisplay(data.grid, data.filter, data.entities);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
             if (data.isGameOver) {
                 renderHand([], false, null);
