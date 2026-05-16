@@ -228,6 +228,25 @@ if (handArea) {
         discardSlot.appendChild(cardWrapper);
     };
 
+function assignTileVariants(tileElements, variantCount = 4) {
+  for (let i = 0; i < tileElements.length; i++) {
+    for (let j = 0; j < tileElements[i].length; j++) {
+      const tile = tileElements[i][j];
+      if (tile.dataset.variant) continue;
+
+      const variant = hash2D(i, j) % variantCount;
+      tile.dataset.variant = variant;
+      tile.classList.add(`variant-${variant}`);
+    }
+  }
+}
+
+function hash2D(x, y) {
+  let h = x * 374761393 + y * 668265263;
+  h = (h ^ (h >> 13)) * 1274126177;
+  return (h ^ (h >> 16)) >>> 0;
+}
+
 function updateGridDisplay(newGrid, filter, entities = []) {
     const entityMap = new Map();
     entities.forEach(entity => {
@@ -434,6 +453,7 @@ function loadGameState() {
             }
             createGridTiles(data.grid);
             console.log("Loading state")
+            assignTileVariants(tileElements, 2);
             updateGridDisplay(data.grid, data.filter, data.entities);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);
             if (data.isGameOver) {

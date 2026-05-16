@@ -1,11 +1,8 @@
 /* Sprites */
-.floor {
-    background-image: url("/static/img/tiles/floor.png");
-}
+.floor { background-image: url("/static/img/tiles/floor.png"); }
 
-.wall {
-    background-image: url("/static/img/tiles/wall.png");
-}
+.wall.variant-0 { background-image: url("/static/img/tiles/wall.png"); }
+.wall.variant-1 { background-image: url("/static/img/tiles/wall2.png"); }
 
 .start {
     background-image: url("/static/img/tiles/playerdown.png");
