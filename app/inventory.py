@@ -1,3 +1,4 @@
+from multiprocessing import Condition
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from app import db
@@ -25,6 +26,8 @@ def inventory(username):
     conditions = [UserCard.user_id == user.id, ~UserCard.id.in_(cards_in_deck_query)]
     if not is_owner:
         conditions.append(UserCard.tradable)
+    if mode == "deck":
+        conditions.append(UserCard.locked == False)
 
     if mode in ["view", "deck"]:
         card_query = (
@@ -116,6 +119,9 @@ def add_to_deck():
     if DeckCard.query.filter_by(deck_id=deck.id, user_card_id=user_card.id).first():
         return jsonify({"error": "Card already in users deck"}), 400
 
+    if user_card.locked:
+        return jsonify({"error": "Card is locked due to trade"}), 400
+
     count_same_card = (db.session.query(DeckCard).join(UserCard)
         .filter(DeckCard.deck_id == deck.id, UserCard.card_id == user_card.card_id).count())
     max_copies = user_card.card.max_in_deck
@@ -182,6 +188,9 @@ def tradable():
     user_card, err = get_user_card(user_id, user_card_id)
     if err:
         return err
+
+    if user_card.locked:
+        return jsonify({"error": "Card is locked due to trade"}), 400
 
     deck_entry = DeckCard.query.filter_by(user_card_id=user_card.id).first()
     if deck_entry:

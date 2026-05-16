@@ -31,12 +31,11 @@ class DungeonGame():
         self.turnNum = 0
         self.difficulty = difficulty
         self.level = 0
-        self.maxLevels = 0
 
-        self.generate_floor(self.level)
-        self.turnNum = 0
+        self.darknessChance, self.maxLevels = self.dificulty_modifier(difficulty)
         self.isVisible = True
         self.filter = [[0] * 32 for _ in range(20)]
+        self.generate_floor(self.level)
 
         self.timeStopped = False
         self.tailwind = 0
@@ -46,21 +45,24 @@ class DungeonGame():
         self.card_data = None
         self.waiting_for_tile_click = False
         self.pending_card = None
+        self.isGameOver = False
+        self.isWin = False
+        self.gameOverStats = {}
 
-    def dificulty_modifier(self):
+    def dificulty_modifier(self, difficulty):
         '''Adjusts dungeon based on dificulty'''
-        if self.difficulty == "Easy":
-                self.maxLevels = 2
-                self.darknessChance = 0.01
-        if self.difficulty == "Medium":
-                self.maxLevels = 4
-                self.darknessChance = 0.4
-        if self.difficulty == "Hard":
-                self.maxLevels = 6
-                self.darknessChance = 0.7
-        #chance of darkness
-        #number of enemies
-        pass
+        maxLevels = 0
+        darknessChance = 0
+        if difficulty == "Easy":
+            maxLevels = 2
+            darknessChance = 0.01
+        if difficulty == "Normal":
+            maxLevels = 4
+            darknessChance = 0.4
+        if difficulty == "Hard":
+            maxLevels = 6
+            darknessChance = 0.7
+        return darknessChance, maxLevels
 
     def displayGame(self):
     #returns json information for the game in its current state
@@ -79,19 +81,49 @@ class DungeonGame():
                     "gold": self.player.gold,
                     "stealth": self.player.stealth,
                     "floor": self.level,
+                    "maxFloors": self.maxLevels,
                     "cards": self.card_data,
                     "discard": discard_data,
                     "deckMax": self.playerDeck.deckMax,
                     "deckSize": self.playerDeck.deckSize,
+                    "waitingForTileClick": self.waiting_for_tile_click,
+                    "pendingCard": self.pending_card,
+                    "isGameOver": self.isGameOver,
+                    "isWin": self.isWin,
+                    "gameOverStats": self.gameOverStats,
                 })
 
+    def won(self):
+        self.isGameOver = True
+        self.isWin = True
+        if self.difficulty == "Easy":
+            reward = "Common"
+        elif self.difficulty == "Normal":
+            reward = "Uncommon"
+        elif self.difficulty == "Hard":
+            reward = "Rare"
+        self.gameOverStats = {
+            "status": "win",
+            "reward": reward,
+            "floorsCleared": self.level,
+            "goldCollected": self.player.gold,
+            "enemiesDefeated": self.player.enemies_defeated,
+            "turnsPlayed": self.turnNum,
+            "difficulty": self.difficulty,
+        }
+
     def gameOver(self):
-        #game over screen and reset button
-        print("game over")
-        #display game over
-        #disable inputs
-        #return return stats
-        #gold collected, floors cleared, whether dungeon was cleared, which type of dungeon, enemies killed, number of turns played
+        self.isGameOver = True
+        self.isWin = False
+        self.gameOverStats = {
+            "status": "lose",
+            "reward": 0,
+            "floorsCleared": self.level,
+            "goldCollected": self.player.gold,
+            "enemiesDefeated": self.player.enemies_defeated,
+            "turnsPlayed": self.turnNum,
+            "difficulty": self.difficulty,
+        }
 
     def cardProcessor(self, card):
         match card.card.name:
@@ -207,9 +239,9 @@ class DungeonGame():
                     if min_x <= enemy.x <= max_x and min_y <= enemy.y <= max_y:
                         defeated = enemy.takeDamage(4)
                         if defeated:
-                            self._handle_enemy_defeat(enemy)
+                            self.enemy_defeat(enemy)
             case "Fighting Spirit":
-                pass #increase odds for cards of fighting type to appear
+                self.playerDeck.combat_bonus += 0.2
             case "Silence Falls":
                 self.player.stealth += 1
             case "Shadow Sneak":
@@ -239,7 +271,13 @@ class DungeonGame():
     def generate_floor(self, level): #generates a new dungeon floor
         if level == 0: #first level is always visible
             self.isVisible = True
-        self.grid = Grid(33, 20, 4)
+        else:
+            if self.darknessChance < random.random():
+                self.isVisible = False
+        if level == self.maxLevels - 1:
+            self.grid = Grid(33, 20, 4, True)
+        else:
+            self.grid = Grid(33, 20, 4, False)
         x, y = self.grid.startRoom.center()
         self.player.x, self.player.y = x, y
         self.enemies = [] #new enemies on each floor
@@ -251,25 +289,28 @@ class DungeonGame():
         self.level += 1
 
     def process_tile_click(self, x, y):
+        action_performed = False
         if self.pending_card == "Sprint":
             # move player to x, y
             self.grid.grid[self.player.y][self.player.x] = 0
             self.player.x = x
             self.player.y = y
             self.grid.grid[y][x] = 2
+            action_performed = True
         elif self.pending_card == "Acrobatics":
             # move player to x, y
             self.grid.grid[self.player.y][self.player.x] = 0
             self.player.x = x
             self.player.y = y
             self.grid.grid[y][x] = 2
+            action_performed = True
         elif self.pending_card == "Dagger":
-            # move player to x, y
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
                     defeated = enemy.takeDamage(self.player.attackDamage)
                     if defeated:
                         self.enemy_defeat(enemy)
+                    action_performed = True
                     break
         elif self.pending_card == "Meteor":
             for enemy in self.enemies:
@@ -277,6 +318,7 @@ class DungeonGame():
                     defeated = enemy.takeDamage(4)
                     if defeated:
                         self.enemy_defeat(enemy)
+                    action_performed = True
                     break
         elif self.pending_card == "Slingshot":
             for enemy in self.enemies:
@@ -284,7 +326,9 @@ class DungeonGame():
                     defeated = enemy.takeDamage(self.player.attackDamage)
                     if defeated:
                         self.enemy_defeat(enemy)
+                    action_performed = True
                     break
+        return action_performed
 
     def enemy_defeat(self, enemy):
         self.grid.grid[enemy.y][enemy.x] = 0
@@ -304,17 +348,36 @@ class DungeonGame():
         input_type = input.get("type")
         if input_type == "move":
             newFloor = self.player.movePlayer(input.get("direction"), grid)  #move player
+            if newFloor == "win":
+                self.won()
+                return self.displayGame()
         elif input_type == "pick_card" and self.tailwind == 0:
             if self.hand:
                 card = self.cardProcessor(self.playerDeck.useSlot(int(input.get("slot"))))
                 #all cards flip over
+                # Track card-type usage counters so they can be persisted at game end
+                try:
+                    if card and getattr(card, 'card', None):
+                        ctype = card.card.type
+                        if ctype == app.enums.CardType.combat:
+                            self.playerDeck.combat_counter += 1
+                        elif ctype == app.enums.CardType.movement:
+                            self.playerDeck.movement_counter += 1
+                        elif ctype == app.enums.CardType.survival:
+                            self.playerDeck.survival_counter += 1
+                        elif ctype == app.enums.CardType.utility:
+                            self.playerDeck.utility_counter += 1
+                except Exception:
+                    pass
         elif input_type == "tile_click":
             x = input.get("x")
             y = input.get("y")
             if self.waiting_for_tile_click:
-                self.process_tile_click(x, y)
-                self.waiting_for_tile_click = False
-                self.pending_card = None
+                if self.process_tile_click(x, y):
+                    self.waiting_for_tile_click = False
+                    self.pending_card = None
+                else:
+                    return self.displayGame()
 
         #flow control module for card effects that last multiple turns or require player input
         if self.tailwind > 0:
@@ -326,7 +389,6 @@ class DungeonGame():
         if self.waiting_for_tile_click: #2 phase card, end turn early and wait for tile click input before advancing game state
             return self.displayGame()
         #upon picking a 2 phase card, a description of what to do appears where the hand usually is
-        #game over goes here as well
 
         self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
         self.card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
@@ -347,6 +409,7 @@ class DungeonGame():
                 enemy.attack(self.player)
                 if self.player.health <= 0:
                     self.gameOver()
+                    return self.displayGame()
         self.turnNum += 1
         self.getGridObject().updateVisibility(self.player)
         return self.displayGame()
@@ -405,6 +468,7 @@ class Player():
         
         move = False
         newFloor = False
+        won = False
         if grid[self.y + dy[dir]][self.x + dx[dir]] == 0: 
             move = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 5:
@@ -420,8 +484,9 @@ class Player():
             move = True
             newFloor = True
         elif grid[self.y + dy[dir]][self.x + dx[dir]] == 8:
-            #final chest, end the game
+            #final tile, win the game
             move = True
+            won = True
         if move:
             grid[self.y][self.x] = 0
             self.x += dx[dir]
@@ -429,17 +494,20 @@ class Player():
             grid[self.y][self.x] = 2
         if newFloor:
             return True
+        if won:
+            return "win"
+        return False
         
-        
+
 class Grid():
     '''Class that handles all logic to do with the game grid'''
     startRoom = Room
     endRoom = Room
-    def __init__(self, WIDTH, HEIGHT, FOV):
+    def __init__(self, WIDTH, HEIGHT, FOV, lastLevel):
         self.HEIGHT = HEIGHT
         self.WIDTH = WIDTH
         self.FOV = FOV
-        self.grid, self.roomsList = self.generate_dungeon()
+        self.grid, self.roomsList = self.generate_dungeon(lastLevel)
         self.isVisible = [[False] * self.WIDTH for _ in range(self.HEIGHT)]
         self.fake_grid = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
@@ -481,6 +549,8 @@ class Grid():
             dy = [0, -1, 1, 0]
             for i in range(4):
                 zx, zy = x + dx[i], y + dy[i]
+                if not (0 <= zx < self.WIDTH and 0 <= zy < self.HEIGHT):
+                    continue
                 if self.grid[zy][zx] == 0 and dist_map[zy][zx] == -1:
                     dist_map[zy][zx] = dist_map[y][x] + 1
                     queue.append((zx, zy))
@@ -501,7 +571,7 @@ class Grid():
                     self.fake_grid[i][j] = -1
         return self.fake_grid
 
-    def generate_dungeon(self):    
+    def generate_dungeon(self, lastLevel):    
         #Room constants
         ROOM_COUNT = 8
         MIN_WIDTH = 4
@@ -586,7 +656,10 @@ class Grid():
         startX, startY = startRoom.center()
         endX, endY = endRoom.center()
         grid[startY][startX] = 2
-        grid[endY][endX] = 6
+        if lastLevel:
+            grid[endY][endX] = 8
+        else:
+            grid[endY][endX] = 6
 
         rooms.remove(startRoom)
         self.startRoom = startRoom

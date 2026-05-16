@@ -1,8 +1,8 @@
 from flask import render_template, abort, request, url_for, session, redirect, Blueprint
 from flask_login import login_required, current_user
 from app import db
-from app.models import User, Card, UserCard, Trade, TradeCard, CardType
-from app.enums import TradeStatus
+from app.models import User, Card, UserCard, Trade, TradeCard
+from app.enums import CardType
 from sqlalchemy import case
 
 bp = Blueprint("trading", __name__)
@@ -13,7 +13,7 @@ bp = Blueprint("trading", __name__)
 @bp.route("/trading")
 @login_required
 def trading():
-    current_user_id=current_user.id
+    current_user_id = current_user.id
 
     incoming_trade_rows = Trade.query.filter_by(receiver_id=current_user_id).order_by(Trade.creation_date.desc()).all()
     outgoing_trade_rows = Trade.query.filter_by(sender_id=current_user_id).order_by(Trade.creation_date.desc()).all()
@@ -29,7 +29,7 @@ def trading():
             "created_at": trade.creation_date.strftime("%Y-%m-%d"),
             "cards_requested": cards_requested,
             "cards_offered": cards_offered,
-            "status": trade.status.value
+            "receiver_viewed": trade.receiver_viewed
         })
 
     outgoing_trades = []
@@ -42,11 +42,11 @@ def trading():
             "to_user": trade.receiver.username,
             "created_at": trade.creation_date.strftime("%Y-%m-%d"),
             "cards_requested": cards_requested,
-            "cards_offered": cards_offered,
-            "status": trade.status.value
+            "cards_offered": cards_offered
         })
 
     return render_template("trading/trading.html", incoming_trades=incoming_trades, outgoing_trades=outgoing_trades)
+
 
 
 
@@ -190,7 +190,7 @@ def submit_trade():
     if not requested_cards and not offered_cards:
         return redirect(url_for(".new_trade", target_username=target_username))
 
-    trade = Trade(sender_id=sender_id, receiver_id=receiver.id, status=TradeStatus.pending)
+    trade = Trade(sender_id=sender_id, receiver_id=receiver.id, receiver_viewed=False)
     db.session.add(trade)
     db.session.flush()
 
@@ -201,6 +201,7 @@ def submit_trade():
     for card in offered_cards:
         card.locked = True
         db.session.add(TradeCard(trade_id=trade.id, user_card_id=card.id))
+
     db.session.commit()
 
     session.pop("requested_card_ids", None)
@@ -208,6 +209,7 @@ def submit_trade():
     session.pop("trade_target_username", None)
 
     return redirect(url_for(".trading"))
+
 
 
 
@@ -223,6 +225,10 @@ def view_trade(trade_id):
     if current_user_id not in [trade_row.sender_id, trade_row.receiver_id]:
         return redirect(url_for(".trading"))
 
+    if current_user_id == trade_row.receiver_id and not trade_row.receiver_viewed:
+        trade_row.receiver_viewed = True
+        db.session.commit()
+
     offered_cards = []
     requested_cards = []
 
@@ -232,13 +238,20 @@ def view_trade(trade_id):
         elif trade_card.user_card.user_id == trade_row.receiver_id:
             requested_cards.append(trade_card.user_card)
 
-    trade = {"id": trade_row.id, "from_user": trade_row.sender.username, "to_user": trade_row.receiver.username, "created_at": trade_row.creation_date.strftime("%Y-%m-%d"), "status": trade_row.status.value,
-        "offered_cards": offered_cards, "requested_cards": requested_cards}
+    trade = {
+        "id": trade_row.id,
+        "from_user": trade_row.sender.username,
+        "to_user": trade_row.receiver.username,
+        "created_at": trade_row.creation_date.strftime("%Y-%m-%d"),
+        "offered_cards": offered_cards,
+        "requested_cards": requested_cards
+    }
 
     is_sender = current_user_id == trade_row.sender_id
     is_receiver = current_user_id == trade_row.receiver_id
 
     return render_template("trading/view_trade.html", trade=trade, is_sender=is_sender, is_receiver=is_receiver)
+
 
 
 

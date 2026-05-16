@@ -22,14 +22,19 @@
                 <div style="max-height: 720px; overflow-y: auto;">
                     {% if incoming_trades %}
                         {% for trade in incoming_trades %}
-                            <div class="border rounded p-3 mb-3>
-                                <h5 class="mb-2">From: {{ trade.from_user }}</h5>
+                            <div class="border rounded p-3 mb-3">
+                                <h5 class="mb-2">
+                                    From: {{ trade.from_user }}
+                                    {% if not trade.receiver_viewed %}
+                                        <span class="bg-danger badge badge-pill badge-danger" style="border-radius: 50%; width: 31px;";>!</span>
+                                    {% endif %}
+                                </h5>
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
-                                <p class="mb-1">Status: {{ trade.status|capitalize }}</p>
                                 <p class="mb-1">They want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">They offer: {{ trade.cards_offered }} cards</p>
                                 <a href="{{ url_for('trading.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>
                             </div>
+                        
                         {% endfor %}
                     {% else %}
                         <p>No incoming trades yet.</p>
@@ -51,7 +56,6 @@
                             <div class="border rounded p-3 mb-3">
                                 <h5 class="mb-2">To: {{ trade.to_user }}</h5>
                                 <p class="mb-1">Created: {{ trade.created_at }}</p>
-                                <p class="mb-1">Status: {{ trade.status|capitalize }}</p>
                                 <p class="mb-1">You want: {{ trade.cards_requested }} cards</p>
                                 <p class="mb-2">You offer: {{ trade.cards_offered }} cards</p>
                                 <a href="{{ url_for('trading.view_trade', trade_id=trade.id) }}" class="btn btn-sm btn-outline-primary">View Trade</a>

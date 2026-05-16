@@ -19,9 +19,9 @@
 </div>
 
 <div class="d-flex gap-2 mb-4">
-    <span class="badge bg-secondary fs-6">Easy Tokens: {{ user.easy_tokens }}</span>
-    <span class="badge bg-secondary fs-6">Medium Tokens: {{ user.medium_tokens }}</span>
-    <span class="badge bg-secondary fs-6">Hard Tokens: {{ user.hard_tokens }}</span>
+    <span class="badge bg-secondary fs-6">Common Tokens: {{ user.common_tokens }}</span>
+    <span class="badge bg-secondary fs-6">Uncommon Tokens: {{ user.uncommon_tokens }}</span>
+    <span class="badge bg-secondary fs-6">Rare Tokens: {{ user.rare_tokens }}</span>
 </div>
 
 <div class="card mb-4 shop-pack-card">
@@ -31,23 +31,23 @@
     <div class="card-body">
         <div class="row g-3">
             <div class="col-md-4">
-                <form method="post" action="{{url_for('shop.open_pack',token_type='easy')}}">
-                    <button type="submit" class="btn btn-secondary w-100" {% if user.easy_tokens<=0 %}disabled{% endif %}>
-                        Open Easy Pack
+                <form method="post" action="{{url_for('shop.open_pack',token_type='common')}}">
+                    <button type="submit" class="btn btn-secondary w-100" {% if user.common_tokens<=0 %}disabled{% endif %}>
+                        Open Common Pack
                     </button>
                 </form>
             </div>
             <div class="col-md-4">
-                <form method="post" action="{{url_for('shop.open_pack',token_type='medium')}}">
-                    <button type="submit" class="btn btn-primary w-100" {% if user.medium_tokens<=0 %}disabled{% endif %}>
-                        Open Medium Pack
+                <form method="post" action="{{url_for('shop.open_pack',token_type='uncommon')}}">
+                    <button type="submit" class="btn btn-primary w-100" {% if user.uncommon_tokens<=0 %}disabled{% endif %}>
+                        Open Uncommon Pack
                     </button>
                 </form>
             </div>
             <div class="col-md-4">
-                <form method="post" action="{{url_for('shop.open_pack',token_type='hard')}}">
-                    <button type="submit" class="btn btn-danger w-100" {% if user.hard_tokens<=0 %}disabled{% endif %}>
-                        Open Hard Pack
+                <form method="post" action="{{url_for('shop.open_pack',token_type='rare')}}">
+                    <button type="submit" class="btn btn-danger w-100" {% if user.rare_tokens<=0 %}disabled{% endif %}>
+                        Open Rare Pack
                     </button>
                 </form>
             </div>

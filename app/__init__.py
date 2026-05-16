@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from app.config import Config
 from flask_login import LoginManager
 from werkzeug.exceptions import RequestEntityTooLarge
+from app.context_processors import register_context_processors
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -14,10 +15,12 @@ login_manager.login_message="Please log in to access this page."
 login_manager.login_message_category="warning"
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
 
     app.config.from_object(Config)
+    if test_config is not None:
+        app.config.update(test_config)
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -35,6 +38,7 @@ def create_app():
     app.register_blueprint(shop_bp)
     app.register_blueprint(trading_bp)
     app.register_blueprint(profile_bp)
+    register_context_processors(app)
     register_cli(app)
 
     @app.errorhandler(RequestEntityTooLarge)

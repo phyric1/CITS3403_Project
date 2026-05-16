@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.enums import TradeStatus, CardRarity, CardType
 from flask_login import UserMixin
+from datetime import datetime, UTC
 
 MAX_DECK_SIZE = 40
 
@@ -13,15 +14,17 @@ class User(UserMixin,db.Model):
     email=db.Column(db.String(128),index=True,unique=True,nullable=False)
     password_hash=db.Column(db.String(256),nullable=False)
     gold=db.Column(db.Integer,default=20,nullable=False)
-    easy_tokens=db.Column(db.Integer,default=0)
-    medium_tokens=db.Column(db.Integer,default=0)
-    hard_tokens=db.Column(db.Integer,default=0)
+    common_tokens=db.Column(db.Integer,default=0)
+    uncommon_tokens=db.Column(db.Integer,default=0)
+    rare_tokens=db.Column(db.Integer,default=0)
     profile_photo=db.Column(db.String(256),default="default.png",nullable=False)
 
     cards = db.relationship('UserCard', back_populates='user', cascade='all, delete-orphan')
     decks = db.relationship('Deck', back_populates='user', cascade='all, delete-orphan')
     sender_trades = db.relationship('Trade', foreign_keys='Trade.sender_id', back_populates='sender')
     receiver_trades = db.relationship('Trade', foreign_keys='Trade.receiver_id', back_populates='receiver')
+    game_stats = db.relationship("GameStats", backref="user", lazy=True, cascade="all, delete-orphan")
+    lifetime_stats = db.relationship("LifeTimeStats", backref="user", uselist=False, cascade="all, delete-orphan")
 
     #Store the encrypted hash password
     def set_password(self,password):
@@ -38,38 +41,40 @@ class Game(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False, index=True)
     game = db.Column(db.PickleType, nullable=False, index=True)
-    #per game stats
-    #boolean for is active
-    #all games are canon
 
-class Stats(db.Model): #lifetime
-    id=db.Column(db.Integer,primary_key=True)
+class GameStats(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #current gold
-    #gold collected
-    #Fastest Run
-    #Longest Run
-    #easy dungeons cleared
-    #mid dungeons cleared
-    #hard dungeons cleared
-    #total
-    #most used card
-    #over runs
+    difficulty = db.Column(db.String(20), nullable=False)
+    success = db.Column(db.Boolean, default=False, nullable=False)
+    turns = db.Column(db.Integer, default=0, nullable=False)
+    gold_collected = db.Column(db.Integer, default=0, nullable=False)
+    enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
+    movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    score = db.Column(db.Integer, default=0, nullable=False)
+    init_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False, index=True)
 
-#class Stats(db.Model): #lifetime
-    #id=db.Column(db.Integer,primary_key=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    #current gold
-    #gold collected
-    #Fastest Run
-    #Longest Run
-    #easy dungeons cleared
-    #mid dungeons cleared
-    #hard dungeons cleared
-    #total
-    #most used card
-    #over runs
+class LifeTimeStats(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True, index=True)
+
+    games_played = db.Column(db.Integer, default=0, nullable=False)
+    wins = db.Column(db.Integer, default=0, nullable=False)
+    losses = db.Column(db.Integer, default=0, nullable=False)
+    turns = db.Column(db.Integer, default=0, nullable=False)
+    fastest_win_turns = db.Column(db.Integer, nullable=True)
+
+    gold_collected = db.Column(db.Integer, default=0, nullable=False)
+    enemies_defeated = db.Column(db.Integer, default=0, nullable=False)
+    movement_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+
+    score = db.Column(db.Integer, default=0, nullable=False, index=True)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,7 +103,6 @@ class UserCard(db.Model):
     card_id = db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
     uses_remaining = db.Column(db.Integer, nullable=False) # -1 for infinite uses
     tradable = db.Column(db.Boolean, nullable=False, default=False)
-    protected = db.Column(db.Boolean, nullable=False, default=False)
     locked = db.Column(db.Boolean, nullable=False, default=False)
 
     user = db.relationship('User', back_populates='cards')
@@ -147,7 +151,7 @@ class Trade(db.Model):
 
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    status = db.Column(db.Enum(TradeStatus, validate_strings=True, native_enum=False), default=TradeStatus.pending, nullable=False)
+    receiver_viewed = db.Column(db.Boolean, nullable=False, default=False)
     creation_date = db.Column(db.DateTime, default=db.func.now(), nullable=False,)
 
     trade_cards = db.relationship('TradeCard', back_populates='trade', cascade='all, delete-orphan')
@@ -170,14 +174,30 @@ class TradeCard(db.Model):
 
 
 @event.listens_for(User, "after_insert")
-def create_deck(mapper, connection, target):
+def create_user_adjacent_tables(mapper, connection, target):
     connection.execute(Deck.__table__.insert().values(user_id=target.id, name=f"{target.username}'s Deck"))
+    connection.execute(LifeTimeStats.__table__.insert().values(
+        user_id=target.id,
+        games_played=0,
+        wins=0,
+        losses=0,
+        turns=0,
+        fastest_win_turns=None,
+        gold_collected=0,
+        enemies_defeated=0,
+        movement_cards_played=0,
+        survival_cards_played=0,
+        combat_cards_played=0,
+        utility_cards_played=0,
+    ))
+
 
 class DailyShopCard(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     card_id=db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
     date=db.Column(db.String(10), nullable=False)  # Format: YYYY-MM-DD
+    purchased=db.Column(db.Boolean, default=False, nullable=False)
     user=db.relationship('User')
     card=db.relationship('Card')
     __table_args__ = (
