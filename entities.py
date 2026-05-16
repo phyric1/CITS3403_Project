@@ -64,11 +64,23 @@ class Enemy():
         dy = [0, 0, -1, 1]
 
         for i in range(4):
-            d = dist_map[self.y + dy[i]][self.x + dx[i]]
+            new_x = self.x + dx[i]
+            new_y = self.y + dy[i]
+            if not self.bounds_check(grid, new_x, new_y):
+                continue
+            if grid[new_y][new_x] not in [0, 2]:
+                continue
+            d = dist_map[new_y][new_x]
             if d < best_dist and d != -1: 
-                best_dist = dist_map[self.y + dy[i]][self.x + dx[i]]
+                best_dist = d
                 best_dir = i
-        if grid[self.y + dy[best_dir]][self.x + dx[best_dir]] == 2:
+        if best_dir == -1:
+            return grid
+        new_x = self.x + dx[best_dir]
+        new_y = self.y + dy[best_dir]
+        if not self.bounds_check(grid, new_x, new_y):
+            return grid
+        if grid[new_y][new_x] == 2:
             return grid
         grid[self.y][self.x] = 0  # clear old position
         self.x += dx[best_dir]

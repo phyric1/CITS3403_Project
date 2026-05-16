@@ -110,7 +110,17 @@ def game():
     existingGame = Game.query.filter_by(user_id = current_user.id).first()
     if existingGame:
         return render_template("game.html")
-    return render_template("start_game.html")
+    
+    deck=Deck.query.filter_by(user_id=current_user.id).first()
+    deck_cards=[]
+    if deck:
+        deck_entries=db.session.query(DeckCard,UserCard,Card).join(UserCard,DeckCard.user_card_id==UserCard.id).join(Card,UserCard.card_id==Card.id).filter(DeckCard.deck_id==deck.id).all()
+        for deck_card,user_card,card in deck_entries:
+            deck_cards.append(SimpleNamespace(
+                card=card,
+                uses_remaining=user_card.uses_remaining
+            ))
+    return render_template("start_game.html",deck_cards=deck_cards,deck_count=len(deck_cards))
 
 @bp.route("/game/state")
 @login_required
