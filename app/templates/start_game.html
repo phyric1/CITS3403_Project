@@ -3,56 +3,131 @@
 {% block title %}Game{% endblock %}
 
 {% block extra_links %}
-<link rel="stylesheet" href="{{ url_for('static', filename='game.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='cards.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='start_game.css') }}">
 <script src="{{ url_for('static', filename='game.js') }}"></script>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row g-4">
-        <div class="col-12 col-md-4">
-            <div class="card glass-card p-3 h-100">
-                <h3 class="mb-3">Start Game</h3>
+<div class="start-dashboard-vertical">
 
+    <div class="card start-panel start-main-panel mb-4">
+        <div class="card-body p-4">
+
+            <div class="start-panel-header mb-4">
+                <div>
+                    <p class="start-label mb-2">Dungeon Dealer</p>
+                    <h1 class="start-heading mb-2">Start Game</h1>
+                    <p class="start-description mb-0">
+                        Choose a difficulty, prepare your deck, and clear the dungeon to earn tokens.
+                    </p>
+                </div>
+
+                <div class="start-icon">
+                    ⚔
+                </div>
+            </div>
+
+            <div class="start-section mb-4">
                 <label for="difficulty" class="form-label">Difficulty</label>
-                <select id="difficulty" class="form-select mb-3">
+                <select id="difficulty" class="form-select start-select">
                     <option value="Easy">Easy</option>
                     <option value="Normal" selected>Normal</option>
                     <option value="Hard">Hard</option>
                 </select>
-
-                <button class="btn btn-primary w-100" onclick="startGame()">
-                    Start New Game
-                </button>
             </div>
-        </div>
 
-        <div class="col-12 col-md-4">
-            <div class="card glass-card p-3 h-100">
-                <h3 class="mb-3">Progress</h3>
-
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Rewards</span>
-                    <span id="rewards-value">0</span>
+            <div class="difficulty-list mb-4">
+                <div class="difficulty-item">
+                    <strong>Easy</strong>
+                    <span>2 dungeon floors. Complete the run to earn a common token.</span>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <span>Floor Count</span>
-                    <span id="floor-count">0</span>
+                <div class="difficulty-item difficulty-active">
+                    <strong>Normal</strong>
+                    <span>4 dungeon floors. Complete the run to earn an uncommon token.</span>
+                </div>
+
+                <div class="difficulty-item">
+                    <strong>Hard</strong>
+                    <span>6 dungeon floors. Complete the run to earn a rare token.</span>
                 </div>
             </div>
+
+            <button class="btn btn-primary w-100 start-game-button" onclick="startGame()">
+                Start New Game
+            </button>
+
         </div>
-
-        <div class="col-12 col-md-4">
-            <div class="card glass-card p-3 h-100">
-                <h3 class="mb-3">Deck Info</h3>
-
-                <div id="deck-info">
-                </div>
-            </div>
-        </div>
-
     </div>
+
+    <div class="card start-panel deck-panel mb-4">
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <p class="start-label mb-2">Deck Info</p>
+                    <h2 class="start-card-title mb-0">Current Deck</h2>
+                </div>
+
+                <span class="status-pill">
+                    {{ deck_count }} / 40
+                </span>
+            </div>
+
+            {% if deck_cards %}
+                <div class="start-deck-preview">
+                    {% for item in deck_cards %}
+                        <div class="start-static-card rarity-{{ item.card.rarity.value }}">
+
+                            <div class="start-static-uses">
+                                {% if item.uses_remaining == -1 %}
+                                    ∞
+                                {% else %}
+                                    {{ item.uses_remaining }}/{{ item.card.uses }}
+                                {% endif %}
+                            </div>
+
+                            <div class="start-static-image type-{{ item.card.type.value }}">
+                                <img src="{{ url_for('static', filename='img/' ~ item.card.type.value ~ '.png') }}"
+                                    alt="{{ item.card.type.value }}">
+                            </div>
+
+                            <div class="start-static-title">
+                                {{ item.card.name }}
+                            </div>
+
+                            <div class="start-static-effect">
+                                {{ item.card.effect }}
+                            </div>
+
+                            <div class="start-static-footer">
+                                {{ item.card.type.value|capitalize }} - Max
+                                {% if item.card.max_in_deck == -1 %}
+                                    ∞
+                                {% else %}
+                                    {{ item.card.max_in_deck }}
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="deck-empty-box">
+                    <strong>No cards in your deck yet.</strong>
+                    <p class="mb-0">
+                        Add cards from your inventory before starting the dungeon run.
+                    </p>
+                </div>
+            {% endif %}
+
+            <a href="{{ url_for('inventory.inventory', username=current_user.username) }}"
+            class="btn btn-outline-light deck-link-button mt-4">
+                Manage Deck in Inventory
+            </a>
+
+        </div>
+    </div>
+
 </div>
 {% endblock %}
