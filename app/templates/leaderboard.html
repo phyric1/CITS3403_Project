@@ -55,7 +55,9 @@
             </th>
 
             <td class="text-center">
-              {{ row.username }}
+              <a href="{{ url_for('profile.profile', username=row.username) }}">
+                {{ row.username }}
+              </a>
             </td>
 
             {% for key, label in columns %}
