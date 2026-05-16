@@ -1,24 +1,50 @@
 /* Sprites */
-.floor.variant-0 { background-image: url("/static/img/tiles/floor.png"); }
-.floor.variant-1 { background-image: url("/static/img/tiles/floor2.png"); }
-.floor.variant-2 { background-image: url("/static/img/tiles/floor3.png"); }
-.floor.variant-3 { background-image: url("/static/img/tiles/floor4.png"); }
+.floor { background-image: url("/static/img/tiles/floor.png"); }
 
 .wall.variant-0 { background-image: url("/static/img/tiles/wall.png"); }
 .wall.variant-1 { background-image: url("/static/img/tiles/wall2.png"); }
-.wall.variant-2 { background-image: url("/static/img/tiles/wall3.png"); }
-.wall.variant-3 { background-image: url("/static/img/tiles/wall4.png"); }
 
 .start {
-    background-image: url("/static/img/tiles/start.png");
+    background-image: url("/static/img/tiles/playerdown.png");
 }
 
 .end {
-    background-image: url("/static/img/tiles/end.png");
+    background-image: url("/static/img/tiles/door.png");
 }
 
 .enemy {
     background-image: url("/static/img/tiles/enemy.png");
+}
+.player-left {
+    background-image: url("/static/img/tiles/playerleft.png");
+}
+
+.player-right {
+    background-image: url("/static/img/tiles/playerright.png");
+}
+
+.player-up {
+    background-image: url("/static/img/tiles/playerup.png");
+}
+
+.player-down {
+    background-image: url("/static/img/tiles/playerdown.png");
+}
+
+.enemy-left {
+    background-image: url("/static/img/tiles/enemyleft.png");
+}
+
+.enemy-right {
+    background-image: url("/static/img/tiles/enemyright.png");
+}
+
+.enemy-up {
+    background-image: url("/static/img/tiles/enemyup.png");
+}
+
+.enemy-down {
+    background-image: url("/static/img/tiles/enemydown.png");
 }
 
 .key {
@@ -26,11 +52,11 @@
 }
 
 .exit {
-    background-image: url("/static/img/tiles/exit.png");
+    background-image: url("/static/img/tiles/stairs.png");
 }
 
 .gold {
-    background-image: url("/static/img/tiles/gold.png");
+    background-image: url("/static/img/tiles/coin.png");
 }
 
 .finish {

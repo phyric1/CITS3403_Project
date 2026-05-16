@@ -1,10 +1,5 @@
 import random
 
-#line of sight function
-class Items():
-    def __init__(self):
-        pass
-
 class Enemy():
     def __init__(self, x, y):
         self.x = x
@@ -21,7 +16,9 @@ class Enemy():
 
     def moveEnemy(self, grid, dist_map, filter):
         if self.state == "idle":
-            self.patrol(grid, filter)
+            f, alert = self.patrol(grid, filter)
+            if alert:
+                return alert
         elif self.state == "chase":
             self.chase(grid, dist_map)
 
@@ -52,8 +49,10 @@ class Enemy():
         self.x += dx[dir]
         self.y += dy[dir]
         grid[self.y][self.x] = 4  # set new position
-        self.detect(grid, filter)
-        return grid
+        new_filter, alert = self.detect(grid, filter)
+        if alert:
+            return new_filter, True
+        return new_filter, False
          
     #aggressive
     def chase(self, grid, dist_map):
@@ -76,6 +75,7 @@ class Enemy():
                 best_dir = i
         if best_dir == -1:
             return grid
+        self.direction = best_dir
         new_x = self.x + dx[best_dir]
         new_y = self.y + dy[best_dir]
         if not self.bounds_check(grid, new_x, new_y):
@@ -85,7 +85,7 @@ class Enemy():
         grid[self.y][self.x] = 0  # clear old position
         self.x += dx[best_dir]
         self.y += dy[best_dir]
-        grid[self.y][self.x] = 4 
+        grid[self.y][self.x] = 4
         return grid
     
     #add los check
@@ -103,7 +103,7 @@ class Enemy():
                                 break
                             elif grid[y][x] == 2:
                                 self.state = "chase"
-                                return filter
+                                return filter, True
                             else:
                                 filter[y][x] = 1
         elif self.direction == 0: #left
@@ -116,7 +116,7 @@ class Enemy():
                                 break
                             elif grid[y][zx] == 2:
                                 self.state = "chase"
-                                return filter
+                                return filter, True
                             else:
                                 filter[y][zx] = 1
                                 zx -= 1
@@ -130,7 +130,7 @@ class Enemy():
                                 break
                             elif grid[zy][x] == 2:
                                 self.state = "chase"
-                                return filter
+                                return filter, True
                             else:
                                 filter[zy][x] = 1
                                 zy -= 1
@@ -143,10 +143,10 @@ class Enemy():
                                 break
                             elif grid[y][x] == 2:
                                 self.state = "chase"
-                                return filter
+                                return filter, True
                             else:
                                 filter[y][x] = 1
-        return filter
+        return filter, False
 
     def bounds_check(self, filter, x, y):
         if 0 <= y < len(filter) and 0 <= x < len(filter[0]):
@@ -155,24 +155,15 @@ class Enemy():
             return False
     
     def attack(self, player):
-         #directions
+        #directions
         dx = [-1, 1, 0, 0]
-        dy = [0, 0, -1, 1]
-
+        dy = [0, 0, -1, 1]        
         for i in range(4):
-            if self.x + dx[i] == player.x and self.y + dy[i] == player.y:
-                player.takeDamage(1)
-        if self.x == player.x and self.y == player.y:
-            player.takeDamage(1)
-
+            if (self.x + dx[i] == player.x and self.y + dy[i] == player.y) or (self.x == player.x and self.y == player.y):
+                success = player.takeDamage(1)
+                return success
+        return False
+    
 class Goblin(Enemy):
     def __init__(self, x, y):
         super().__init__(x, y)
-
-class Keys(Items):
-    def __init__(self):
-        pass
-
-class Gold(Items):
-    def __init__(self, x, y):
-        super(x, y)
