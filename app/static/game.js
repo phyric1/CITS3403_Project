@@ -23,7 +23,7 @@ const DIRECTION_CLASSES = [
 ];
 
 const SOUNDS = {
-    player_move: new Audio("/static/sounds/blip.wav"), 
+    player_move: new Audio("/static/sounds/blip.wav"),
     pickup: new Audio("/static/sounds/pickup.wav"),
     floor_cleared: new Audio("/static/sounds/clear.wav"),
     player_hurt: new Audio("/static/sounds/hurt.wav"),
@@ -37,6 +37,7 @@ const SOUNDS = {
 };
 
 let previousGrid = [];
+let previousEntities = [];
 let previousFilter = [];
 const tileElements = [];
 let gameEnded = false;
@@ -232,19 +233,33 @@ function updateGridDisplay(newGrid, filter, entities = []) {
     entities.forEach(entity => {
         entityMap.set(`${entity.x},${entity.y}`, entity);
     });
-  for (let i = 0; i < newGrid.length; i++) {
-    for (let j = 0; j < newGrid[i].length; j++) {
-      if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
-        setTileType(tileElements[i][j], newGrid[i][j]);
-      }
-      if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
-        setTileFilter(tileElements[i][j], filter[i][j]);
-      }
-            setTileEntity(tileElements[i][j], entityMap.get(`${j},${i}`));
+
+    for (let i = 0; i < newGrid.length; i++) {
+        for (let j = 0; j < newGrid[i].length; j++) {
+            const tile = tileElements[i][j];
+            if (!previousGrid[i] || newGrid[i][j] !== previousGrid[i][j]) {
+                setTileType(tile, newGrid[i][j]);
+            }
+            if (!previousFilter[i] || filter[i][j] !== previousFilter[i][j]) {
+                setTileFilter(tile, filter[i][j]);
+            }
+            const newEntity = entityMap.get(`${j},${i}`);
+            const prevEntity = previousEntities[i]?.[j];
+            if (
+                !prevEntity ||
+                !newEntity ||
+                prevEntity.type !== newEntity.type ||
+                prevEntity.direction !== newEntity.direction
+            ) {
+                setTileEntity(tile, newEntity);
+            }
+        }
     }
-  }
-  previousGrid = newGrid.map(row => [...row]);
-  previousFilter = filter.map(row => [...row]);
+    previousGrid = newGrid.map(row => [...row]);
+    previousFilter = filter.map(row => [...row]);
+    previousEntities = entities.map(e => ({
+        ...e
+    }));
 }
 
 function setTileType(tile, value) {
