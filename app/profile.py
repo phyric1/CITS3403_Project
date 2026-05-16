@@ -2,7 +2,7 @@ from flask import render_template, abort, request, url_for, redirect, flash, Blu
 from flask_login import login_required,current_user
 from app import db
 from sqlalchemy import or_, case
-from app.models import User, UserCard, Deck, DeckCard, Trade
+from app.models import User, UserCard, Deck, DeckCard, Trade, GameStats, LifeTimeStats
 import os
 from werkzeug.utils import secure_filename
 
@@ -32,7 +32,13 @@ def profile(username):
         deck_size=0
 
     lifetime_stats = user.lifetime_stats
-    games = (user.game_stats.order_by(GameStats.init_at.asc()).limit(10).all())
+    games = (
+        db.session.query(GameStats)
+        .filter(GameStats.user_id == user.id)
+        .order_by(GameStats.init_at.asc())
+        .limit(10)
+        .all()
+    )
 
     game_data = {
         "labels": [f"Game {i+1}" for i in range(len(games))],
@@ -44,7 +50,7 @@ def profile(username):
         "survival": [g.survival_cards_played for g in games],
         "combat": [g.combat_cards_played for g in games],
         "utility": [g.utility_cards_played for g in games],
-        "wins": [1 if g.won else 0 for g in games],
+        "wins": [1 if g.success else 0 for g in games],
         "difficulty": [
             0 if g.difficulty == "easy"
             else 1 if g.difficulty == "medium"
@@ -53,12 +59,9 @@ def profile(username):
         ]
     }
 
-    win_rate = (
-        lifetime_stats.wins /
-        case(
-            (lifetime_stats.games_played == 0, 1),
-            else_=lifetime_stats.games_played
-        )
+    win_rate = 0 if lifetime_stats.games_played == 0 else round(
+        (lifetime_stats.wins / lifetime_stats.games_played) * 100,
+        1
     )
 
     player={

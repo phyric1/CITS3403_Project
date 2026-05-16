@@ -54,6 +54,7 @@ class GameStats(db.Model):
     survival_cards_played = db.Column(db.Integer, default=0, nullable=False)
     combat_cards_played = db.Column(db.Integer, default=0, nullable=False)
     utility_cards_played = db.Column(db.Integer, default=0, nullable=False)
+    score = db.Column(db.Integer, default=0, nullable=False)
     init_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False, index=True)
 
 class LifeTimeStats(db.Model):

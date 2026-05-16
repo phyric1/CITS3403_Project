@@ -6,8 +6,7 @@ from app.forms import LoginForm, RegisterForm, ResetPasswordForm
 from sqlalchemy import desc, asc, case, func
 from app.enums import CardType
 from game_logic import DungeonGame
-from app.utils import get_deck_cards
-from app.utils import add_user_cards
+from app.utils import get_deck_cards, add_user_cards, compute_game_score
 from cards_logic import PlayerDeck
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -146,6 +145,9 @@ def move():
                 user.uncommon_tokens += 1
             elif dungeon_game.difficulty == "Hard":
                 user.rare_tokens += 1
+
+        score = compute_game_score(dungeon_game)
+
         game_stats = GameStats(
             user_id=current_user.id,
             difficulty=dungeon_game.difficulty,
@@ -157,6 +159,7 @@ def move():
             survival_cards_played=getattr(dungeon_game.playerDeck, 'survival_counter', 0),
             combat_cards_played=getattr(dungeon_game.playerDeck, 'combat_counter', 0),
             utility_cards_played=getattr(dungeon_game.playerDeck, 'utility_counter', 0),
+            score = score
         )
 
         lifetime_stats = current_user.lifetime_stats
@@ -178,14 +181,7 @@ def move():
         lifetime_stats.survival_cards_played += getattr(dungeon_game.playerDeck, 'survival_counter', 0)
         lifetime_stats.combat_cards_played += getattr(dungeon_game.playerDeck, 'combat_counter', 0)
         lifetime_stats.utility_cards_played += getattr(dungeon_game.playerDeck, 'utility_counter', 0)
-        lifetime_stats.score = (
-            (lifetime_stats.wins * 500)
-            + (lifetime_stats.gold_collected * 2)
-            + (lifetime_stats.enemies_defeated * 25)
-            + lifetime_stats.turns
-            + (lifetime_stats.games_played * 50)
-            - (lifetime_stats.losses * 100)
-        )
+        lifetime_stats.score += score
 
         db.session.add(game_stats)
         db.session.delete(existingGame)
