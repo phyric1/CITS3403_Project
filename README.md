@@ -174,3 +174,6 @@ Sound Effects Obtained from freesound.org:
 * (lose) 8-bit Game Over Sound/Tune by EVRetro -- https://freesound.org/s/533034/ -- License: Creative Commons 0
 * (win) "Win" Video Game Sound by EVRetro -- https://freesound.org/s/495005/ -- License: Creative Commons 0
 * (guard) 8-bit Soft Impact by JapanYoshiTheGamer -- https://freesound.org/s/361268/ -- License: Creative Commons 0
+
+Site Background Obtained from shutterstock.com: 
+- Stone brick castle wall pixel art by Cadmium_Red -- https://www.shutterstock.com/image-vector/stone-brick-castle-wall-pixel-art-2507723223
