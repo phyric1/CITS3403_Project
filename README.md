@@ -90,13 +90,34 @@ The social layer of the game allows users to compare performance via leaderboard
    pip install -r requirements.txt
    ```
 
-5. **Set the SECRET_KEY environment variable**
+5. **Set up the `.env` file**
+
+   Copy `.env.example` to `.env`.
+
+   For Windows:
 
    ```bash
-   export SECRET_KEY=your_actual_secret_key
+   copy .env.example .env
    ```
 
-   **NOTE:** Replace `"your_actual_secret_key"` with a secure secret key. Do not use the placeholder value in production.
+   For Mac/Linux:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Generate a secure secret key:
+
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+   Open the .env file and replace the placeholder value:
+   ```env
+   SECRET_KEY=your_generated_secret_key
+   ```
+
+   **NOTE:** Replace `"your_generated_secret_key"` with a secure secret key. Do not use the placeholder value in production. Do not commit .env.
 
 6. **Setup the database**
 
