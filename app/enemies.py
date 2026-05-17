@@ -162,7 +162,7 @@ class Enemy():
             if (self.x + dx[i] == player.x and self.y + dy[i] == player.y) or (self.x == player.x and self.y == player.y):
                 success = player.takeDamage(1)
                 return success
-        return False
+        return None
     
 class Goblin(Enemy):
     def __init__(self, x, y, hp):

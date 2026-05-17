@@ -105,7 +105,7 @@
   },
   {
     "name": "Dexterity",
-    "effect": "+1 tile range on Dagger and Slingshot",
+    "effect": "+1 tile range on Dagger, Slingshot, Flash and Dynamite",
     "rarity": "uncommon",
     "type": "combat",
     "uses": 15,
@@ -113,7 +113,7 @@
   },
   {
     "name": "Dynamite",
-    "effect": "Blows up walls and does large damages in a 5x5 area, -2 stealth",
+    "effect": "Blows up walls and does large damages in a 5x5 area",
     "rarity": "rare",
     "type": "combat",
     "uses": 10,
@@ -137,7 +137,7 @@
   },
   {
     "name": "Flash",
-    "effect": "Enemies in a 3 tile radius area will lose aggresiveness and stop chasing you",
+    "effect": "Enemies in a 3x3 area will lose aggresiveness and stop chasing you",
     "rarity": "rare",
     "type": "combat",
     "uses": 7,

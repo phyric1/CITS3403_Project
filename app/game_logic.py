@@ -328,12 +328,14 @@ class DungeonGame():
             self.player.y = y
             self.grid.grid[y][x] = 2
             action_performed = True
+            self.emitSoundEvent("player_move")
         elif self.pending_card == "Acrobatics":
             self.grid.grid[self.player.y][self.player.x] = 0
             self.player.x = x
             self.player.y = y
             self.grid.grid[y][x] = 2
             action_performed = True
+            self.emitSoundEvent("player_move")
         elif self.pending_card == "Dagger":
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
@@ -370,6 +372,7 @@ class DungeonGame():
         self.player.enemies_defeated += 1
         reward = 1
         if "Master of Combat" in self.playerDeck.master_cards:
+            self.emitSoundEvent("pickup")
             reward += enemy.maxHealth
         self.player.gold += reward
         self.emitSoundEvent("enemy_defeat")
@@ -448,6 +451,8 @@ class DungeonGame():
                     enemy.state = "idle"
                 if enemy.attack(self.player):
                     self.emitSoundEvent("player_hurt")
+                elif enemy.attack(self.player) == False:
+                    self.emitSoundEvent("guard")
                 if self.player.health <= 0:
                     self.gameOver()
                     return self.displayGame()
