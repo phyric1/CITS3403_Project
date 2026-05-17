@@ -273,6 +273,32 @@ background-color: black;
     }
 }
 
+#hand-cards .card-wrapper {
+    animation: refresh 0.3s;
+}
+
+@keyframes refresh {
+    0% {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+@keyframes blink_fast {
+    0%, 100% {
+        opacity: 1 !important;
+    }
+    50% {
+        opacity: 0 !important;
+    }
+}
+
+
 .dark {
     background-color: black;
 }

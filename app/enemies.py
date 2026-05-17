@@ -95,6 +95,7 @@ class Enemy():
         halfW = vision_width // 2
 
         if self.direction == 1: #right
+            #check which directions
             if grid[self.y][self.x+1] != 1:
                 for y in range(self.y - halfW, self.y + halfW + 1):
                     for x in range(self.x + 1, self.x + vision_depth):
@@ -107,6 +108,7 @@ class Enemy():
                             else:
                                 filter[y][x] = 1
         elif self.direction == 0: #left
+            #check which directions
             if grid[self.y][self.x-1] != 1:
                 for y in range(self.y - halfW, self.y + halfW + 1):
                     zx = self.x - 1

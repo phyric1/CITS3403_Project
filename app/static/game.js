@@ -66,7 +66,6 @@ function setTileEntity(tile, entity) {
 }
 
 function createGridTiles(grid) {
-    console.log('Creating grid tiles');
     const gridElement = document.getElementById('grid');
     if (!gridElement || !Array.isArray(grid)) return;
 
@@ -135,7 +134,6 @@ if (handArea) {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Success:', data);
                 updateGridDisplay(data.grid, data.filter, data.entities);
                 playSound(data.events);
             updateGameState(data.turn, data.hp, data.keys, data.gold, data.stealth, data.floor, data.maxFloors, data.deckMax, data.deckSize);

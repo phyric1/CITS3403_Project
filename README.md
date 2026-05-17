@@ -156,3 +156,24 @@ Follow the above steps to run the website. Once it is up, open a new terminal wi
 ```bash
 python3 -m pytest -v
 ```
+## Credits and Tools
+Copilot and ChatGPT were used tools to assist development, however all design, logic and implementation ideas and decisions were made by the group members
+
+Sound Effects Obtained from freesound.org:
+* (buff) Powerup2.wav by AbbasGamez -- https://freesound.org/s/411443/ -- License: Creative Commons 0
+* (hurt) Hurt_C_05 by cabled_mess -- https://freesound.org/s/350919/ -- License: Creative Commons 0
+* (slash) Slash - Rpg by colorsCrimsonTears -- https://freesound.org/s/580307/ -- License: Creative Commons 0
+* (explosion) Retro, Explosion 05.wav by LilMati -- https://freesound.org/s/441497/ -- License: Creative Commons 0
+* (card) slideCard00 by SilverDubloons -- https://freesound.org/s/817575/ -- License: Creative Commons 0
+* (blip) 8-Bit Text Blip - Low Pitch by SomeGuy22 -- https://freesound.org/s/431327/ -- License: Creative Commons 0
+* (pickup) Coin_C_09 by cabled_mess -- https://freesound.org/s/350876/ -- License: Creative Commons 0
+* (alert) Simple Chiptune Jingle 2 by AndreWharn -- https://freesound.org/s/501211/ -- License: Attribution 4.0
+* (flash) 8-bit long slide.wav by EVRetro -- https://freesound.org/s/501105/ -- License: Creative Commons 0
+* (clear) Retro Bonus Pickup SFX  by suntemple -- https://freesound.org/s/253172/ -- License: Creative Commons 0
+* (card) slideCard02 by SilverDubloons -- https://freesound.org/s/817577/ -- License: Creative Commons 0
+* (lose) 8-bit Game Over Sound/Tune by EVRetro -- https://freesound.org/s/533034/ -- License: Creative Commons 0
+* (win) "Win" Video Game Sound by EVRetro -- https://freesound.org/s/495005/ -- License: Creative Commons 0
+* (guard) 8-bit Soft Impact by JapanYoshiTheGamer -- https://freesound.org/s/361268/ -- License: Creative Commons 0
+
+Site Background Obtained from shutterstock.com: 
+- Stone brick castle wall pixel art by Cadmium_Red -- https://www.shutterstock.com/image-vector/stone-brick-castle-wall-pixel-art-2507723223
