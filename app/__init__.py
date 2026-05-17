@@ -2,7 +2,7 @@ import click
 from flask import Flask, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from app.config import Config
+from config import Config
 from flask_login import LoginManager
 from werkzeug.exceptions import RequestEntityTooLarge
 from app.context_processors import register_context_processors
