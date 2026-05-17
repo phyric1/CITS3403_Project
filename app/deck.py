@@ -10,13 +10,10 @@ def temp_add_cards(): #temporary function to add cards
                 ("Heal", 1),
                 ("Guard", 2),
                 ("Parry", 2),
-                ("Parry", 2),
-                ("Bear Trap", 2),
+                ("Fighting Spirit", 2),
                 ("Dynamite", 2),
                 ("Slingshot", 2),
-                ("Strip Mine", 2),
                 ("Meteor", 2),
-                ("Dash Attack", 2),
                 ("Key to Victory", 2),
                 ("Light the Way", 2),
                 ("Master of Movement", 1),
@@ -64,7 +61,6 @@ class PlayerDeck():
         self.deck = [card for card in self.deck if "Master" not in card.card.name] #exclude master cards
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
-        print(self.master_cards)
 
     def shuffle(self, cards):
         if len(cards) <= 3:

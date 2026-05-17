@@ -27,7 +27,7 @@ class Grid():
         self.isVisible = [[False] * self.WIDTH for _ in range(self.HEIGHT)]
         self.fake_grid = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
-    def spawnEnemies(self, enemyCount):
+    def spawnEnemies(self, enemyCount, hp):
         enemyList = []
         for i in range(enemyCount):
             enemySpawn = self.roomsList[random.randint(0, len(self.roomsList)-1)]
@@ -35,7 +35,8 @@ class Grid():
             self.roomsList.remove(enemySpawn)
 
             self.grid[enemyY][enemyX] = 4
-            enemyList.append(Goblin(enemyX, enemyY))
+            print(hp)
+            enemyList.append(Goblin(enemyX, enemyY, hp))
         return enemyList
 
     def spawnGold(self, goldCount):

@@ -34,6 +34,7 @@ const SOUNDS = {
     attack: new Audio("/static/sounds/slash.wav"),
     alert: new Audio("/static/sounds/alert.ogg"),
     buff: new Audio("/static/sounds/buff.wav"),
+    flash: new Audio("/static/sounds/flash.wav"),
 };
 
 let previousGrid = [];

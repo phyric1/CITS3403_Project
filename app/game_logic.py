@@ -215,10 +215,9 @@ class DungeonGame():
                     for dist in range(1, self.player.attackRange + 1):
                         ny = y + dy[dir] * dist
                         nx = x + dx[dir] * dist
-                        if self.grid.grid[ny][nx] != 4:
-                            break
-                        self.filter[ny][nx] = 5
-                        i += 1
+                        if self.grid.grid[ny][nx] == 4:
+                            self.filter[ny][nx] = 5
+                            i += 1
                 if i == 0:
                     return None
                 self.waiting_for_tile_click = True
@@ -238,7 +237,7 @@ class DungeonGame():
                         enemy.state = "idle"
             case "Dynamite":
                 grid = self.grid.grid
-                radius = 2 + self.player.attackRange
+                radius =  + self.player.attackRange
                 x = self.player.x
                 y = self.player.y
                 min_y = max(0, y - radius)
@@ -299,11 +298,26 @@ class DungeonGame():
         x, y = self.grid.startRoom.center()
         self.player.x, self.player.y = x, y
         self.enemies = [] #new enemies on each floor
+        if self.difficulty == "Easy":
+            if level == 0:
+                self.enemies = self.grid.spawnEnemies(1, 1)
+            else:
+                self.enemies = self.grid.spawnEnemies(1, 1)
+            self.grid.spawnGold(2)
         if self.difficulty == "Normal":
-            self.enemies = self.grid.spawnEnemies(3)
+            if level < self.maxLevels - 1:
+                self.enemies = self.grid.spawnEnemies(3, 1)
+            if level == self.maxLevels - 1:
+                self.enemies = self.grid.spawnEnemies(3, 2)
+            self.grid.spawnGold(2 + level//2)
         if self.difficulty == "Hard":
-            self.enemies = self.grid.spawnEnemies(4)
-        self.grid.spawnGold(2)
+            if level == 0:
+                self.enemies = self.grid.spawnEnemies(3, 2)
+            elif level < self.maxLevels - 2:
+                self.enemies = self.grid.spawnEnemies(4, 3)
+            elif level == self.maxLevels - 1:
+                self.enemies = self.grid.spawnEnemies(5, 4)
+            self.grid.spawnGold(2 + level//2)
         self.level += 1
 
     def process_tile_click(self, x, y):
@@ -414,9 +428,8 @@ class DungeonGame():
 
         if self.waiting_for_tile_click: #2 phase card, end turn early and wait for tile click input before advancing game state
             return self.displayGame()
-        #upon picking a 2 phase card, a description of what to do appears where the hand usually is
 
-        self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
+        self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck)
         self.card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
 
         if newFloor:
@@ -453,3 +466,4 @@ class DungeonGame():
     
     def getPlayer(self): #return player object
         return self.player
+    
