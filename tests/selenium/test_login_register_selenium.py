@@ -70,4 +70,5 @@ def test_wrong_login(driver):
     driver.find_element(By.NAME,"username").send_keys("wrong")
     driver.find_element(By.NAME,"password").send_keys("a1234567")
     click_submit(driver)
+    WebDriverWait(driver, 10).until(lambda d: "Invalid username or password." in d.page_source)
     assert "Invalid username or password." in driver.page_source
