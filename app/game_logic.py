@@ -53,6 +53,7 @@ class DungeonGame():
             grid = self.grid.grid
         else:
             grid = self.grid.gridProxy()
+        self.card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
         discard_data = self.playerDeck.serialize_card(self.playerDeck.discard[-1]) if self.playerDeck.discard else None
         soundEvents = self.sound_events
         self.sound_events = []
