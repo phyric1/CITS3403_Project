@@ -1,32 +1,6 @@
 import app.utils
 from app import db
 import random
-from app.models import UserCard
-
-def temp_add_cards(): #temporary function to add cards
-    i, j = app.utils.get_current_user_id()
-    app.utils.add_user_cards(i, [
-                ("Flash", 2),
-                ("Timestop", 1),
-                ("Teleport", 3),
-                ("Acrobatics", 2),
-                ("Sprint", 2),
-                ("Recycle", 2),
-                ("Dexterity", 2),
-                ("Fighting Spirit", 2),
-                ("Dynamite", 2),
-                ("Slingshot", 2),
-                ("Meteor", 2),
-                ("Key to Victory", 2),
-                ("Light the Way", 2),
-                ("Master of Movement", 1),
-                ("Master of Combat", 1),
-                ("Master of Cards", 1),
-                ("Master of Survival", 1),
-                 ("Eye for Treasure", 3),
-            ])
-    db.session.commit()
-
 
 def get_deck():
     user_id, err = app.utils.get_current_user_id()
