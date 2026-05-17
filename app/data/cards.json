@@ -44,7 +44,7 @@
     "effect": "Activates Turn 0: +2 stealth for every movement card played",
     "rarity": "master",
     "type": "movement",
-    "uses": 7,
+    "uses": -1,
     "max_in_deck": 1
   },
   {
@@ -84,7 +84,7 @@
     "effect": "Activates Turn 0: Every survival card played has a 50% chance to heal",
     "rarity": "master",
     "type": "survival",
-    "uses": 7,
+    "uses": -1,
     "max_in_deck": 1
   },
   {
@@ -156,7 +156,7 @@
     "effect": "Activates Turn 0: Upon defeating an enemy, gain extra gold",
     "rarity": "master",
     "type": "combat",
-    "uses": 7,
+    "uses": -1,
     "max_in_deck": 1
   },
 
@@ -213,7 +213,7 @@
     "effect": "Activates Turn 0: Every card played has a 15% chance to be recycled",
     "rarity": "master",
     "type": "utility",
-    "uses": 7,
+    "uses": -1,
     "max_in_deck": 1
   },
 

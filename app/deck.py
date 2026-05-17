@@ -1,6 +1,7 @@
 import app.utils
 from app import db
 import random
+from app.models import UserCard
 
 def get_deck():
     user_id, err = app.utils.get_current_user_id()
