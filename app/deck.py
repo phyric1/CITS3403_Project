@@ -62,11 +62,14 @@ class PlayerDeck():
         self.discard.append(card)
         self.deckSize = len(self.deck)
 
-        if card.uses_remaining != -1:
-            card.uses_remaining -= 1
+        db_card = db.session.merge(card)
 
-            if card.uses_remaining == 0:
-                db.session.delete(card)
+        if db_card.uses_remaining != -1:
+            db_card.uses_remaining -= 1
+            card.uses_remaining = db_card.uses_remaining
+
+            if db_card.uses_remaining == 0:
+                db.session.delete(db_card)
 
         db.session.commit()
         return card
