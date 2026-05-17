@@ -8,9 +8,9 @@ from app.models import LifeTimeStats, User, Card, UserCard, Deck, DeckCard, Trad
 from app.forms import LoginForm, RegisterForm, ResetPasswordForm
 from app.enums import TradeStatus, CardRarity, CardType
 
-from game_logic import DungeonGame, Player, Grid
+from app.game_logic import DungeonGame
 from app.utils import get_user_deck, get_deck_cards, add_user_cards, compute_game_score
-from cards_logic import PlayerDeck
+from app.deck import PlayerDeck
 
 import random
 from datetime import date

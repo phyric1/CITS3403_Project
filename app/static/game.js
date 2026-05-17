@@ -27,13 +27,15 @@ const SOUNDS = {
     pickup: new Audio("/static/sounds/pickup.wav"),
     floor_cleared: new Audio("/static/sounds/clear.wav"),
     player_hurt: new Audio("/static/sounds/hurt.wav"),
-    game_win: new Audio("/static/sounds/slash.wav"),
-    game_lose: new Audio("/static/sounds/slash.wav"),
+    game_win: new Audio("/static/sounds/win.wav"),
+    game_lose: new Audio("/static/sounds/lose.wav"),
     play_card: new Audio("/static/sounds/card.wav"),
     explosion: new Audio("/static/sounds/explosion.wav"),
     attack: new Audio("/static/sounds/slash.wav"),
     alert: new Audio("/static/sounds/alert.ogg"),
     buff: new Audio("/static/sounds/buff.wav"),
+    flash: new Audio("/static/sounds/flash.wav"),
+    guard: new Audio("/static/sounds/guard.wav"),
 };
 
 let previousGrid = [];
@@ -469,7 +471,7 @@ function loadGameState() {
         .catch((error) => console.error('Error loading game state:', error));
 }
 
-    function resetGame() {
+function resetGame() {
         fetch('/reset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

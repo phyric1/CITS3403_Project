@@ -1,6 +1,7 @@
 import app.utils
 from app import db
 import random
+from app.models import UserCard
 
 def temp_add_cards(): #temporary function to add cards
     i, j = app.utils.get_current_user_id()
@@ -10,13 +11,10 @@ def temp_add_cards(): #temporary function to add cards
                 ("Heal", 1),
                 ("Guard", 2),
                 ("Parry", 2),
-                ("Parry", 2),
-                ("Bear Trap", 2),
+                ("Fighting Spirit", 2),
                 ("Dynamite", 2),
                 ("Slingshot", 2),
-                ("Strip Mine", 2),
                 ("Meteor", 2),
-                ("Dash Attack", 2),
                 ("Key to Victory", 2),
                 ("Light the Way", 2),
                 ("Master of Movement", 1),
@@ -40,7 +38,6 @@ def get_deck():
         return [], err
 
     return [deck_card.user_card for deck_card in deck.deck_cards], None
-#cards that are proccessed upon loading the game
 
 class PlayerDeck():
     def __init__(self):
@@ -64,7 +61,6 @@ class PlayerDeck():
         self.deck = [card for card in self.deck if "Master" not in card.card.name] #exclude master cards
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
-        print(self.master_cards)
 
     def shuffle(self, cards):
         if len(cards) <= 3:
@@ -89,7 +85,10 @@ class PlayerDeck():
         self.discard.append(card)
         self.deckSize = len(self.deck)
         if card.uses_remaining != -1:
+            db_card = UserCard.query.get(card.id)
+            db_card.uses_remaining -= 1
             card.uses_remaining -= 1
+            db.session.commit()
             if card.uses_remaining == 0:
                 db.session.delete(card)
                 db.session.commit()

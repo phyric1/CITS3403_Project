@@ -1,13 +1,13 @@
 import random
 
 class Enemy():
-    def __init__(self, x, y):
+    def __init__(self, x, y, hp):
         self.x = x
         self.y = y
         #left = 0, right = 1, up = 2, down = 3
         self.direction = 0
         self.state = "idle" 
-        self.health = 1
+        self.health = hp
         self.maxHealth = self.health
 
     def takeDamage(self, damage):
@@ -162,8 +162,8 @@ class Enemy():
             if (self.x + dx[i] == player.x and self.y + dy[i] == player.y) or (self.x == player.x and self.y == player.y):
                 success = player.takeDamage(1)
                 return success
-        return False
+        return None
     
 class Goblin(Enemy):
-    def __init__(self, x, y):
-        super().__init__(x, y)
+    def __init__(self, x, y, hp):
+        super().__init__(x, y, hp)
