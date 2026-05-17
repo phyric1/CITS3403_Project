@@ -27,7 +27,14 @@ class Grid():
         self.isVisible = [[False] * self.WIDTH for _ in range(self.HEIGHT)]
         self.fake_grid = [[-1] * self.WIDTH for _ in range(self.HEIGHT)]
 
+    def boundaryCheck(self, x, y):
+        '''Returns true if x and y are within boundaries'''
+        if 0 <= x < self.WIDTH and 0 <= y < self.HEIGHT:
+            return True
+        return False
+
     def spawnEnemies(self, enemyCount, hp):
+        '''Spawns an enemy per i in enemyCount after grid is generated'''
         enemyList = []
         for i in range(enemyCount):
             enemySpawn = self.roomsList[random.randint(0, len(self.roomsList)-1)]
@@ -40,6 +47,7 @@ class Grid():
         return enemyList
 
     def spawnGold(self, goldCount):
+        '''Spawns i gold per goldCount'''
         for i in range(goldCount):
             success = False
             while success == False:

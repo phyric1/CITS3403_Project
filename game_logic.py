@@ -47,7 +47,7 @@ class DungeonGame():
         return darknessChance, maxLevels
 
     def displayGame(self):
-    #'''returns json information for the game in its current state'''
+    #returns json information for the game in its current state
         self.grid.updateVisibility(self.player)
         if self.isVisible:
             grid = self.grid.grid
@@ -94,7 +94,6 @@ class DungeonGame():
                 })
 
     def won(self):
-        '''called when  player reaches the end of the dungeon'''
         self.isGameOver = True
         self.isWin = True
         if self.difficulty == "Easy":
@@ -115,12 +114,10 @@ class DungeonGame():
         self.emitSoundEvent("game_win")
 
     def emitSoundEvent(self, event):
-        '''adds sound event to be sent to frontend sound player'''
         if event not in self.sound_events:
             self.sound_events.append(event)
 
     def gameOver(self):
-        '''called when game ends'''
         self.isGameOver = True
         self.isWin = False
         self.gameOverStats = {
@@ -135,17 +132,14 @@ class DungeonGame():
         self.emitSoundEvent("game_lose")
 
     def cardProcessor(self, card):
-        '''Switch statement to read card name and perform corresponding function'''
         match card.card.name:
             case "Tailwind":
                 self.tailwind = 3
             case "Teleport":
                 success = False
                 while success == False:
-                    x = random.randint(0, grid.grid.width - 1)
-                    y = random.randint(0, grid.grid.height - 1)
-                    if not self.grid.boundaryCheck(x, y):
-                        break
+                    x = random.randint(0, 31)
+                    y = random.randint(0, 19)
                     if self.grid.grid[y][x] == 0:
                         self.grid.grid[self.player.y][self.player.x] = 0
                         self.player.x, self.player.y = x, y
@@ -159,8 +153,8 @@ class DungeonGame():
                     for dx in range(-radius, radius + 1):
                         if abs(dy) + abs(dx) <= radius:
                             ny, nx = y + dy, x + dx
-                            if self.grid.boundaryCheck(nx, ny) and self.grid.grid[ny][nx] == 0:
-                                self.filter[ny][nx] = 5
+                        if 0 <= ny < 20 and 0 <= nx < 32 and self.grid.grid[ny][nx] == 0:
+                            self.filter[ny][nx] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Acrobatics"
             case "Sprint":
@@ -173,8 +167,6 @@ class DungeonGame():
                     i = 0
                     while not collide:
                         i += 1
-                        if not self.grid.boundaryCheck(x + dx[dir]*i, y + dy[dir]*i):
-                            break
                         if self.grid.grid[y + dy[dir]*i][x + dx[dir]*i] == 1:
                              collide = True
                         else:
@@ -182,7 +174,6 @@ class DungeonGame():
                 self.waiting_for_tile_click = True
                 self.pending_card = "Sprint"
             case "Timestop":
-                self.emitSoundEvent("flash")
                 self.timeStopped = True
             case "Rest":
                 self.emitSoundEvent("buff")
@@ -195,10 +186,9 @@ class DungeonGame():
             case "Parry":
                 self.player.dodgeChance += 0.1
             case "Strength":
-                self.emitSoundEvent("buff")
                 self.player.attackDamage += 1
             case "Slingshot":
-                radius = 2 + self.player.attackRange
+                radius = 3
                 x = self.player.x
                 y = self.player.y
                 i = 0
@@ -214,7 +204,6 @@ class DungeonGame():
                 self.waiting_for_tile_click = True
                 self.pending_card = "Slingshot"
             case "Dexterity":
-                self.emitSoundEvent("buff")
                 self.player.attackRange += 1
             case "Dagger":
                 x = self.player.x
@@ -223,16 +212,7 @@ class DungeonGame():
                 dy = [0, 0, -1, 1]
                 i = 0
                 for dir in range(4):
-                    for dist in range(1, self.player.attackRange + 1):
-                        ny = y + dy[dir] * dist
-                        nx = x + dx[dir] * dist
-                        if not self.grid.boundaryCheck(nx, ny):
-                            break
-                        if self.grid.grid[ny][nx] == 4:
-                            self.filter[ny][nx] = 5
-                            i += 1
-                if i == 0:
-                    return None
+                        self.filter[y + dy[dir]][x + dx[dir]] = 5
                 self.waiting_for_tile_click = True
                 self.pending_card = "Dagger"
             case "Meteor":
@@ -250,7 +230,7 @@ class DungeonGame():
                         enemy.state = "idle"
             case "Dynamite":
                 grid = self.grid.grid
-                radius =  + self.player.attackRange
+                radius = 2
                 x = self.player.x
                 y = self.player.y
                 min_y = max(0, y - radius)
@@ -297,8 +277,7 @@ class DungeonGame():
                 self.playerDeck.deckSize = len(self.playerDeck.deck)
         return card
 
-    def generate_floor(self, level):
-        '''generates a new dungeon floor'''
+    def generate_floor(self, level): #generates a new dungeon floor
         if level == 0: #first level is always visible
             self.isVisible = True
         else:
@@ -311,26 +290,11 @@ class DungeonGame():
         x, y = self.grid.startRoom.center()
         self.player.x, self.player.y = x, y
         self.enemies = [] #new enemies on each floor
-        if self.difficulty == "Easy":
-            if level == 0:
-                self.enemies = self.grid.spawnEnemies(1, 1)
-            else:
-                self.enemies = self.grid.spawnEnemies(1, 1)
-            self.grid.spawnGold(2)
         if self.difficulty == "Normal":
-            if level < self.maxLevels - 1:
-                self.enemies = self.grid.spawnEnemies(3, 1)
-            if level == self.maxLevels - 1:
-                self.enemies = self.grid.spawnEnemies(3, 2)
-            self.grid.spawnGold(2 + level//2)
+            self.enemies = self.grid.spawnEnemies(3)
         if self.difficulty == "Hard":
-            if level == 0:
-                self.enemies = self.grid.spawnEnemies(3, 2)
-            elif level < self.maxLevels - 2:
-                self.enemies = self.grid.spawnEnemies(4, 3)
-            elif level == self.maxLevels - 1:
-                self.enemies = self.grid.spawnEnemies(5, 4)
-            self.grid.spawnGold(2 + level//2)
+            self.enemies = self.grid.spawnEnemies(4)
+        self.grid.spawnGold(2)
         self.level += 1
 
     def process_tile_click(self, x, y):
@@ -341,14 +305,12 @@ class DungeonGame():
             self.player.y = y
             self.grid.grid[y][x] = 2
             action_performed = True
-            self.emitSoundEvent("player_move")
         elif self.pending_card == "Acrobatics":
             self.grid.grid[self.player.y][self.player.x] = 0
             self.player.x = x
             self.player.y = y
             self.grid.grid[y][x] = 2
             action_performed = True
-            self.emitSoundEvent("player_move")
         elif self.pending_card == "Dagger":
             for enemy in self.enemies:
                 if enemy.x == x and enemy.y == y:
@@ -379,14 +341,12 @@ class DungeonGame():
         return action_performed
 
     def enemy_defeat(self, enemy):
-        '''Triggers game events for when an enemy reaches 0 health'''
         self.grid.grid[enemy.y][enemy.x] = 0
         if enemy in self.enemies:
             self.enemies.remove(enemy)
         self.player.enemies_defeated += 1
         reward = 1
         if "Master of Combat" in self.playerDeck.master_cards:
-            self.emitSoundEvent("pickup")
             reward += enemy.maxHealth
         self.player.gold += reward
         self.emitSoundEvent("enemy_defeat")
@@ -445,8 +405,9 @@ class DungeonGame():
 
         if self.waiting_for_tile_click: #2 phase card, end turn early and wait for tile click input before advancing game state
             return self.displayGame()
+        #upon picking a 2 phase card, a description of what to do appears where the hand usually is
 
-        self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck)
+        self.playerDeck.hand = self.playerDeck.shuffle(self.playerDeck.deck) #move logic to cards file
         self.card_data = [self.playerDeck.serialize_card(card) for card in self.playerDeck.hand]
 
         if newFloor:
@@ -465,8 +426,6 @@ class DungeonGame():
                     enemy.state = "idle"
                 if enemy.attack(self.player):
                     self.emitSoundEvent("player_hurt")
-                elif enemy.attack(self.player) == False:
-                    self.emitSoundEvent("guard")
                 if self.player.health <= 0:
                     self.gameOver()
                     return self.displayGame()
@@ -485,4 +444,3 @@ class DungeonGame():
     
     def getPlayer(self): #return player object
         return self.player
-    
