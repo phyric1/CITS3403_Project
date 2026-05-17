@@ -48,6 +48,11 @@ def give_user_gold(username,amount):
         user.gold=amount
         db.session.commit()
 
+def scroll_and_click(driver,element):
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});",element)
+    WebDriverWait(driver,10).until(lambda d: element.is_displayed() and element.is_enabled())
+    element.click()
+
 def test_shop_redirects_to_login_if_when_logged_out(driver):
     driver.get(f"{BASE_URL}/shop")
     WebDriverWait(driver,10).until(EC.url_contains("/login"))
@@ -103,3 +108,27 @@ def test_buy_card_from_shop_the_button_changes(driver):
     page_text=driver.page_source
     assert "Purchased" in page_text or "Sold Out" in page_text
     assert "/shop" in driver.current_url
+
+def test_inventory_can_add_and_remove_card_from_deck(driver):
+    username,email,password=register_user(driver)
+    driver.get(f"{BASE_URL}/profile/{username}/inventory?mode=deck")
+    WebDriverWait(driver,10).until(EC.presence_of_element_located((By.ID,"inventory")))
+    deck_count=driver.find_element(By.ID,"deck-count")
+    start_count=int(deck_count.text)
+    add_button=WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#inventory .add-to-deck")))
+    scroll_and_click(driver,add_button)
+    WebDriverWait(driver,10).until(lambda d: int(d.find_element(By.ID,"deck-count").text) == start_count+1)
+    remove_button=WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#deck .remove-from-deck")))
+    scroll_and_click(driver,remove_button)
+    WebDriverWait(driver,10).until(lambda d: int(d.find_element(By.ID,"deck-count").text) == start_count)
+    assert int(driver.find_element(By.ID,"deck-count").text) == start_count
+
+def test_inventory_can_make_card_tradable(driver):
+    username,email,password=register_user(driver)
+    driver.get(f"{BASE_URL}/profile/{username}/inventory?mode=tradable")
+    WebDriverWait(driver,10).until(EC.presence_of_element_located((By.ID,"inventory")))
+    tradable_button=WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#inventory .tradable-toggle[data-tradable='false']")))
+    scroll_and_click(driver,tradable_button)
+    WebDriverWait(driver,10).until(lambda d: len(d.find_elements(By.CSS_SELECTOR,"#inventory .tradable-toggle[data-tradable='true']")) > 0)
+    page_text=driver.page_source
+    assert "Tradable" in page_text
