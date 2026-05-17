@@ -8,9 +8,11 @@ def temp_add_cards(): #temporary function to add cards
     app.utils.add_user_cards(i, [
                 ("Flash", 2),
                 ("Timestop", 1),
-                ("Heal", 1),
-                ("Guard", 2),
-                ("Parry", 2),
+                ("Teleport", 3),
+                ("Acrobatics", 2),
+                ("Sprint", 2),
+                ("Recycle", 2),
+                ("Dexterity", 2),
                 ("Fighting Spirit", 2),
                 ("Dynamite", 2),
                 ("Slingshot", 2),
@@ -21,10 +23,8 @@ def temp_add_cards(): #temporary function to add cards
                 ("Master of Combat", 1),
                 ("Master of Cards", 1),
                 ("Master of Survival", 1),
+                 ("Eye for Treasure", 3),
             ])
-    '''app.utils.add_user_cards(i, [
-                ("Eye for Treasure", 3),
-            ])'''
     db.session.commit()
 
 
@@ -55,10 +55,11 @@ class PlayerDeck():
         self.survival_counter = 0
 
     def loadDeck(self):
+        '''Loads user's deck into the game'''
         for card in self.deck:
-            if "Master" in card.card.name:
+            if "Master" in card.card.name: #master cards are automatically activated
                 self.master_cards.append(card.card.name)
-        self.deck = [card for card in self.deck if "Master" not in card.card.name] #exclude master cards
+        self.deck = [card for card in self.deck if "Master" not in card.card.name] #exclude master cards 
         self.deckMax = len(self.deck)
         self.deckSize = len(self.deck)
 
@@ -81,19 +82,20 @@ class PlayerDeck():
 
     def useSlot(self, slot):
         card = self.hand[slot]
-        self.deck.remove(self.hand[slot])
+
+        self.deck.remove(card)
         self.discard.append(card)
         self.deckSize = len(self.deck)
+
         if card.uses_remaining != -1:
-            db_card = UserCard.query.get(card.id)
-            db_card.uses_remaining -= 1
             card.uses_remaining -= 1
-            db.session.commit()
+
             if card.uses_remaining == 0:
                 db.session.delete(card)
-                db.session.commit()
+
+        db.session.commit()
         return card
-    
+        
     def serialize_card(self, user_card):
             if user_card:
                 return {

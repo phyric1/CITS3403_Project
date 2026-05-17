@@ -41,7 +41,7 @@
   },
   {
     "name": "Master of Movement",
-    "effect": "+2 stealth for every movement card played",
+    "effect": "Activates Turn 0: +2 stealth for every movement card played",
     "rarity": "master",
     "type": "movement",
     "uses": 7,
@@ -81,7 +81,7 @@
   },
   {
     "name": "Master of Survival",
-    "effect": "Effect Active During Whole Game: Upon defeating an enemy, gain extra gold equivalent to that enemies max health",
+    "effect": "Activates Turn 0: Every survival card played has a 50% chance to heal",
     "rarity": "master",
     "type": "survival",
     "uses": 7,
@@ -153,7 +153,7 @@
   },
   {
     "name": "Master of Combat",
-    "effect": "Effect Active During Whole Game: Upon defeating an enemy, gain extra gold equivalent to that enemies max health",
+    "effect": "Activates Turn 0: Upon defeating an enemy, gain extra gold",
     "rarity": "master",
     "type": "combat",
     "uses": 7,
@@ -210,7 +210,7 @@
   },
   {
     "name": "Master of Cards",
-    "effect": "Effect Active During Whole Game: Every card played has a 15% chance to be recycled",
+    "effect": "Activates Turn 0: Every card played has a 15% chance to be recycled",
     "rarity": "master",
     "type": "utility",
     "uses": 7,

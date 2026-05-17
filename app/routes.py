@@ -104,6 +104,7 @@ def start():
         dungeon_game.playerDeck.deck = get_deck_cards(current_user.id)
         dungeon_game.playerDeck.loadDeck()
         dungeon_game.hand = dungeon_game.playerDeck.shuffle(dungeon_game.playerDeck.deck)
+        dungeon_game.playerDeck.hand = dungeon_game.hand
         game = Game(user_id = current_user.id, game = dungeon_game)
         db.session.add(game)
         db.session.commit()
@@ -122,12 +123,12 @@ def game():
     deck_cards=[]
     if deck:
         deck_entries=db.session.query(DeckCard,UserCard,Card).join(UserCard,DeckCard.user_card_id==UserCard.id).join(Card,UserCard.card_id==Card.id).filter(DeckCard.deck_id==deck.id).all()
-        for deck_card,user_card,card in deck_entries:
+        for deck_card, user_card,card in deck_entries:
             deck_cards.append(SimpleNamespace(
                 card=card,
                 uses_remaining=user_card.uses_remaining
             ))
-    return render_template("start_game.html",deck_cards=deck_cards,deck_count=len(deck_cards))
+    return render_template("start_game.html",deck_cards=deck_cards, deck_count=len(deck_cards))
 
 @bp.route("/game/state")
 @login_required

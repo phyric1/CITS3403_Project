@@ -142,14 +142,15 @@ class DungeonGame():
             case "Teleport":
                 success = False
                 while success == False:
-                    x = random.randint(0, grid.grid.width - 1)
-                    y = random.randint(0, grid.grid.height - 1)
+                    x = random.randint(0, self.grid.WIDTH - 1)
+                    y = random.randint(0, self.grid.HEIGHT - 1)
                     if not self.grid.boundaryCheck(x, y):
                         break
                     if self.grid.grid[y][x] == 0:
                         self.grid.grid[self.player.y][self.player.x] = 0
                         self.player.x, self.player.y = x, y
                         self.grid.grid[y][x] = 2
+                        self.emitSoundEvent("flash")
                         success = True
             case "Acrobatics":
                 radius = 3
@@ -292,6 +293,7 @@ class DungeonGame():
         if "Master of Cards" in self.playerDeck.master_cards:
             if card in self.playerDeck.discard and random.random() < 0.15:
                 self.playerDeck.discard.remove(card)
+                self.emitSoundEvent("floor_cleared")
                 self.emitSoundEvent("card_play")
                 self.playerDeck.deck.append(card)
                 self.playerDeck.deckSize = len(self.playerDeck.deck)

@@ -42,7 +42,6 @@ class Grid():
             self.roomsList.remove(enemySpawn)
 
             self.grid[enemyY][enemyX] = 4
-            print(hp)
             enemyList.append(Goblin(enemyX, enemyY, hp))
         return enemyList
 
