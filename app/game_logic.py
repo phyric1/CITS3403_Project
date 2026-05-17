@@ -287,6 +287,7 @@ class DungeonGame():
                     recycled_card = self.playerDeck.discard.pop(0)
                     self.playerDeck.deck.append(recycled_card)
                     self.playerDeck.deckSize = len(self.playerDeck.deck)
+                    self.emitSoundEvent("floor_cleared")
         if card.card.type == app.enums.CardType.survival and "Master of Survival" in self.playerDeck.master_cards:
             self.player.health += 1
         if card.card.type == app.enums.CardType.movement and "Master of Movement" in self.playerDeck.master_cards:
